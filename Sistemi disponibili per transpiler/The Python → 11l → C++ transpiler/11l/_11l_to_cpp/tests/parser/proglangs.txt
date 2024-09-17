@@ -1,0 +1,292 @@
+// 1
+-V
+   a = Float(input(‘a:’))
+   b = Float(input(‘b:’))
+   c = Float(input(‘c:’))
+   d = b^2 - 4*a*c
+
+I d == 0
+   print(‘x = ’(-b / (2*a)))
+E
+   print(‘x1 = ’((-b + sqrt(d + 0i)) / (2*a)))
+   print(‘x2 = ’((-b - sqrt(d + 0i)) / (2*a)))
+===
+const auto a = to_float(input(u"a:"_S));
+const auto b = to_float(input(u"b:"_S));
+const auto c = to_float(input(u"c:"_S));
+const auto d = square(b) - 4 * a * c;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        if (d == 0)
+            print(u"x = "_S & (-b / (2 * a)));
+        else {
+            print(u"x1 = "_S & ((-b + sqrt(d + 0i)) / (2 * a)));
+            print(u"x2 = "_S & ((-b - sqrt(d + 0i)) / (2 * a)));
+        }
+    }
+} code_block_1;
+
+
+// 5.2
+V l = Array(‘A’..‘Z’) [+] Array(‘0’..‘9’)
+
+L 6
+   L 6
+      -V rnd = random:(l.len)
+      print(l.pop_fast(rnd), end' ‘ ’)
+   print()
+===
+auto l = create_array(range_ee(u'A'_C, u'Z'_C)) + create_array(range_ee(u'0'_C, u'9'_C));
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (int Lindex = 0; Lindex < 6; Lindex++) {
+            for (int Lindex = 0; Lindex < 6; Lindex++) {
+                const auto rnd = randomns::_(l.len());
+                print(l.pop_fast(rnd), u" "_S);
+            }
+            print();
+        }
+    }
+} code_block_1;
+
+
+// 6
+-V
+   g = [[‘  ██  ’, ‘██████’, ‘██████’],
+        [‘████  ’, ‘    ██’, ‘    ██’],
+        [‘  ██  ’, ‘██████’, ‘  ████’],
+        [‘  ██  ’, ‘██    ’, ‘    ██’],
+        [‘██████’, ‘██████’, ‘██████’]]
+   digits = input()
+
+// Vertically
+L(digit) digits
+   L(line) 5
+      print(g[line][Int(digit)-1])
+   print()
+
+// Horizontally
+L(line) 5
+   L(digit) digits
+      print(g[line][Int(digit)-1], end' ‘  ’)
+   print()
+===
+const auto g = create_array({create_array({u"  ██  "_S, u"██████"_S, u"██████"_S}), create_array({u"████  "_S, u"    ██"_S, u"    ██"_S}), create_array({u"  ██  "_S, u"██████"_S, u"  ████"_S}), create_array({u"  ██  "_S, u"██    "_S, u"    ██"_S}), create_array({u"██████"_S, u"██████"_S, u"██████"_S})});
+const auto digits = input();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&digit : digits) {
+            for (int line = 0; line < 5; line++)
+                print(g[line][to_int(digit) - 1]);
+            print();
+        }
+
+        for (int line = 0; line < 5; line++) {
+            for (auto &&digit : digits)
+                print(g[line][to_int(digit) - 1], u"  "_S);
+            print();
+        }
+    }
+} code_block_1;
+
+
+// 7
+F parse_number(s, &i)
+   V r = 0
+   L i < s.len & s[i].is_digit()
+      r = r * 10 + Int(s[i++])
+   R r
+
+V
+   s = input(‘Expression:’)
+   i = 0
+   result = parse_number(s, &i)
+
+L i < s.len
+   S s[i++]
+      ‘+’
+         result += parse_number(s, &i)
+      ‘-’
+         result -= parse_number(s, &i)
+
+print(result)
+===
+template <typename T1, typename T2> auto parse_number(const T1 &s, T2 &i)
+{
+    auto r = 0;
+    while (i < s.len() && s[i].is_digit())
+        r = r * 10 + to_int(s[i++]);
+    return r;
+}
+
+auto s = input(u"Expression:"_S);
+auto i = 0;
+auto result = parse_number(s, i);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        while (i < s.len())
+            switch (s[i++])
+            {
+            case u'+':
+                result += parse_number(s, i);
+                break;
+            case u'-':
+                result -= parse_number(s, i);
+                break;
+            }
+
+        print(result);
+    }
+} code_block_1;
+
+
+// 8
+L(fname) [‘1.bmp’, ‘2.bmp’, ‘3.bmp’]
+   -V
+      b = File(fname).read_bytes()
+      w = Int32(bytes' b[18 .+ 4])
+      h = Int32(bytes' b[22 .+ 4])
+
+   L(y) reversed(0 .< h)
+      L(x) 0 .< w
+         -V c = S b[54 + (y*w + x) * 3]
+                   >= 204
+                      ‘  ’
+                   >= 153
+                      ‘░░’
+                   >= 102
+                      ‘▒▒’
+                   >=  51
+                      ‘▓▓’
+                   E
+                      ‘██’
+         print(c, end' ‘’)
+      print()
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&fname : create_array({u"1.bmp"_S, u"2.bmp"_S, u"3.bmp"_S})) {
+            const auto b = File(fname).read_bytes();
+            const auto w = int_t_from_bytes<Int32>(b, range_ep(18, 4));
+            const auto h = int_t_from_bytes<Int32>(b, range_ep(22, 4));
+
+            for (auto &&y : reversed(range_el(0, h))) {
+                for (auto x : range_el(0, w)) {
+                    const auto c = [&](const auto &a){return a >= 204 ? u"  "_S : a >= 153 ? u"░░"_S : a >= 102 ? u"▒▒"_S : a >= 51 ? u"▓▓"_S : u"██"_S;}(b[54 + (y * w + x) * 3]);
+                    print(c, u""_S);
+                }
+                print();
+            }
+        }
+    }
+} code_block_1;
+
+
+// 13
+V src = ‘’
+L (V line = input()) != ‘’
+   src ‘’= line"\n"
+
+V i = 0
+L i < src.len
+   I src[i].is_alpha()
+      V start = i++
+      L i < src.len & (src[i].is_alpha() | src[i].is_digit())
+         i++
+      V lexem = src[start .< i]
+      I lexem C (‘def’, ‘if’, ‘else’, ‘return’)
+         term:color(BLUE)
+         print(lexem, end' ‘’)
+         term:color(RESET)
+      E
+         print(lexem, end' ‘’)
+   E I src[i].is_digit()
+      term:color(GREEN)
+      L
+         print(src[i++], end' ‘’)
+         I !(i < src.len & src[i].is_digit())
+            L.break
+      term:color(RESET)
+   E I src[i] C ‘"'’
+      V q = src[i]
+      term:color(RED)
+      L
+         print(src[i++], end' ‘’)
+         I !(i < src.len & src[i] != q)
+            L.break
+      I i < src.len
+         print(src[i++], end' ‘’)
+      term:color(RESET)
+   E
+      print(src[i++], end' ‘’)
+===
+auto src = u""_S;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto line = input(); line != u""; line = input())
+            src &= line & u"\n"_S;
+    }
+} code_block_1;
+
+auto i = 0;
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        while (i < src.len())
+            if (src[i].is_alpha()) {
+                auto start = i++;
+                while (i < src.len() && (src[i].is_alpha() || src[i].is_digit()))
+                    i++;
+                auto lexem = src[range_el(start, i)];
+                if (in(lexem, make_tuple(u"def"_S, u"if"_S, u"else"_S, u"return"_S))) {
+                    term::color(term::Color::BLUE);
+                    print(lexem, u""_S);
+                    term::color(term::Color::RESET);
+                }
+                else
+                    print(lexem, u""_S);
+            }
+            else if (src[i].is_digit()) {
+                term::color(term::Color::GREEN);
+                while (true) {
+                    print(src[i++], u""_S);
+                    if (!(i < src.len() && src[i].is_digit()))
+                        break;
+                }
+                term::color(term::Color::RESET);
+            }
+            else if (in(src[i], u"\"'"_S)) {
+                auto q = src[i];
+                term::color(term::Color::RED);
+                while (true) {
+                    print(src[i++], u""_S);
+                    if (!(i < src.len() && src[i] != q))
+                        break;
+                }
+                if (i < src.len())
+                    print(src[i++], u""_S);
+                term::color(term::Color::RESET);
+            }
+            else
+                print(src[i++], u""_S);
+    }
+} code_block_2;

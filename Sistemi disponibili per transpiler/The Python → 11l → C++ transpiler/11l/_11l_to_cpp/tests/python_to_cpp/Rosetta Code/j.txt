@@ -1,0 +1,660 @@
+# https://www.rosettacode.org/wiki/Jaro_distance#Python
+def jaro(s, t):
+    s_len = len(s)
+    t_len = len(t)
+
+    if s_len == 0 and t_len == 0:
+        return 1.0
+
+    match_distance = (max(s_len, t_len) // 2) - 1
+
+    s_matches = [False] * s_len
+    t_matches = [False] * t_len
+
+    matches = 0
+    transpositions = 0
+
+    for i in range(s_len):
+        start = max(0, i - match_distance)
+        end = min(i + match_distance + 1, t_len)
+
+        for j in range(start, end):
+            if t_matches[j]:
+                continue
+            if s[i] != t[j]:
+                continue
+            s_matches[i] = True
+            t_matches[j] = True
+            matches += 1
+            break
+
+    if matches == 0:
+        return 0.0
+
+    k = 0
+    for i in range(s_len):
+        if not s_matches[i]:
+            continue
+        while not t_matches[k]:
+            k += 1
+        if s[i] != t[k]:
+            transpositions += 1
+        k += 1
+
+    return ((float(matches) / s_len) +
+            (float(matches) / t_len) +
+            ((matches - transpositions / 2) / matches)) / 3
+
+for s, t in [('MARTHA', 'MARHTA'),
+             ('DIXON', 'DICKSONX'),
+             ('JELLYFISH', 'SMELLYFISH')]:
+    print("jaro('%s', '%s') = %.10f" % (s, t, jaro(s, t)))
+===
+F jaro(s, t)
+   V s_len = s.len
+   V t_len = t.len
+
+   I s_len == 0 & t_len == 0
+      R 1.0
+
+   V match_distance = (max(s_len, t_len) I/ 2) - 1
+
+   V s_matches = [0B] * s_len
+   V t_matches = [0B] * t_len
+
+   V matches = 0
+   V transpositions = 0
+
+   L(i) 0 .< s_len
+      V start = max(0, i - match_distance)
+      V end = min(i + match_distance + 1, t_len)
+
+      L(j) start .< end
+         I t_matches[j]
+            L.continue
+         I s[i] != t[j]
+            L.continue
+         s_matches[i] = 1B
+         t_matches[j] = 1B
+         matches++
+         L.break
+
+   I matches == 0
+      R 0.0
+
+   V k = 0
+   L(i) 0 .< s_len
+      I !s_matches[i]
+         L.continue
+      L !t_matches[k]
+         k++
+      I s[i] != t[k]
+         transpositions++
+      k++
+
+   R ((Float(matches) / s_len) + (Float(matches) / t_len) + ((matches - transpositions / 2) / matches)) / 3
+
+L(s, t) [(‘MARTHA’, ‘MARHTA’), (‘DIXON’, ‘DICKSONX’), (‘JELLYFISH’, ‘SMELLYFISH’)]
+   print(‘jaro('#.', '#.') = #.10’.format(s, t, jaro(s, t)))
+===
+template <typename T1, typename T2> auto jaro(const T1 &s, const T2 &t)
+{
+    auto s_len = s.len();
+    auto t_len = t.len();
+
+    if (s_len == 0 && t_len == 0)
+        return 1.0;
+
+    auto match_distance = (idiv(max(s_len, t_len), 2)) - 1;
+
+    auto s_matches = create_array({false}) * s_len;
+    auto t_matches = create_array({false}) * t_len;
+
+    auto matches = 0;
+    auto transpositions = 0;
+
+    for (auto i : range_el(0, s_len)) {
+        auto start = max(0, i - match_distance);
+        auto end = min(i + match_distance + 1, t_len);
+
+        for (auto j : range_el(start, end)) {
+            if (t_matches[j])
+                continue;
+            if (s[i] != t[j])
+                continue;
+            s_matches.set(i, true);
+            t_matches.set(j, true);
+            matches++;
+            break;
+        }
+    }
+
+    if (matches == 0)
+        return 0.0;
+
+    auto k = 0;
+    for (auto i : range_el(0, s_len)) {
+        if (!s_matches[i])
+            continue;
+        while (!t_matches[k])
+            k++;
+        if (s[i] != t[k])
+            transpositions++;
+        k++;
+    }
+
+    return ((to_float(matches) / s_len) + (to_float(matches) / t_len) + ((matches - transpositions / 2.0) / matches)) / 3.0;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&[s, t] : create_array({make_tuple(u"MARTHA"_S, u"MARHTA"_S), make_tuple(u"DIXON"_S, u"DICKSONX"_S), make_tuple(u"JELLYFISH"_S, u"SMELLYFISH"_S)}))
+            print(u"jaro('#.', '#.') = #.10"_S.format(s, t, jaro(s, t)));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Jewels_and_stones#Python
+def count_jewels(s, j):
+    return sum(int(x in j) for x in s)
+
+print(count_jewels("aAAbbbb", "aA"))
+print(count_jewels("ZZ", "z"))
+===
+F count_jewels(s, j)
+   R sum(s.map(x -> Int(x C @j)))
+
+print(count_jewels(‘aAAbbbb’, ‘aA’))
+print(count_jewels(‘ZZ’, ‘z’))
+===
+template <typename T1, typename T2> auto count_jewels(const T1 &s, const T2 &j)
+{
+    return sum_map(s, [&j](const auto &x){return to_int(in(x, j));});
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(count_jewels(u"aAAbbbb"_S, u"aA"_S));
+        print(count_jewels(u"ZZ"_S, u"z"_S));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Josephus_problem#Python
+def j(n, k):
+    p = list(range(n))
+    i = 0
+    seq : List[int] = []
+    while len(p):
+        i = (i+k-1) % len(p)
+        seq.append(p.pop(i))
+    return 'Prisoner killing order: %s.\nSurvivor: %i' % (', '.join(str(i) for i in seq[:-1]), seq[-1])
+
+print(j(5, 2))
+print(j(41, 3))
+===
+F j(n, k)
+   V p = Array(0 .< n)
+   V i = 0
+   [Int] seq
+   L !p.empty
+      i = (i + k - 1) % p.len
+      seq.append(p.pop(i))
+   R "Prisoner killing order: #..\nSurvivor: #.".format(seq[0 .< (len)-1].map(i -> String(i)).join(‘, ’), seq.last)
+
+print(j(5, 2))
+print(j(41, 3))
+===
+template <typename T1, typename T2> auto j(const T1 &n, const T2 &k)
+{
+    auto p = create_array(range_el(0, n));
+    auto i = 0;
+    Array<int> seq;
+    while (!p.empty()) {
+        i = mod((i + k - 1), p.len());
+        seq.append(p.pop(i));
+    }
+    return u"Prisoner killing order: #..\nSurvivor: #."_S.format(seq[range_e_llen(0,  - 1)].map([](const auto &i){return String(i);}).join(u", "_S), seq.last());
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(j(5, 2));
+        print(j(41, 3));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Just_in_time_processing_on_a_character_stream#Python
+class UserInput:
+    formFeed : int
+    lineFeed : int
+    tab : int
+    space : int
+
+    def __init__(self, chunk):
+        self.formFeed = chunk[0]
+        self.lineFeed = chunk[1]
+        self.tab      = chunk[2]
+        self.space    = chunk[3]
+
+    def __str__(self):
+        return "(ff=%d; lf=%d; tb=%d; sp%d)" % (self.formFeed,self.lineFeed,self.tab,self.space)
+
+def chunks(l,n):
+    r : List[List[int]] = []
+    for i in range(0, len(l), n):
+        r.append(l[i:i+n])
+    return r
+
+def getUserInput():
+    h = "0 18 0 0 0 68 0 1 0 100 0 32 0 114 0 45 0 38 0 26 0 16 0 21 0 17 0 59 0 11 " + \
+        "0 29 0 102 0 0 0 10 0 50 0 39 0 42 0 33 0 50 0 46 0 54 0 76 0 47 0 84 2 28"
+    ha = list(map(int, h.split(' ')))
+    return [UserInput(chunk) for chunk in chunks(ha, 4)]
+
+def decode(filename,uiList):
+    f = open(filename, "r")
+    text = f.read()
+
+    def decode2(ui):
+        f = 0
+        l = 0
+        t = 0
+        s = 0
+        for c in text:
+            if f == ui.formFeed and l == ui.lineFeed and t == ui.tab and s == ui.space:
+                if c == '!':
+                    return False
+                print(c, end = '')
+                return True
+            if ord(c) == 0xc:
+                f=f+1
+                l=0
+                t=0
+                s=0
+            elif c == '\n':
+                l=l+1
+                t=0
+                s=0
+            elif c == '\t':
+                t=t+1
+                s=0
+            else:
+                s=s+1
+        return False
+
+    for ui in uiList:
+        if not decode2(ui):
+            break
+    print()
+
+##### Main #####
+
+uiList = getUserInput()
+decode("theRaven.txt", uiList)
+===
+T UserInput
+   Int formFeed
+   Int lineFeed
+   Int tab
+   Int space
+
+   F (chunk)
+      .formFeed = chunk[0]
+      .lineFeed = chunk[1]
+      .tab = chunk[2]
+      .space = chunk[3]
+
+   F String()
+      R ‘(ff=#.; lf=#.; tb=#.; sp#.)’.format(.formFeed, .lineFeed, .tab, .space)
+
+F chunks(l, n)
+   [[Int]] r
+   L(i) (0 .< l.len).step(n)
+      r.append(l[i .< i + n])
+   R r
+
+F getUserInput()
+   V h = ‘0 18 0 0 0 68 0 1 0 100 0 32 0 114 0 45 0 38 0 26 0 16 0 21 0 17 0 59 0 11 ’""‘0 29 0 102 0 0 0 10 0 50 0 39 0 42 0 33 0 50 0 46 0 54 0 76 0 47 0 84 2 28’
+   V ha = h.split(‘ ’).map(Int)
+   R chunks(ha, 4).map(chunk -> UserInput(chunk))
+
+F decode(filename, uiList)
+   V f = File(filename)
+   V text = f.read()
+
+   F decode2(ui)
+      V f = 0
+      V l = 0
+      V t = 0
+      V s = 0
+      L(c) @text
+         I f == ui.formFeed & l == ui.lineFeed & t == ui.tab & s == ui.space
+            I c == ‘!’
+               R 0B
+            print(c, end' ‘’)
+            R 1B
+         I c.code == 0'C
+            f = f + 1
+            l = 0
+            t = 0
+            s = 0
+         E I c == "\n"
+            l = l + 1
+            t = 0
+            s = 0
+         E I c == "\t"
+            t = t + 1
+            s = 0
+         E
+            s = s + 1
+      R 0B
+
+   L(ui) uiList
+      I !decode2(ui)
+         L.break
+   print()
+
+V uiList = getUserInput()
+decode(‘theRaven.txt’, uiList)
+===
+class UserInput
+{
+public:
+    int formFeed;
+    int lineFeed;
+    int tab;
+    int space;
+
+    template <typename T1> UserInput(const T1 &chunk)
+    {
+        formFeed = _get<0>(chunk);
+        lineFeed = _get<1>(chunk);
+        tab = _get<2>(chunk);
+        space = _get<3>(chunk);
+    }
+
+    operator String() const
+    {
+        return u"(ff=#.; lf=#.; tb=#.; sp#.)"_S.format(formFeed, lineFeed, tab, space);
+    }
+};
+
+template <typename T1, typename T2> auto chunks(const T1 &l, const T2 &n)
+{
+    Array<Array<int>> r;
+    for (auto i : range_el(0, l.len()).step(n))
+        r.append(l[range_el(i, i + n)]);
+    return r;
+}
+
+auto getUserInput()
+{
+    auto h = u"0 18 0 0 0 68 0 1 0 100 0 32 0 114 0 45 0 38 0 26 0 16 0 21 0 17 0 59 0 11 "_S & u"0 29 0 102 0 0 0 10 0 50 0 39 0 42 0 33 0 50 0 46 0 54 0 76 0 47 0 84 2 28"_S;
+    auto ha = h.split(u" "_S).map([](const auto &x){return to_int(x);});
+    return chunks(ha, 4).map([](const auto &chunk){return UserInput(chunk);});
+}
+
+template <typename T1, typename T2> auto decode(const T1 &filename, const T2 &uiList)
+{
+    auto f = File(filename);
+    auto text = f.read();
+
+    auto decode2 = [&text](const auto &ui)
+    {
+        auto f = 0;
+        auto l = 0;
+        auto t = 0;
+        auto s = 0;
+        for (auto &&c : text) {
+            if (f == ui.formFeed && l == ui.lineFeed && t == ui.tab && s == ui.space) {
+                if (c == u'!')
+                    return false;
+                print(c, u""_S);
+                return true;
+            }
+            if (c.code == 0x0C) {
+                f = f + 1;
+                l = 0;
+                t = 0;
+                s = 0;
+            }
+            else if (c == u'\n') {
+                l = l + 1;
+                t = 0;
+                s = 0;
+            }
+            else if (c == u'\t') {
+                t = t + 1;
+                s = 0;
+            }
+            else
+                s = s + 1;
+        }
+        return false;
+    };
+
+    for (auto &&ui : uiList)
+        if (!decode2(ui))
+            break;
+    print();
+}
+
+auto uiList = getUserInput();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        decode(u"theRaven.txt"_S, uiList);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Juggler_sequence#Nim
+import math
+Int64 = int
+
+def juggler(n):
+    a = Int64(n)
+    r_count = 0
+    r_max = a
+    r_maxidx = 0
+    while a != 1:
+        f = float(a)
+        a = Int64(math.sqrt(f) if a & 1 == 0 else f * math.sqrt(f))
+        r_count += 1
+        if a > r_max:
+            r_max = a
+            r_maxidx = r_count
+    return (r_count, r_max, r_maxidx)
+
+print('n   l[n]            h[n]  i[n]')
+print('------------------------------')
+for n in range(20, 40):
+    (l, h, i) = juggler(n)
+    print(f'{n}   {l:2}  {h:14}     {i}')
+===
+F juggler(n)
+   V a = Int64(n)
+   V r_count = 0
+   V r_max = a
+   V r_maxidx = 0
+   L a != 1
+      V f = Float(a)
+      a = Int64(I a [&] 1 == 0 {sqrt(f)} E f * sqrt(f))
+      r_count++
+      I a > r_max
+         r_max = a
+         r_maxidx = r_count
+   R (r_count, r_max, r_maxidx)
+
+print(‘n   l[n]            h[n]  i[n]’)
+print(‘------------------------------’)
+L(n) 20..39
+   V (l, h, i) = juggler(n)
+   print(f:‘{n}   {l:2}  {h:14}     {i}’)
+===
+template <typename T1> auto juggler(const T1 &n)
+{
+    auto a = to_int64(n);
+    auto r_count = 0;
+    auto r_max = a;
+    auto r_maxidx = 0;
+    while (a != 1) {
+        auto f = to_float(a);
+        a = to_int64((a & 1) == 0 ? sqrt(f) : f * sqrt(f));
+        r_count++;
+        if (a > r_max) {
+            r_max = a;
+            r_maxidx = r_count;
+        }
+    }
+    return make_tuple(r_count, r_max, r_maxidx);
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"n   l[n]            h[n]  i[n]"_S);
+        print(u"------------------------------"_S);
+        for (auto n : range_ee(20, 39)) {
+            auto [l, h, i] = juggler(n);
+            print(u"#.   #2  #14     #."_S.format(n, l, h, i));
+        }
+    }
+} code_block_1;
+
+
+# https://rosettacode.org/wiki/Jacobsthal_numbers#Python
+import math
+Int64 = int
+
+def isPrime(n):
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+def odd(n):
+    return n & 1 != 0
+
+def jacobsthal(n):
+    return math.floor((pow(2.0,n)+odd(n))/3)
+
+def jacobsthal_lucas(n):
+    return int(pow(2,n)+pow(-1,n))
+
+def jacobsthal_oblong(n):
+    return Int64(jacobsthal(n))*jacobsthal(n+1)
+
+print("First 30 Jacobsthal numbers:")
+for j in range(0, 30):
+    print(jacobsthal(j), end="  ")
+
+print("\n\nFirst 30 Jacobsthal-Lucas numbers: ")
+for j in range(0, 30):
+    print(jacobsthal_lucas(j), end = '\t')
+
+print("\n\nFirst 20 Jacobsthal oblong numbers: ")
+for j in range(0, 20):
+    print(jacobsthal_oblong(j), end="  ")
+
+print("\n\nFirst 10 Jacobsthal primes: ")
+for j in range(3, 33):
+    if isPrime(jacobsthal(j)):
+        print(jacobsthal(j))
+===
+F isPrime(n)
+   L(i) 2 .. Int(n ^ 0.5)
+      I n % i == 0
+         R 0B
+   R 1B
+
+F odd(n)
+   R n [&] 1 != 0
+
+F jacobsthal(n)
+   R floori((pow(2.0, n) + odd(n)) / 3)
+
+F jacobsthal_lucas(n)
+   R Int(pow(2, n) + pow(-1, n))
+
+F jacobsthal_oblong(n)
+   R Int64(jacobsthal(n)) * jacobsthal(n + 1)
+
+print(‘First 30 Jacobsthal numbers:’)
+L(j) 0..29
+   print(jacobsthal(j), end' ‘  ’)
+
+print("\n\nFirst 30 Jacobsthal-Lucas numbers: ")
+L(j) 0..29
+   print(jacobsthal_lucas(j), end' "\t")
+
+print("\n\nFirst 20 Jacobsthal oblong numbers: ")
+L(j) 0..19
+   print(jacobsthal_oblong(j), end' ‘  ’)
+
+print("\n\nFirst 10 Jacobsthal primes: ")
+L(j) 3..32
+   I isPrime(jacobsthal(j))
+      print(jacobsthal(j))
+===
+template <typename T1> auto isPrime(const T1 &n)
+{
+    for (auto i : range_ee(2, to_int(pow(n, 0.5))))
+        if (mod(n, i) == 0)
+            return false;
+    return true;
+}
+
+template <typename T1> auto odd(const T1 &n)
+{
+    return (n & 1) != 0;
+}
+
+template <typename T1> auto jacobsthal(const T1 &n)
+{
+    return floori((pow(2.0, n) + odd(n)) / 3.0);
+}
+
+template <typename T1> auto jacobsthal_lucas(const T1 &n)
+{
+    return to_int(pow(2, n) + pow(-1, n));
+}
+
+template <typename T1> auto jacobsthal_oblong(const T1 &n)
+{
+    return to_int64(jacobsthal(n)) * jacobsthal(n + 1);
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"First 30 Jacobsthal numbers:"_S);
+        for (auto j : range_ee(0, 29))
+            print(jacobsthal(j), u"  "_S);
+
+        print(u"\n\nFirst 30 Jacobsthal-Lucas numbers: "_S);
+        for (auto j : range_ee(0, 29))
+            print(jacobsthal_lucas(j), u"\t"_S);
+
+        print(u"\n\nFirst 20 Jacobsthal oblong numbers: "_S);
+        for (auto j : range_ee(0, 19))
+            print(jacobsthal_oblong(j), u"  "_S);
+
+        print(u"\n\nFirst 10 Jacobsthal primes: "_S);
+        for (auto j : range_ee(3, 32))
+            if (isPrime(jacobsthal(j)))
+                print(jacobsthal(j));
+    }
+} code_block_1;

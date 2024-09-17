@@ -1,0 +1,42 @@
+T Item
+   T.enum Type
+      INT
+      FLOAT
+      STRING
+      LIST
+   Type ty
+   Int i
+   Float f
+   String s
+   [Item] subitems
+
+   F (ty)
+      .ty = ty
+
+F print_items(items) -> N
+   L(item) items
+      I item.ty == INT
+         print(‘int(’item.i‘)’)
+      E I item.ty == FLOAT
+         print(‘float(’item.f‘)’)
+      E I item.ty == STRING
+         print(‘str(’item.s‘)’)
+      E
+         assert(item.ty == LIST)
+         print(‘[’)
+         print_items(item.subitems)
+         print(‘]’)
+
+V root = Item(Item.Type.LIST)
+V si1 = Item(Item.Type.INT)
+si1.i = 1
+root.subitems.append(si1)
+V si2 = Item(Item.Type.FLOAT)
+si2.f = 2.5
+root.subitems.append(si2)
+V si3 = Item(Item.Type.LIST)
+si1.i = 3
+si3.subitems.append(si1)
+root.subitems.append(si3)
+
+print_items(root.subitems)
