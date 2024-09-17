@@ -1,0 +1,4 @@
+V a = 5
+V b = 3
+
+V somma = a + b

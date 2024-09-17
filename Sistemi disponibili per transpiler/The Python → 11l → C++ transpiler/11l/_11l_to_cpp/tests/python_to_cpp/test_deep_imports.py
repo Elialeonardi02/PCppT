@@ -1,2 +1,0 @@
-import syntax_highlighter_for_pqmarkup
-print()
