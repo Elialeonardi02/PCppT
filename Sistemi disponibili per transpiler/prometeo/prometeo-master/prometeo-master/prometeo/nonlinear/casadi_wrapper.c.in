@@ -1,0 +1,38 @@
+#include "casadi_wrapper_{{ fun_descriptor.name }}.h"
+
+void {{ fun_descriptor.name }}_eval(const double* inputs, double* outputs,
+    int (*{{ fun_descriptor.name }})(const double**, double**, int*, double*, int)) {
+
+    {% set arg_count = 0 %}
+    {% set offset = 0 %}
+    {% for arg in fun_descriptor.args %}
+    const double *in_{{ arg_count }} = inputs + {{ offset }};
+    {% set arg_count = arg_count + 1 %}
+    {% set offset = offset + arg['size'][0]*arg['size'][1] %}
+    {% endfor %}
+
+    {% set out_count = 0 %}
+    {% set offset = 0 %}
+    {% for out in fun_descriptor.outs %}
+    const double *out_{{ out_count }} = inputs + {{ offset }};
+    {% set out_count = out_count + 1 %}
+    {% set offset = offset + out['size'][0]*out['size'][1] %}
+    {% endfor %}
+
+    const double* casadi_arg[{{ fun_descriptor.args|length }}];
+    double* casadi_res[{{ fun_descriptor.outs|length }}];
+
+    {% for argnum in range(0, fun_descriptor.args|length) %}
+    casadi_arg[{{ argnum }}] = in_{{ argnum }};
+    {% endfor %}
+
+    {% for outnum in range(0, fun_descriptor.outs|length) %}
+    casadi_res[{{ outnum }}] = out_{{ outnum }};
+    {% endfor %}
+
+    int* iw = 0;
+    double* w = 0;
+    int mem = 0;
+
+    {{ fun_descriptor.name }}(casadi_arg, casadi_res, iw, w, mem);
+}

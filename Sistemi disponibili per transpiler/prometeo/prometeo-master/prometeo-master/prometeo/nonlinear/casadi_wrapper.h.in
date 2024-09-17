@@ -1,0 +1,9 @@
+#ifndef {{ fun_descriptor.name }}_H_
+#define {{ fun_descriptor.name }}_H_
+
+int {{ fun_descriptor.name }}(const double** arg, double** res, int* iw, double* w, int mem);
+
+void {{ fun_descriptor.name}}_eval(const double* in, double* out,
+    int (*{{ fun_descriptor.name}})(const double**, double**, int*, double*, int));
+
+#endif  // {{ fun_descriptor.name }}_H_

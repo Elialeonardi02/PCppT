@@ -1,0 +1,4 @@
+[submodule "external/blasfeo"]
+	path = external/blasfeo
+	url = https://github.com/zanellia/blasfeo
+	branch = master
