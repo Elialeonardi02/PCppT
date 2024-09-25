@@ -104,7 +104,7 @@ else:
 
 # Large float and imaginary literals get turned into infinities in the AST.
 # We unparse those infinities to INFSTR.
-INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1)
+INFSTR = "1e" + repr(sys.float_info.max_10_exp + 1) #rappresentazione dell'infinito in c++ con numeri molto grandi in python
 
 _py2c_nameconst = {True: "true", False: "false", None: "nullptr"}
 
@@ -1173,21 +1173,21 @@ def cppunparse(node, expr_semicolon=True, locals=None, defined_symbols=None):
 
 # Code can either be a string or a function
 def py2cpp(code, expr_semicolon=True, defined_symbols=None):
-    if isinstance(code, str):
+    if isinstance(code, str):#first case, python code
         try:
             return cppunparse(ast.parse(code), expr_semicolon, defined_symbols=defined_symbols)
         except SyntaxError:
             return code
-    elif isinstance(code, ast.AST):
+    elif isinstance(code, ast.AST): #second case, AST
         return cppunparse(code, expr_semicolon, defined_symbols=defined_symbols)
-    elif isinstance(code, list):
+    elif isinstance(code, list):#third case, python list codequarto caso espressione simbolica in python
         return '\n'.join(py2cpp(stmt) for stmt in code)
-    elif isinstance(code, sympy.Basic):
+    elif isinstance(code, sympy.Basic):#fourth case, symbolic expression in Python
         from dace import symbolic
         return cppunparse(ast.parse(symbolic.symstr(code, cpp_mode=True)),
                           expr_semicolon,
                           defined_symbols=defined_symbols)
-    elif code.__class__.__name__ == 'function':
+    elif code.__class__.__name__ == 'function':#fifth case, python fuction
         try:
             code_str = inspect.getsource(code)
 
