@@ -1,0 +1,500 @@
+{
+  "type": "SDFG",
+  "attributes": {
+    "name": "sumParallelArrays",
+    "arg_names": [
+      "a",
+      "b",
+      "r"
+    ],
+    "_arrays": {
+      "a": {
+        "type": "Array",
+        "attributes": {
+          "strides": [
+            "1"
+          ],
+          "total_size": "6",
+          "offset": [
+            "0"
+          ],
+          "shape": [
+            "6"
+          ],
+          "storage": "Register",
+          "debuginfo": null
+        }
+      },
+      "b": {
+        "type": "Array",
+        "attributes": {
+          "strides": [
+            "1"
+          ],
+          "total_size": "6",
+          "offset": [
+            "0"
+          ],
+          "shape": [
+            "6"
+          ],
+          "storage": "Register",
+          "debuginfo": null
+        }
+      },
+      "r": {
+        "type": "Array",
+        "attributes": {
+          "strides": [
+            "1"
+          ],
+          "total_size": "6",
+          "offset": [
+            "0"
+          ],
+          "optional": false,
+          "shape": [
+            "6"
+          ],
+          "storage": "CPU_Heap",
+          "debuginfo": null
+        }
+      },
+      "__return": {
+        "type": "Array",
+        "attributes": {
+          "strides": [
+            "1"
+          ],
+          "total_size": "6",
+          "offset": [
+            "0"
+          ],
+          "optional": false,
+          "shape": [
+            "6"
+          ],
+          "storage": "CPU_Heap",
+          "debuginfo": null
+        }
+      }
+    },
+    "symbols": {
+      "__tmp0": "int32",
+      "__tmp1": "int32",
+      "i": "int64"
+    },
+    "global_code": {
+      "frame": {
+        "string_data": "",
+        "language": "CPP"
+      }
+    },
+    "init_code": {
+      "frame": {
+        "string_data": "",
+        "language": "CPP"
+      }
+    },
+    "exit_code": {
+      "frame": {
+        "string_data": "",
+        "language": "CPP"
+      }
+    },
+    "debuginfo": {
+      "type": "DebugInfo",
+      "start_line": 3,
+      "end_line": 7,
+      "start_column": 0,
+      "end_column": 0,
+      "filename": "/mnt/m/onedrive/onedrive-UNIPI/OneDrive - University of Pisa/tesi informatica triennale/Sistemi disponibili per transpiler/AST/dace-master/mytest/sumParallel array.py"
+    },
+    "hash": "ef6f62af2b0b59ba1579a43ff8d7834bc39cd942eac58608705593de2625b1c2"
+  },
+  "nodes": [
+    {
+      "type": "SDFGState",
+      "label": "init",
+      "id": 0,
+      "collapsed": false,
+      "scope_dict": {
+        "-1": []
+      },
+      "nodes": [],
+      "edges": [],
+      "attributes": {
+        "executions": "1",
+        "dynamic_executions": false
+      }
+    },
+    {
+      "type": "SDFGState",
+      "label": "assign_6_8",
+      "id": 1,
+      "collapsed": false,
+      "scope_dict": {
+        "-1": [
+          0,
+          1
+        ]
+      },
+      "nodes": [
+        {
+          "type": "AccessNode",
+          "label": "r",
+          "attributes": {
+            "debuginfo": {
+              "type": "DebugInfo",
+              "start_line": 6,
+              "end_line": 6,
+              "start_column": 10,
+              "end_column": 10,
+              "filename": "/mnt/m/onedrive/onedrive-UNIPI/OneDrive - University of Pisa/tesi informatica triennale/Sistemi disponibili per transpiler/AST/dace-master/mytest/sumParallel array.py"
+            },
+            "data": "r"
+          },
+          "id": 0,
+          "scope_entry": null,
+          "scope_exit": null
+        },
+        {
+          "type": "Tasklet",
+          "label": "assign_6_8",
+          "attributes": {
+            "code": {
+              "string_data": "__out = (__tmp0 + __tmp1)",
+              "language": "Python"
+            },
+            "debuginfo": {
+              "type": "DebugInfo",
+              "start_line": 6,
+              "end_line": 6,
+              "start_column": 10,
+              "end_column": 10,
+              "filename": "/mnt/m/onedrive/onedrive-UNIPI/OneDrive - University of Pisa/tesi informatica triennale/Sistemi disponibili per transpiler/AST/dace-master/mytest/sumParallel array.py"
+            },
+            "label": "assign_6_8",
+            "out_connectors": {
+              "__out": "int32"
+            }
+          },
+          "id": 1,
+          "scope_entry": null,
+          "scope_exit": null
+        }
+      ],
+      "edges": [
+        {
+          "type": "MultiConnectorEdge",
+          "attributes": {
+            "data": {
+              "type": "Memlet",
+              "attributes": {
+                "volume": "1",
+                "subset": {
+                  "type": "Range",
+                  "ranges": [
+                    {
+                      "start": "i",
+                      "end": "i",
+                      "step": "1",
+                      "tile": "1"
+                    }
+                  ]
+                },
+                "data": "r",
+                "debuginfo": null,
+                "src_subset": null,
+                "dst_subset": {
+                  "type": "Range",
+                  "ranges": [
+                    {
+                      "start": "i",
+                      "end": "i",
+                      "step": "1",
+                      "tile": "1"
+                    }
+                  ]
+                },
+                "is_data_src": false,
+                "num_accesses": "1"
+              }
+            }
+          },
+          "src": "1",
+          "dst": "0",
+          "dst_connector": null,
+          "src_connector": "__out"
+        }
+      ],
+      "attributes": {
+        "executions": "6",
+        "dynamic_executions": false,
+        "ranges": {
+          "i": {
+            "type": "Range",
+            "ranges": [
+              {
+                "start": "0",
+                "end": "5",
+                "step": "1",
+                "tile": "1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "SDFGState",
+      "label": "guard",
+      "id": 2,
+      "collapsed": false,
+      "scope_dict": {
+        "-1": []
+      },
+      "nodes": [],
+      "edges": [],
+      "attributes": {
+        "executions": "7",
+        "dynamic_executions": false,
+        "ranges": {
+          "i": {
+            "type": "Range",
+            "ranges": [
+              {
+                "start": "0",
+                "end": "5",
+                "step": "1",
+                "tile": "1"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "type": "SDFGState",
+      "label": "assign_7_4",
+      "id": 3,
+      "collapsed": false,
+      "scope_dict": {
+        "-1": [
+          0,
+          1
+        ]
+      },
+      "nodes": [
+        {
+          "type": "AccessNode",
+          "label": "r",
+          "attributes": {
+            "debuginfo": {
+              "type": "DebugInfo",
+              "start_line": 7,
+              "end_line": 7,
+              "start_column": 11,
+              "end_column": 11,
+              "filename": "/mnt/m/onedrive/onedrive-UNIPI/OneDrive - University of Pisa/tesi informatica triennale/Sistemi disponibili per transpiler/AST/dace-master/mytest/sumParallel array.py"
+            },
+            "data": "r"
+          },
+          "id": 0,
+          "scope_entry": null,
+          "scope_exit": null
+        },
+        {
+          "type": "AccessNode",
+          "label": "__return",
+          "attributes": {
+            "debuginfo": {
+              "type": "DebugInfo",
+              "start_line": 7,
+              "end_line": 7,
+              "start_column": 11,
+              "end_column": 11,
+              "filename": "/mnt/m/onedrive/onedrive-UNIPI/OneDrive - University of Pisa/tesi informatica triennale/Sistemi disponibili per transpiler/AST/dace-master/mytest/sumParallel array.py"
+            },
+            "data": "__return"
+          },
+          "id": 1,
+          "scope_entry": null,
+          "scope_exit": null
+        }
+      ],
+      "edges": [
+        {
+          "type": "MultiConnectorEdge",
+          "attributes": {
+            "data": {
+              "type": "Memlet",
+              "attributes": {
+                "volume": "6",
+                "subset": {
+                  "type": "Range",
+                  "ranges": [
+                    {
+                      "start": "0",
+                      "end": "5",
+                      "step": "1",
+                      "tile": "1"
+                    }
+                  ]
+                },
+                "other_subset": {
+                  "type": "Range",
+                  "ranges": [
+                    {
+                      "start": "0",
+                      "end": "5",
+                      "step": "1",
+                      "tile": "1"
+                    }
+                  ]
+                },
+                "data": "__return",
+                "debuginfo": null,
+                "src_subset": {
+                  "type": "Range",
+                  "ranges": [
+                    {
+                      "start": "0",
+                      "end": "5",
+                      "step": "1",
+                      "tile": "1"
+                    }
+                  ]
+                },
+                "dst_subset": {
+                  "type": "Range",
+                  "ranges": [
+                    {
+                      "start": "0",
+                      "end": "5",
+                      "step": "1",
+                      "tile": "1"
+                    }
+                  ]
+                },
+                "is_data_src": false,
+                "num_accesses": "6"
+              }
+            }
+          },
+          "src": "0",
+          "dst": "1",
+          "dst_connector": null,
+          "src_connector": null
+        }
+      ],
+      "attributes": {
+        "executions": "1",
+        "dynamic_executions": false
+      }
+    },
+    {
+      "type": "SDFGState",
+      "label": "state",
+      "id": 4,
+      "collapsed": false,
+      "scope_dict": {
+        "-1": []
+      },
+      "nodes": [],
+      "edges": [],
+      "attributes": {}
+    }
+  ],
+  "edges": [
+    {
+      "type": "Edge",
+      "attributes": {
+        "data": {
+          "type": "InterstateEdge",
+          "attributes": {
+            "assignments": {
+              "i": "0"
+            }
+          },
+          "label": "i=0"
+        }
+      },
+      "src": "0",
+      "dst": "2"
+    },
+    {
+      "type": "Edge",
+      "attributes": {
+        "data": {
+          "type": "InterstateEdge",
+          "attributes": {
+            "assignments": {
+              "i": "(i + 1)"
+            }
+          },
+          "label": "i=(i + 1)"
+        }
+      },
+      "src": "1",
+      "dst": "2"
+    },
+    {
+      "type": "Edge",
+      "attributes": {
+        "data": {
+          "type": "InterstateEdge",
+          "attributes": {
+            "condition": {
+              "string_data": "(not (i < 6))",
+              "language": "Python"
+            }
+          },
+          "label": "(not (i < 6))"
+        }
+      },
+      "src": "2",
+      "dst": "3"
+    },
+    {
+      "type": "Edge",
+      "attributes": {
+        "data": {
+          "type": "InterstateEdge",
+          "attributes": {
+            "condition": {
+              "string_data": "(i < 6)",
+              "language": "Python"
+            }
+          },
+          "label": "(i < 6)"
+        }
+      },
+      "src": "2",
+      "dst": "4"
+    },
+    {
+      "type": "Edge",
+      "attributes": {
+        "data": {
+          "type": "InterstateEdge",
+          "attributes": {
+            "assignments": {
+              "__tmp0": "a[i]",
+              "__tmp1": "b[i]"
+            }
+          },
+          "label": "__tmp0=a[i],__tmp1=b[i]"
+        }
+      },
+      "src": "4",
+      "dst": "1"
+    }
+  ],
+  "collapsed": false,
+  "label": "",
+  "id": null,
+  "cfg_list_id": 0,
+  "start_block": 0,
+  "dace_version": "0.16.1"
+}
