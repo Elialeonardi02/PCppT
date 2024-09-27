@@ -1,0 +1,4950 @@
+# https://www.rosettacode.org/wiki/Mad_Libs#Python
+import re
+
+template = '''<name> went for a walk in the park. <he or she>
+found a <noun>. <name> decided to take it home.'''
+
+def madlibs(template):
+    print('The story template is:\n' + template)
+    fields = sorted(list(set( re.findall('<[^>]+>', template) )))
+    values = input('\nInput a comma-separated list of words to replace the following items\n  %s: ' % ','.join(fields)).split(',')
+    story = template
+    for f,v in zip(fields, values):
+        story = story.replace(f, v)
+    print('\nThe story becomes:\n\n' + story)
+
+madlibs(template)
+===
+V template = ‘<name> went for a walk in the park. <he or she>
+found a <noun>. <name> decided to take it home.’
+
+F madlibs(template)
+   print("The story template is:\n"template)
+   V fields = sorted(Array(Set(re:‘<[^>]+>’.find_strings(template))))
+   V values = input("\nInput a comma-separated list of words to replace the following items\n  #.: ".format(fields.join(‘,’))).split(‘,’)
+   V story = template
+   L(f, v) zip(fields, values)
+      story = story.replace(f, v)
+   print("\nThe story becomes:\n\n"story)
+
+madlibs(template)
+===
+auto _template_ = uR"(<name> went for a walk in the park. <he or she>
+found a <noun>. <name> decided to take it home.)"_S;
+
+template <typename T1> auto madlibs(const T1 &_template_)
+{
+    print(u"The story template is:\n"_S & _template_);
+    auto fields = sorted(create_array(create_set(re::_(u"<[^>]+>"_S).find_strings(_template_))));
+    auto values = input(u"\nInput a comma-separated list of words to replace the following items\n  #.: "_S.format(fields.join(u","_S))).split(u","_S);
+    auto story = _template_;
+    for (auto &&[f, v] : zip(fields, values))
+        story = story.replace(f, v);
+    print(u"\nThe story becomes:\n\n"_S & story);
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        madlibs(_template_);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Magic_squares_of_odd_order#Python
+def magic(n):
+    for row in range(1, n + 1):
+        print(' '.join(str(cell).rjust(len(str(n**2))) for cell in
+                       (n * ((row + col - 1 + n // 2) % n) +
+                       ((row + 2 * col - 2) % n) + 1
+                       for col in range(1, n + 1))))
+    print('\nAll sum to magic number %i' % ((n * n + 1) * n // 2))
+
+for n in (5, 3, 7):
+    print('\nOrder %i\n=======' % n)
+    magic(n)
+===
+F magic(n)
+   L(row) 1 .. n
+      print(((1 .. n).map(col -> @n * ((@row + col - 1 + @n I/ 2) % @n) + ((@row + 2 * col - 2) % @n) + 1)).map(cell -> String(cell).rjust(String(@n ^ 2).len)).join(‘ ’))
+   print("\nAll sum to magic number #.".format((n * n + 1) * n I/ 2))
+
+L(n) (5, 3, 7)
+   print("\nOrder #.\n=======".format(n))
+   magic(n)
+===
+template <typename T1> auto magic(const T1 &n)
+{
+    for (auto row : range_ee(1, n))
+        print((range_ee(1, n).map([&n, &row](const auto &col){return n * (mod((row + col - 1 + idiv(n, 2)), n)) + (mod((row + 2 * col - 2), n)) + 1;})).map([&n](const auto &cell){return String(cell).rjust(String(square(n)).len());}).join(u" "_S));
+    print(u"\nAll sum to magic number #."_S.format(idiv((n * n + 1) * n, 2)));
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&n : make_tuple(5, 3, 7)) {
+            print(u"\nOrder #.\n======="_S.format(n));
+            magic(n);
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Magic_squares_of_singly_even_order#Python
+import math
+
+LOG_10 = 2.302585092994
+
+# build odd magic square
+def build_oms(s):
+    if s % 2 == 0:
+        s += 1
+    q = [[0 for j in range(s)] for i in range(s)]
+    p = 1
+    i = s // 2
+    j = 0
+    while p <= (s * s):
+        q[i][j] = p
+        ti = i + 1
+        if ti >= s: ti = 0
+        tj = j - 1
+        if tj < 0: tj = s - 1
+        if q[ti][tj] != 0:
+            ti = i
+            tj = j + 1
+        i = ti
+        j = tj
+        p += 1
+
+    return (q, s)
+
+# build singly even magic square
+def build_sems(s):
+    if s % 2 == 1:
+        s += 1
+    while s % 4 == 0:
+        s += 2
+
+    q = [[0 for j in range(s)] for i in range(s)]
+    z = s // 2
+    b = z * z
+    c = 2 * b
+    d = 3 * b
+    o = build_oms(z)
+
+    for j in range(0, z):
+        for i in range(0, z):
+            a = o[0][i][j]
+            q[i][j] = a
+            q[i + z][j + z] = a + b
+            q[i + z][j] = a + c
+            q[i][j + z] = a + d
+
+    lc = z // 2
+    rc = lc
+    for j in range(0, z):
+        for i in range(0, s):
+            if i < lc or i > s - rc or (i == lc and j == lc):
+                if not (i == 0 and j == lc):
+                    (q[i][j], q[i][j + z]) = (q[i][j + z], q[i][j])
+
+    return (q, s)
+
+def display(q):
+    s = q[1]
+    print(" - %i x %i\n" % (s, s))
+    k = 1 + math.floor(math.log(s * s) / LOG_10)
+    for j in range(0, s):
+        for i in range(0, s):
+            print(str(q[0][i][j]).zfill(k), end = ' ')
+        print()
+    print("Magic sum: %i" % (s * ((s * s) + 1) // 2))
+
+print("Singly Even Magic Square", end = '')
+display(build_sems(6))
+===
+V LOG_10 = 2.302585092994
+
+F build_oms(=s)
+   I s % 2 == 0
+      s++
+   V q = (0 .< s).map(i -> (0 .< @s).map(j -> 0))
+   V p = 1
+   V i = s I/ 2
+   V j = 0
+   L p <= (s * s)
+      q[i][j] = p
+      V ti = i + 1
+      I ti >= s
+         ti = 0
+      V tj = j - 1
+      I tj < 0
+         tj = s - 1
+      I q[ti][tj] != 0
+         ti = i
+         tj = j + 1
+      i = ti
+      j = tj
+      p++
+
+   R (q, s)
+
+F build_sems(=s)
+   I s % 2 == 1
+      s++
+   L s % 4 == 0
+      s += 2
+
+   V q = (0 .< s).map(i -> (0 .< @s).map(j -> 0))
+   V z = s I/ 2
+   V b = z * z
+   V c = 2 * b
+   V d = 3 * b
+   V o = build_oms(z)
+
+   L(j) 0 .< z
+      L(i) 0 .< z
+         V a = o[0][i][j]
+         q[i][j] = a
+         q[i + z][j + z] = a + b
+         q[i + z][j] = a + c
+         q[i][j + z] = a + d
+
+   V lc = z I/ 2
+   V rc = lc
+   L(j) 0 .< z
+      L(i) 0 .< s
+         I i < lc | i > s - rc | (i == lc & j == lc)
+            I !(i == 0 & j == lc)
+               swap(&q[i][j], &q[i][j + z])
+
+   R (q, s)
+
+F display(q)
+   V s = q[1]
+   print(" - #. x #.\n".format(s, s))
+   V k = 1 + floori(log(s * s) / :LOG_10)
+   L(j) 0 .< s
+      L(i) 0 .< s
+         print(String(q[0][i][j]).zfill(k), end' ‘ ’)
+      print()
+   print(‘Magic sum: #.’.format(s * ((s * s) + 1) I/ 2))
+
+print(‘Singly Even Magic Square’, end' ‘’)
+display(build_sems(6))
+===
+auto LOG_10 = 2.302585092994;
+
+template <typename T1> auto build_oms(T1 s)
+{
+    if (mod(s, 2) == 0)
+        s++;
+    auto q = range_el(0, s).map([&s](const auto &i){return range_el(0, s).map([](const auto &j){return 0;});});
+    auto p = 1;
+    auto i = idiv(s, 2);
+    auto j = 0;
+    while (p <= (s * s)) {
+        q[i].set(j, p);
+        auto ti = i + 1;
+        if (ti >= s)
+            ti = 0;
+        auto tj = j - 1;
+        if (tj < 0)
+            tj = s - 1;
+        if (q[ti][tj] != 0) {
+            ti = i;
+            tj = j + 1;
+        }
+        i = ti;
+        j = tj;
+        p++;
+    }
+
+    return make_tuple(q, s);
+}
+
+template <typename T1> auto build_sems(T1 s)
+{
+    if (mod(s, 2) == 1)
+        s++;
+    while (mod(s, 4) == 0)
+        s += 2;
+
+    auto q = range_el(0, s).map([&s](const auto &i){return range_el(0, s).map([](const auto &j){return 0;});});
+    auto z = idiv(s, 2);
+    auto b = z * z;
+    auto c = 2 * b;
+    auto d = 3 * b;
+    auto o = build_oms(z);
+
+    for (auto j : range_el(0, z))
+        for (auto i : range_el(0, z)) {
+            auto a = _get<0>(o)[i][j];
+            q[i].set(j, a);
+            q[i + z].set(j + z, a + b);
+            q[i + z].set(j, a + c);
+            q[i].set(j + z, a + d);
+        }
+
+    auto lc = idiv(z, 2);
+    auto rc = lc;
+    for (auto j : range_el(0, z))
+        for (auto i : range_el(0, s))
+            if (i < lc || i > s - rc || (i == lc && j == lc)) {
+                if (!(i == 0 && j == lc))
+                    swap(q[i][j], q[i][j + z]);
+            }
+
+    return make_tuple(q, s);
+}
+
+template <typename T1> auto display(const T1 &q)
+{
+    auto s = _get<1>(q);
+    print(u" - #. x #.\n"_S.format(s, s));
+    auto k = 1 + floori(log(s * s) / ::LOG_10);
+    for (auto j : range_el(0, s)) {
+        for (auto i : range_el(0, s))
+            print(String(_get<0>(q)[i][j]).zfill(k), u" "_S);
+        print();
+    }
+    print(u"Magic sum: #."_S.format(idiv(s * ((s * s) + 1), 2)));
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"Singly Even Magic Square"_S, u""_S);
+        display(build_sems(6));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Map_range#Python
+def maprange( a, b, s):
+    return  b[0] + (float(s - a[0]) * (b[1] - b[0]) / (a[1] - a[0]))
+
+for s in range(11):
+    print("%2g maps to %g" % (s, maprange( (0, 10), (-1, 0), s)))
+===
+F maprange(a, b, s)
+   R b[0] + (Float(s - a[0]) * (b[1] - b[0]) / (a[1] - a[0]))
+
+L(s) 11
+   print(‘#2 maps to #.’.format(s, maprange((0, 10), (-1, 0), s)))
+===
+template <typename T1, typename T2, typename T3> auto maprange(const T1 &a, const T2 &b, const T3 &s)
+{
+    return _get<0>(b) + (to_float(s - _get<0>(a)) * (_get<1>(b) - _get<0>(b)) / (_get<1>(a) - _get<0>(a)));
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (int s = 0; s < 11; s++)
+            print(u"#2 maps to #."_S.format(s, maprange(make_tuple(0, 10), make_tuple(-1, 0), s)));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Maximum_triangle_path_sum#Python
+from typing import List
+
+def solve(tri : List[List[int]]):
+    while len(tri) > 1:
+        t0 = tri.pop()
+        t1 = tri.pop()
+        tri.append([max(t0[i], t0[i+1]) + t for i,t in enumerate(t1)])
+    return tri[0][0]
+
+data = """                55
+                        94 48
+                       95 30 96
+                     77 71 26 67
+                    97 13 76 38 45
+                  07 36 79 16 37 68
+                 48 07 09 18 70 26 06
+               18 72 79 46 59 79 29 90
+              20 76 87 11 32 07 07 49 18
+            27 83 58 35 71 11 25 57 29 85
+           14 64 36 96 27 11 58 56 92 18 55
+         02 90 03 60 48 49 41 46 33 36 47 23
+        92 50 48 02 36 59 42 79 72 20 82 77 42
+      56 78 38 80 39 75 02 71 66 66 01 03 55 72
+     44 25 67 84 71 67 11 61 40 57 58 89 40 56 36
+   85 32 25 85 57 48 84 35 47 62 17 01 01 99 89 52
+  06 71 28 75 94 48 37 10 23 51 06 48 53 18 74 98 15
+27 02 92 23 08 71 76 84 15 52 92 63 81 10 44 10 69 93"""
+
+print(solve([list(map(int, row.split())) for row in data.split("\n")]))
+===
+F solve([[Int]] &tri)
+   L tri.len > 1
+      V t0 = tri.pop()
+      V t1 = tri.pop()
+      tri.append(enumerate(t1).map((i, t) -> max(@t0[i], @t0[i + 1]) + t))
+   R tri[0][0]
+
+V data = ‘                55
+                        94 48
+                       95 30 96
+                     77 71 26 67
+                    97 13 76 38 45
+                  07 36 79 16 37 68
+                 48 07 09 18 70 26 06
+               18 72 79 46 59 79 29 90
+              20 76 87 11 32 07 07 49 18
+            27 83 58 35 71 11 25 57 29 85
+           14 64 36 96 27 11 58 56 92 18 55
+         02 90 03 60 48 49 41 46 33 36 47 23
+        92 50 48 02 36 59 42 79 72 20 82 77 42
+      56 78 38 80 39 75 02 71 66 66 01 03 55 72
+     44 25 67 84 71 67 11 61 40 57 58 89 40 56 36
+   85 32 25 85 57 48 84 35 47 62 17 01 01 99 89 52
+  06 71 28 75 94 48 37 10 23 51 06 48 53 18 74 98 15
+27 02 92 23 08 71 76 84 15 52 92 63 81 10 44 10 69 93’
+
+print(solve(&data.split("\n").map(row -> row.split_py().map(Int))))
+===
+auto solve(Array<Array<int>> &tri)
+{
+    while (tri.len() > 1) {
+        auto t0 = tri.pop();
+        auto t1 = tri.pop();
+        tri.append(enumerate(t1).map([&t0](const auto &i, const auto &t){return max(t0[i], t0[i + 1]) + t;}));
+    }
+    return _get<0>(_get<0>(tri));
+}
+
+auto data = uR"(                55
+                        94 48
+                       95 30 96
+                     77 71 26 67
+                    97 13 76 38 45
+                  07 36 79 16 37 68
+                 48 07 09 18 70 26 06
+               18 72 79 46 59 79 29 90
+              20 76 87 11 32 07 07 49 18
+            27 83 58 35 71 11 25 57 29 85
+           14 64 36 96 27 11 58 56 92 18 55
+         02 90 03 60 48 49 41 46 33 36 47 23
+        92 50 48 02 36 59 42 79 72 20 82 77 42
+      56 78 38 80 39 75 02 71 66 66 01 03 55 72
+     44 25 67 84 71 67 11 61 40 57 58 89 40 56 36
+   85 32 25 85 57 48 84 35 47 62 17 01 01 99 89 52
+  06 71 28 75 94 48 37 10 23 51 06 48 53 18 74 98 15
+27 02 92 23 08 71 76 84 15 52 92 63 81 10 44 10 69 93)"_S;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(solve(make_ref(data.split(u"\n"_S).map([](const auto &row){return row.split_py().map([](const auto &x){return to_int(x);});}))));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Menu
+items = ['fee fie', 'huff and puff', 'mirror mirror', 'tick tock']
+
+while True:
+    for i, item in enumerate(items):
+        print ("%2i. %s" % (i + 1, item))
+    reply = input('Which is from the three pigs: ').strip(' ')
+    if not reply.isdigit():
+        continue
+    if 1 <= int(reply) <= len(items):
+        print('You chose:', items[int(reply) - 1])
+        break
+===
+V items = [‘fee fie’, ‘huff and puff’, ‘mirror mirror’, ‘tick tock’]
+
+L
+   L(item) items
+      V i = L.index
+      print(‘#2. #.’.format(i + 1, item))
+   V reply = input(‘Which is from the three pigs: ’).trim(‘ ’)
+   I !reply.is_digit()
+      L.continue
+   I Int(reply) C 1 .. items.len
+      print(‘You chose: ’items[Int(reply) - 1])
+      L.break
+===
+auto items = create_array({u"fee fie"_S, u"huff and puff"_S, u"mirror mirror"_S, u"tick tock"_S});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        while (true) {
+            {int Lindex = 0;
+            for (auto &&item : items) {
+                auto i = Lindex;
+                print(u"#2. #."_S.format(i + 1, item));
+                Lindex++;
+            }}
+            auto reply = input(u"Which is from the three pigs: "_S).trim(u" "_S);
+            if (!reply.is_digit())
+                continue;
+            if (in(to_int(reply), range_ee(1, items.len()))) {
+                print(u"You chose: "_S & items[to_int(reply) - 1]);
+                break;
+            }
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Metronome
+import time
+
+def main(bpm = 72, bpb = 4):
+    t = 60.0 / bpm
+    counter = 0
+    while True:
+        counter += 1
+        if counter % bpb != 0:
+            print('tick')
+        else:
+            print('TICK')
+        time.sleep(t)
+
+main()
+===
+F main(bpm = 72, bpb = 4)
+   V t = 60.0 / bpm
+   V counter = 0
+   L
+      counter++
+      I counter % bpb != 0
+         print(‘tick’)
+      E
+         print(‘TICK’)
+      sleep(t)
+
+main()
+===
+template <typename T1 = decltype(72), typename T2 = decltype(4)> auto _main_(const T1 &bpm = 72, const T2 &bpb = 4)
+{
+    auto t = 60.0 / bpm;
+    auto counter = 0;
+    while (true) {
+        counter++;
+        if (mod(counter, bpb) != 0)
+            print(u"tick"_S);
+        else
+            print(u"TICK"_S);
+        sleep(t);
+    }
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        _main_();
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Mian-Chowla_sequence#C.2B.2B
+def contains(sums, s, ss):
+    for i in range(ss):
+        if sums[i] == s:
+            return True
+    return False
+
+def mian_chowla():
+    n = 100
+    mc = [0] * n
+    mc[0] = 1
+    sums = [0] * ((n * (n + 1)) >> 1)
+    sums[0] = 2
+    ss = 1
+    for i in range(1, n):
+        le = ss
+        j = mc[i - 1] + 1
+        while True:
+            mc[i] = j
+            nxtJ = False
+            for k in range(i + 1):
+                sum = mc[k] + j
+                if contains(sums, sum, ss):
+                    ss = le
+                    nxtJ = True
+                    break
+                sums[ss] = sum
+                ss += 1
+            if not nxtJ:
+                break
+            j += 1
+    return mc
+
+print('The first 30 terms of the Mian-Chowla sequence are:')
+mc = mian_chowla()
+print(*mc[:30])
+print()
+print('Terms 91 to 100 of the Mian-Chowla sequence are:')
+print(*mc[90:])
+===
+F contains(sums, s, ss)
+   L(i) 0 .< ss
+      I sums[i] == s
+         R 1B
+   R 0B
+
+F mian_chowla()
+   V n = 100
+   V mc = [0] * n
+   mc[0] = 1
+   V sums = [0] * ((n * (n + 1)) >> 1)
+   sums[0] = 2
+   V ss = 1
+   L(i) 1 .< n
+      V le = ss
+      V j = mc[i - 1] + 1
+      L
+         mc[i] = j
+         V nxtJ = 0B
+         L(k) 0 .. i
+            V sum = mc[k] + j
+            I contains(sums, sum, ss)
+               ss = le
+               nxtJ = 1B
+               L.break
+            sums[ss] = sum
+            ss++
+         I !nxtJ
+            L.break
+         j++
+   R mc
+
+print(‘The first 30 terms of the Mian-Chowla sequence are:’)
+V mc = mian_chowla()
+print_elements(mc[0.<30])
+print()
+print(‘Terms 91 to 100 of the Mian-Chowla sequence are:’)
+print_elements(mc[90..])
+===
+template <typename T1, typename T2, typename T3> auto contains(const T1 &sums, const T2 &s, const T3 &ss)
+{
+    for (auto i : range_el(0, ss))
+        if (sums[i] == s)
+            return true;
+    return false;
+}
+
+auto mian_chowla()
+{
+    auto n = 100;
+    auto mc = create_array({0}) * n;
+    _set<0>(mc, 1);
+    auto sums = create_array({0}) * ((n * (n + 1)) >> 1);
+    _set<0>(sums, 2);
+    auto ss = 1;
+    for (auto i : range_el(1, n)) {
+        auto le = ss;
+        auto j = mc[i - 1] + 1;
+        while (true) {
+            mc.set(i, j);
+            auto nxtJ = false;
+            for (auto k : range_ee(0, i)) {
+                auto sum = mc[k] + j;
+                if (contains(sums, sum, ss)) {
+                    ss = le;
+                    nxtJ = true;
+                    break;
+                }
+                sums.set(ss, sum);
+                ss++;
+            }
+            if (!nxtJ)
+                break;
+            j++;
+        }
+    }
+    return mc;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"The first 30 terms of the Mian-Chowla sequence are:"_S);
+    }
+} code_block_1;
+
+auto mc = mian_chowla();
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        print_elements(mc[range_el(0, 30)]);
+        print();
+        print(u"Terms 91 to 100 of the Mian-Chowla sequence are:"_S);
+        print_elements(mc[range_ei(90)]);
+    }
+} code_block_2;
+
+
+# https://www.rosettacode.org/wiki/Modular_inverse#C
+def mul_inv(a, b):
+    b0 = b
+    x0 = 0
+    x1 = 1
+    if b == 1: return 1
+    while a > 1:
+        q = a // b
+        (a, b) = (b, a % b)
+        (x0, x1) = (x1 - q * x0, x0)
+    if x1 < 0: x1 += b0
+    return x1
+
+print(mul_inv(42, 2017))
+===
+F mul_inv(=a, =b)
+   V b0 = b
+   V x0 = 0
+   V x1 = 1
+   I b == 1
+      R 1
+   L a > 1
+      V q = a I/ b
+      (a, b) = (b, a % b)
+      (x0, x1) = (x1 - q * x0, x0)
+   I x1 < 0
+      x1 += b0
+   R x1
+
+print(mul_inv(42, 2017))
+===
+template <typename T1, typename T2> auto mul_inv(T1 a, T2 b)
+{
+    auto b0 = b;
+    auto x0 = 0;
+    auto x1 = 1;
+    if (b == 1)
+        return 1;
+    while (a > 1) {
+        auto q = idiv(a, b);
+        assign_from_tuple(a, b, make_tuple(b, mod(a, b)));
+        assign_from_tuple(x0, x1, make_tuple(x1 - q * x0, x0));
+    }
+    if (x1 < 0)
+        x1 += b0;
+    return x1;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(mul_inv(42, 2017));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Monte_Carlo_methods
+import random
+
+def monte_carlo_pi(n):
+    inside = 0
+    for i in range(n):
+        x = random.random()
+        y = random.random()
+        if x*x + y*y <= 1:
+            inside += 1
+    return 4.0 * inside / n
+
+print(monte_carlo_pi(1000000))
+===
+F monte_carlo_pi(n)
+   V inside = 0
+   L(i) 0 .< n
+      V x = random:()
+      V y = random:()
+      I x * x + y * y <= 1
+         inside++
+   R 4.0 * inside / n
+
+print(monte_carlo_pi(1000000))
+===
+template <typename T1> auto monte_carlo_pi(const T1 &n)
+{
+    auto inside = 0;
+    for (auto i : range_el(0, n)) {
+        auto x = randomns::_();
+        auto y = randomns::_();
+        if (x * x + y * y <= 1)
+            inside++;
+    }
+    return 4.0 * inside / n;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(monte_carlo_pi(1000000));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Move-to-front_algorithm#Python
+symboltable = list('abcdefghijklmnopqrstuvwxyz')
+
+def move2front_encode(strng):
+    sequence : List[int] = []
+    pad = symboltable[:]
+    for char in strng:
+        indx = pad.index(char)
+        sequence.append(indx)
+        pad = [pad.pop(indx)] + pad
+    return sequence
+
+def move2front_decode(sequence):
+    chars : List[Char] = []
+    pad = symboltable[:]
+    for indx in sequence:
+        char = pad[indx]
+        chars.append(char)
+        pad = [pad.pop(indx)] + pad
+    return ''.join(chars)
+
+for s in ['broood', 'bananaaa', 'hiphophiphop']:
+    encode = move2front_encode(s)
+    print('%14s encodes to %s' % (s, encode), end=', ')
+    decode = move2front_decode(encode)
+    print('which decodes back to %s' % decode)
+    assert s == decode, 'Whoops!'
+===
+V symboltable = Array(‘abcdefghijklmnopqrstuvwxyz’)
+
+F move2front_encode(strng)
+   [Int] sequence
+   V pad = copy(:symboltable)
+   L(char) strng
+      V indx = pad.index(char)
+      sequence.append(indx)
+      pad = [pad.pop(indx)] [+] pad
+   R sequence
+
+F move2front_decode(sequence)
+   [Char] chars
+   V pad = copy(:symboltable)
+   L(indx) sequence
+      V char = pad[indx]
+      chars.append(char)
+      pad = [pad.pop(indx)] [+] pad
+   R chars.join(‘’)
+
+L(s) [‘broood’, ‘bananaaa’, ‘hiphophiphop’]
+   V encode = move2front_encode(s)
+   print(‘#14 encodes to #.’.format(s, encode), end' ‘, ’)
+   V decode = move2front_decode(encode)
+   print(‘which decodes back to #.’.format(decode))
+   assert(s == decode, ‘Whoops!’)
+===
+auto symboltable = create_array(u"abcdefghijklmnopqrstuvwxyz"_S);
+
+template <typename T1> auto move2front_encode(const T1 &strng)
+{
+    Array<int> sequence;
+    auto pad = copy(::symboltable);
+    for (auto &&_char_ : strng) {
+        auto indx = pad.index(_char_);
+        sequence.append(indx);
+        pad = create_array({pad.pop(indx)}) + pad;
+    }
+    return sequence;
+}
+
+template <typename T1> auto move2front_decode(const T1 &sequence)
+{
+    Array<Char> chars;
+    auto pad = copy(::symboltable);
+    for (auto &&indx : sequence) {
+        auto _char_ = pad[indx];
+        chars.append(_char_);
+        pad = create_array({pad.pop(indx)}) + pad;
+    }
+    return chars.join(u""_S);
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&s : create_array({u"broood"_S, u"bananaaa"_S, u"hiphophiphop"_S})) {
+            auto encode = move2front_encode(s);
+            print(u"#14 encodes to #."_S.format(s, encode), u", "_S);
+            auto decode = move2front_decode(encode);
+            print(u"which decodes back to #."_S.format(decode));
+            assert(s == decode, u"Whoops!"_S);
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Multisplit#Python
+def multisplit(text, sep):
+    lastmatch = 0
+    i = 0
+    matches = ''
+    while i < len(text):
+        for j, s in enumerate(sep):
+            if text[i:].startswith(s):
+                if i > lastmatch:
+                    matches += text[lastmatch:i]
+                matches += '{' + s + '}'
+                lastmatch = i + len(s)
+                i += len(s)
+                break
+        else:
+            i += 1
+    if i > lastmatch:
+        matches += text[lastmatch:i]
+    return matches
+
+print(multisplit('a!===b=!=c', ['==', '!=', '=']))
+===
+F multisplit(text, sep)
+   V lastmatch = 0
+   V i = 0
+   V matches = ‘’
+   L i < text.len
+      L(s) sep
+         V j = L.index
+         I text[i ..].starts_with(s)
+            I i > lastmatch
+               matches ‘’= text[lastmatch .< i]
+            matches ‘’= ‘{’s‘}’
+            lastmatch = i + s.len
+            i += s.len
+            L.break
+      L.was_no_break
+         i++
+   I i > lastmatch
+      matches ‘’= text[lastmatch .< i]
+   R matches
+
+print(multisplit(‘a!===b=!=c’, [‘==’, ‘!=’, ‘=’]))
+===
+template <typename T1, typename T2> auto multisplit(const T1 &text, const T2 &sep)
+{
+    auto lastmatch = 0;
+    auto i = 0;
+    auto matches = u""_S;
+    while (i < text.len()) {
+        {int Lindex = 0;
+        for (auto &&s : sep) {
+            auto j = Lindex;
+            if (text[range_ei(i)].starts_with(s)) {
+                if (i > lastmatch)
+                    matches &= text[range_el(lastmatch, i)];
+                matches &= u"{"_S & s & u"}"_S;
+                lastmatch = i + s.len();
+                i += s.len();
+                goto break_;
+            }
+            Lindex++;
+        }}
+        i++;
+        break_:;
+    }
+    if (i > lastmatch)
+        matches &= text[range_el(lastmatch, i)];
+    return matches;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(multisplit(u"a!===b=!=c"_S, create_array({u"=="_S, u"!="_S, u"="_S})));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Munchausen_numbers#Python
+for i in range(5000):
+    if i == sum(int(x) ** int(x) for x in str(i)):
+        print(i)
+===
+L(i) 5000
+   I i == sum(String(i).map(x -> Int(x) ^ Int(x)))
+      print(i)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (int i = 0; i < 5000; i++)
+            if (i == sum_map(String(i), [](const auto &x){return pow(to_int(x), to_int(x));}))
+                print(i);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Magic_squares_of_doubly_even_order#Java
+def magicSquareDoublyEven(n):
+    bits = 0b1001_0110_0110_1001
+    size = n * n
+    mult = n // 4
+
+    result = [[0]*n for i in range(n)]
+    i = 0
+    for r in range(n):
+        for c in range(n):
+            bitPos = c // mult + (r // mult) * 4
+            result[r][c] = i + 1 if (bits & (1 << bitPos)) != 0 else size - i
+            i += 1
+    return result
+
+n = 8
+for row in magicSquareDoublyEven(n):
+    for x in row:
+        print('%2s ' % x, end = '')
+    print()
+print("\nMagic constant: %d" % ((n * n + 1) * n // 2))
+===
+F magicSquareDoublyEven(n)
+   V bits = 1001'0110'0110'1001b
+   V size = n * n
+   V mult = n I/ 4
+
+   V result = [[0] * n] * n
+   V i = 0
+   L(r) 0 .< n
+      L(c) 0 .< n
+         V bitPos = c I/ mult + (r I/ mult) * 4
+         result[r][c] = I (bits [&] (1 << bitPos)) != 0 {i + 1} E size - i
+         i++
+   R result
+
+V n = 8
+L(row) magicSquareDoublyEven(n)
+   L(x) row
+      print(‘#2 ’.format(x), end' ‘’)
+   print()
+print("\nMagic constant: #.".format((n * n + 1) * n I/ 2))
+===
+template <typename T1> auto magicSquareDoublyEven(const T1 &n)
+{
+    auto bits = 0b1001'0110'0110'1001;
+    auto size = n * n;
+    auto mult = idiv(n, 4);
+
+    auto result = create_array({create_array({0}) * n}) * n;
+    auto i = 0;
+    for (auto r : range_el(0, n))
+        for (auto c : range_el(0, n)) {
+            auto bitPos = idiv(c, mult) + (idiv(r, mult)) * 4;
+            result[r].set(c, (bits & (1 << bitPos)) != 0 ? i + 1 : size - i);
+            i++;
+        }
+    return result;
+}
+
+auto n = 8;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&row : magicSquareDoublyEven(n)) {
+            for (auto &&x : row)
+                print(u"#2 "_S.format(x), u""_S);
+            print();
+        }
+        print(u"\nMagic constant: #."_S.format(idiv((n * n + 1) * n, 2)));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Maze_solving#Python
+def dijkstra(graph, source):
+    # graph[u][v] is the weight from u to v (however 0 means infinity)
+    n = len(graph)
+    dist = [float('infinity')]*n   # Unknown distance function from source to v
+    previous = [-1]*n # Previous node in optimal path from source
+    dist[source] = 0        # Distance from source to source
+    Q = list(range(n)) # All nodes in the graph are unoptimized - thus are in Q
+    while len(Q) != 0:           # The main loop
+        u = min(Q, key=lambda n:dist[n])                 # vertex in Q with smallest dist[]
+        Q.remove(u)
+        if dist[u] == float('infinity'):
+            break # all remaining vertices are inaccessible from source
+        for v in range(n):               # each neighbor v of u
+            if graph[u][v] and (v in Q): # where v has not yet been visited
+                alt = dist[u] + graph[u][v]
+                if alt < dist[v]:       # Relax (u,v,a)
+                    dist[v] = alt
+                    previous[v] = u
+    return previous
+
+def display_solution(predecessor):
+    cell = len(predecessor)-1
+    while cell != 0:
+        print(cell,end='<')
+        cell = predecessor[cell]
+    print(0)
+
+graph = [
+    [0,1,0,0,0,0,],
+    [1,0,1,0,1,0,],
+    [0,1,0,0,0,1,],
+    [0,0,0,0,1,0,],
+    [0,1,0,1,0,0,],
+    [0,0,1,0,0,0,]
+]
+
+display_solution(dijkstra(graph, 0))
+===
+F dijkstra(graph, source)
+   V n = graph.len
+   V dist = [Float.infinity] * n
+   V previous = [-1] * n
+   dist[source] = 0
+   V Q = Array(0 .< n)
+   L !Q.empty
+      V u = min(Q, key' n -> @dist[n])
+      Q.remove(u)
+      I dist[u] == Float.infinity
+         L.break
+      L(v) 0 .< n
+         I graph[u][v] & (v C Q)
+            V alt = dist[u] + graph[u][v]
+            I alt < dist[v]
+               dist[v] = alt
+               previous[v] = u
+   R previous
+
+F display_solution(predecessor)
+   V cell = predecessor.len - 1
+   L cell != 0
+      print(cell, end' ‘<’)
+      cell = predecessor[cell]
+   print(0)
+
+V graph = [[0, 1, 0, 0, 0, 0], [1, 0, 1, 0, 1, 0], [0, 1, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0], [0, 1, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0]]
+
+display_solution(dijkstra(graph, 0))
+===
+template <typename T1, typename T2> auto dijkstra(const T1 &graph, const T2 &source)
+{
+    auto n = graph.len();
+    auto dist = create_array({std::numeric_limits<double>::infinity()}) * n;
+    auto previous = create_array({-1}) * n;
+    dist.set(source, 0);
+    auto Q = create_array(range_el(0, n));
+    while (!Q.empty()) {
+        auto u = min_with_key(Q, [&dist](const auto &n){return dist[n];});
+        Q.remove(u);
+        if (dist[u] == std::numeric_limits<double>::infinity())
+            break;
+        for (auto v : range_el(0, n))
+            if (graph[u][v] && (in(v, Q))) {
+                auto alt = dist[u] + graph[u][v];
+                if (alt < dist[v]) {
+                    dist.set(v, alt);
+                    previous.set(v, u);
+                }
+            }
+    }
+    return previous;
+}
+
+template <typename T1> auto display_solution(const T1 &predecessor)
+{
+    auto cell = predecessor.len() - 1;
+    while (cell != 0) {
+        print(cell, u"<"_S);
+        cell = predecessor[cell];
+    }
+    print(0);
+}
+
+auto graph = create_array({create_array({0, 1, 0, 0, 0, 0}), create_array({1, 0, 1, 0, 1, 0}), create_array({0, 1, 0, 0, 0, 1}), create_array({0, 0, 0, 0, 1, 0}), create_array({0, 1, 0, 1, 0, 0}), create_array({0, 0, 1, 0, 0, 0})});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        display_solution(dijkstra(graph, 0));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Merge_and_aggregate_datasets#Python
+from copy import deepcopy
+
+patients_csv = '''PATIENT_ID,LASTNAME
+1001,Hopper
+4004,Wirth
+3003,Kemeny
+2002,Gosling
+5005,Kurtz'''
+
+visits_csv = '''PATIENT_ID,VISIT_DATE,SCORE
+2002,2020-09-10,6.8
+1001,2020-09-17,5.5
+4004,2020-09-24,8.4
+2002,2020-10-08,
+1001,,6.6
+3003,2020-11-12,
+4004,2020-11-05,7.0
+1001,2020-11-19,5.3'''
+
+def csv2list(s):
+    rows : List[List[str]] = []
+    for row in s.split("\n"):
+        rows += [row.split(',')]
+    return rows
+
+patients = csv2list(patients_csv)
+visits   = csv2list(visits_csv)
+result = deepcopy(patients)
+result[1:] = sorted(result[1:])
+#%%
+result[0].append('LAST_VISIT')
+last = {p_vis[0]: p_vis[1] for p_vis in visits[1:]}
+for record in range(1, len(result)):
+    result[record].append(last.get(result[record][0], ''))
+#%%
+result[0] += ['SCORE_SUM', 'SCORE_AVG']
+n = {p[0]: 0 for p in patients[1:]}
+tot = {p[0]: 0.0 for p in patients[1:]}
+for record in visits[1:]:
+    p = record[0]
+    score = record[2]
+    if len(score) != 0:
+        n[p] += 1
+        tot[p] += float(score)
+for record in range(1, len(result)):
+    p = result[record][0]
+    if n[p] != 0:
+        result[record] += ['{:5.1f}'.format(tot[p]), '{:5.2f}'.format(tot[p] / n[p])]
+    else:
+        result[record] += ['', '']
+#%%
+for record in result:
+    print('| ' + ' | '.join(r.center(10) for r in record) + ' |')
+===
+V patients_csv = ‘PATIENT_ID,LASTNAME
+1001,Hopper
+4004,Wirth
+3003,Kemeny
+2002,Gosling
+5005,Kurtz’
+
+V visits_csv = ‘PATIENT_ID,VISIT_DATE,SCORE
+2002,2020-09-10,6.8
+1001,2020-09-17,5.5
+4004,2020-09-24,8.4
+2002,2020-10-08,
+1001,,6.6
+3003,2020-11-12,
+4004,2020-11-05,7.0
+1001,2020-11-19,5.3’
+
+F csv2list(s)
+   [[String]] rows
+   L(row) s.split("\n")
+      rows [+]= row.split(‘,’)
+   R rows
+
+V patients = csv2list(patients_csv)
+V visits = csv2list(visits_csv)
+V result = copy(patients)
+result.sort_range(1..)
+result[0].append(‘LAST_VISIT’)
+V last = Dict(visits[1..], p_vis -> (p_vis[0], p_vis[1]))
+L(record) 1 .< result.len
+   result[record].append(last.get(result[record][0], ‘’))
+result[0] [+]= [‘SCORE_SUM’, ‘SCORE_AVG’]
+V n = Dict(patients[1..], p -> (p[0], 0))
+V tot = Dict(patients[1..], p -> (p[0], 0.0))
+L(record) visits[1..]
+   V p = record[0]
+   V score = record[2]
+   I !score.empty
+      n[p]++
+      tot[p] += Float(score)
+L(record) 1 .< result.len
+   V p = result[record][0]
+   I n[p] != 0
+      result[record] [+]= [‘#3.1’.format(tot[p]), ‘#2.2’.format(tot[p] / n[p])]
+   E
+      result[record] [+]= [‘’, ‘’]
+L(record) result
+   print(‘| ’record.map(r -> r.center(10)).join(‘ | ’)‘ |’)
+===
+auto patients_csv = uR"(PATIENT_ID,LASTNAME
+1001,Hopper
+4004,Wirth
+3003,Kemeny
+2002,Gosling
+5005,Kurtz)"_S;
+
+auto visits_csv = uR"(PATIENT_ID,VISIT_DATE,SCORE
+2002,2020-09-10,6.8
+1001,2020-09-17,5.5
+4004,2020-09-24,8.4
+2002,2020-10-08,
+1001,,6.6
+3003,2020-11-12,
+4004,2020-11-05,7.0
+1001,2020-11-19,5.3)"_S;
+
+template <typename T1> auto csv2list(const T1 &s)
+{
+    Array<Array<String>> rows;
+    for (auto &&row : s.split(u"\n"_S))
+        rows.append(row.split(u","_S));
+    return rows;
+}
+
+auto patients = csv2list(patients_csv);
+auto visits = csv2list(visits_csv);
+auto result = copy(patients);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        result.sort_range(range_ei(1));
+        _get<0>(result).append(u"LAST_VISIT"_S);
+    }
+} code_block_1;
+
+auto last = create_dict(visits[range_ei(1)], [](const auto &p_vis){return make_tuple(_get<0>(p_vis), _get<1>(p_vis));});
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        for (auto record : range_el(1, result.len()))
+            result[record].append(last.get(_get<0>(result[record]), u""_S));
+        _get<0>(result).append(create_array({u"SCORE_SUM"_S, u"SCORE_AVG"_S}));
+    }
+} code_block_2;
+
+auto n = create_dict(patients[range_ei(1)], [](const auto &p){return make_tuple(_get<0>(p), 0);});
+auto tot = create_dict(patients[range_ei(1)], [](const auto &p){return make_tuple(_get<0>(p), 0.0);});
+
+struct CodeBlock3
+{
+    CodeBlock3()
+    {
+        for (auto &&record : visits[range_ei(1)]) {
+            auto p = _get<0>(record);
+            auto score = _get<2>(record);
+            if (!score.empty()) {
+                n[p]++;
+                tot[p] += to_float(score);
+            }
+        }
+        for (auto record : range_el(1, result.len())) {
+            auto p = _get<0>(result[record]);
+            if (n[p] != 0)
+                result[record].append(create_array({u"#3.1"_S.format(tot[p]), u"#2.2"_S.format(tot[p] / n[p])}));
+            else
+                result[record].append(create_array({u""_S, u""_S}));
+        }
+        for (auto &&record : result)
+            print(u"| "_S & record.map([](const auto &r){return r.center(10);}).join(u" | "_S) & u" |"_S);
+    }
+} code_block_3;
+
+
+# https://www.rosettacode.org/wiki/Montgomery_reduction#Python
+BigInt = int
+
+class Montgomery:
+    m : BigInt
+    n : int
+    rrm : BigInt
+
+    def __init__(self, m):
+        self.m = m
+        self.n = m.bit_length()
+        self.rrm = (BigInt(2) ** (self.n * 2)) % m
+
+    def reduce(self, t):
+        a = t
+        for i in range(self.n):
+            if (a % 2) == 1:
+                a += self.m
+            a //= 2
+        if a >= self.m:
+            a -= self.m
+        return a
+
+m  = BigInt('750791094644726559640638407699')
+x1 = BigInt('540019781128412936473322405310')
+x2 = BigInt('515692107665463680305819378593')
+
+mont = Montgomery(m)
+t1 = x1 * mont.rrm
+t2 = x2 * mont.rrm
+
+r1 = mont.reduce(t1)
+r2 = mont.reduce(t2)
+r = BigInt(2) ** mont.n
+
+print("b :", 2)
+print("n :", mont.n)
+print("r :", r)
+print("m :", mont.m)
+print("t1:", t1)
+print("t2:", t2)
+print("r1:", r1)
+print("r2:", r2)
+print()
+print("Original x1       :", x1)
+print("Recovered from r1 :", mont.reduce(r1))
+print("Original x2       :", x2)
+print("Recovered from r2 :", mont.reduce(r2))
+
+print("\nMontgomery computation of x1 ^ x2 mod m:")
+prod = mont.reduce(mont.rrm)
+base = mont.reduce(x1 * mont.rrm)
+ex = x2
+while ex.bit_length() > 0:
+    if (ex % 2) == 1:
+        prod = mont.reduce(prod * base)
+    ex //= 2
+    base = mont.reduce(base * base)
+print(mont.reduce(prod))
+print("\nAlternate computation of x1 ^ x2 mod m:")
+print(pow(x1, x2, m))
+===
+T Montgomery
+   BigInt m
+   Int n
+   BigInt rrm
+
+   F (m)
+      .m = m
+      .n = bits:length(m)
+      .rrm = (BigInt(2) ^ (.n * 2)) % m
+
+   F reduce(t)
+      V a = t
+      L(i) 0 .< .n
+         I (a % 2) == 1
+            a += .m
+         a I/= 2
+      I a >= .m
+         a -= .m
+      R a
+
+V m = BigInt(‘750791094644726559640638407699’)
+V x1 = BigInt(‘540019781128412936473322405310’)
+V x2 = BigInt(‘515692107665463680305819378593’)
+
+V mont = Montgomery(m)
+V t1 = x1 * mont.rrm
+V t2 = x2 * mont.rrm
+
+V r1 = mont.reduce(t1)
+V r2 = mont.reduce(t2)
+V r = BigInt(2) ^ mont.n
+
+print(‘b : ’(2))
+print(‘n : ’(mont.n))
+print(‘r : ’r)
+print(‘m : ’(mont.m))
+print(‘t1: ’t1)
+print(‘t2: ’t2)
+print(‘r1: ’r1)
+print(‘r2: ’r2)
+print()
+print(‘Original x1       : ’x1)
+print(‘Recovered from r1 : ’mont.reduce(r1))
+print(‘Original x2       : ’x2)
+print(‘Recovered from r2 : ’mont.reduce(r2))
+
+print("\nMontgomery computation of x1 ^ x2 mod m:")
+V prod = mont.reduce(mont.rrm)
+V base = mont.reduce(x1 * mont.rrm)
+V ex = x2
+L bits:length(ex) > 0
+   I (ex % 2) == 1
+      prod = mont.reduce(prod * base)
+   ex I/= 2
+   base = mont.reduce(base * base)
+print(mont.reduce(prod))
+print("\nAlternate computation of x1 ^ x2 mod m:")
+print(pow(x1, x2, m))
+===
+class Montgomery
+{
+public:
+    BigInt m;
+    int n;
+    BigInt rrm;
+
+    template <typename T1> Montgomery(const T1 &m) :
+        m(m)
+    {
+        n = bits::length(m);
+        rrm = mod((pow(BigInt(2), (n * 2))), m);
+    }
+
+    template <typename T1> auto reduce(const T1 &t)
+    {
+        auto a = t;
+        for (auto i : range_el(0, n)) {
+            if ((mod(a, 2)) == 1)
+                a += m;
+            a = idiv(a, 2);
+        }
+        if (a >= m)
+            a -= m;
+        return a;
+    }
+};
+
+auto m = BigInt(u"750791094644726559640638407699"_S);
+auto x1 = BigInt(u"540019781128412936473322405310"_S);
+auto x2 = BigInt(u"515692107665463680305819378593"_S);
+
+auto mont = Montgomery(m);
+auto t1 = x1 * mont.rrm;
+auto t2 = x2 * mont.rrm;
+
+auto r1 = mont.reduce(t1);
+auto r2 = mont.reduce(t2);
+auto r = pow(BigInt(2), mont.n);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"b : "_S & (2));
+        print(u"n : "_S & (mont.n));
+        print(u"r : "_S & r);
+        print(u"m : "_S & (mont.m));
+        print(u"t1: "_S & t1);
+        print(u"t2: "_S & t2);
+        print(u"r1: "_S & r1);
+        print(u"r2: "_S & r2);
+        print();
+        print(u"Original x1       : "_S & x1);
+        print(u"Recovered from r1 : "_S & mont.reduce(r1));
+        print(u"Original x2       : "_S & x2);
+        print(u"Recovered from r2 : "_S & mont.reduce(r2));
+
+        print(u"\nMontgomery computation of x1 ^ x2 mod m:"_S);
+    }
+} code_block_1;
+
+auto prod = mont.reduce(mont.rrm);
+auto base = mont.reduce(x1 * mont.rrm);
+auto ex = x2;
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        while (bits::length(ex) > 0) {
+            if ((mod(ex, 2)) == 1)
+                prod = mont.reduce(prod * base);
+            ex = idiv(ex, 2);
+            base = mont.reduce(base * base);
+        }
+        print(mont.reduce(prod));
+        print(u"\nAlternate computation of x1 ^ x2 mod m:"_S);
+        print(pow(x1, x2, m));
+    }
+} code_block_2;
+
+
+# https://www.rosettacode.org/wiki/Magic_8-ball#Python
+import random
+
+s = ['It is certain', 'It is decidedly so', 'Without a doubt', 'Yes, definitely',
+ 'You may rely on it', 'As I see it, yes', 'Most likely', 'Outlook good',
+ 'Signs point to yes', 'Yes', 'Reply hazy, try again', 'Ask again later',
+ 'Better not tell you now', 'Cannot predict now', 'Concentrate and ask again',
+ "Don't bet on it", 'My reply is no', 'My sources say no', 'Outlook not so good',
+ 'Very doubtful']
+
+qs = set() # str
+
+while True:
+    question = input('Ask your question:')
+    if len(question) == 0: break
+
+    answer = random.choice(s)
+
+    if question in qs:
+        print('Your question has already been answered')
+    else:
+        qs.add(question)
+        print(answer)
+===
+V s = [‘It is certain’, ‘It is decidedly so’, ‘Without a doubt’, ‘Yes, definitely’, ‘You may rely on it’, ‘As I see it, yes’, ‘Most likely’, ‘Outlook good’, ‘Signs point to yes’, ‘Yes’, ‘Reply hazy, try again’, ‘Ask again later’, ‘Better not tell you now’, ‘Cannot predict now’, ‘Concentrate and ask again’, ‘Don't bet on it’, ‘My reply is no’, ‘My sources say no’, ‘Outlook not so good’, ‘Very doubtful’]
+
+V qs = Set[String]()
+
+L
+   V question = input(‘Ask your question:’)
+   I question.empty
+      L.break
+
+   V answer = random:choice(s)
+
+   I question C qs
+      print(‘Your question has already been answered’)
+   E
+      qs.add(question)
+      print(answer)
+===
+auto s = create_array({u"It is certain"_S, u"It is decidedly so"_S, u"Without a doubt"_S, u"Yes, definitely"_S, u"You may rely on it"_S, u"As I see it, yes"_S, u"Most likely"_S, u"Outlook good"_S, u"Signs point to yes"_S, u"Yes"_S, u"Reply hazy, try again"_S, u"Ask again later"_S, u"Better not tell you now"_S, u"Cannot predict now"_S, u"Concentrate and ask again"_S, u"Don't bet on it"_S, u"My reply is no"_S, u"My sources say no"_S, u"Outlook not so good"_S, u"Very doubtful"_S});
+
+auto qs = Set<String>();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        while (true) {
+            auto question = input(u"Ask your question:"_S);
+            if (question.empty())
+                break;
+
+            auto answer = randomns::choice(s);
+
+            if (in(question, qs))
+                print(u"Your question has already been answered"_S);
+            else {
+                qs.add(question);
+                print(answer);
+            }
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Markov_chain_text_generator#Python
+import random
+
+def makerule(data, context):
+    '''Make a rule dict for given data.'''
+    rule : Dict[str, List[str]] = {}
+    words = data.split(' ')
+    index = context
+
+    for word in words[index:]:
+        key = ' '.join(words[index-context:index])
+        if key in rule:
+            rule[key].append(word)
+        else:
+            rule[key] = [word]
+        index += 1
+
+    return rule
+
+def makestring(rule, length):
+    '''Use a given rule to make a string.'''
+    oldwords = random.choice(list(rule.keys())).split(' ') #random starting words
+    string = ' '.join(oldwords) + ' '
+
+    for i in range(length):
+        try:
+            key = ' '.join(oldwords)
+            newword = random.choice(rule[key])
+            string += newword + ' '
+
+            for word in range(len(oldwords)):
+                oldwords[word] = oldwords[(word + 1) % len(oldwords)]
+            oldwords[-1] = newword
+
+        except KeyError:
+            return string
+    return string
+
+data = open('alice_oz.txt').read()
+rule = makerule(data, 3)
+string = makestring(rule, 100)
+max_line_size = 100
+cur_line_size = 0
+for word in string.split(' '):
+    if cur_line_size + len(word) >= max_line_size:
+        print()
+        cur_line_size = 0
+    cur_line_size += len(word) + 1
+    print(word, end = ' ')
+print()
+===
+F makerule(data, context)
+   ‘Make a rule dict for given data.’
+   [String = [String]] rule
+   V words = data.split(‘ ’)
+   V index = context
+
+   L(word) words[index ..]
+      V key = (words[index - context .< index]).join(‘ ’)
+      I key C rule
+         rule[key].append(word)
+      E
+         rule[key] = [word]
+      index++
+
+   R rule
+
+F makestring(rule, length)
+   ‘Use a given rule to make a string.’
+   V oldwords = random:choice(Array(rule.keys())).split(‘ ’)
+   V string = oldwords.join(‘ ’)‘ ’
+
+   L(i) 0 .< length
+      X.try
+         V key = oldwords.join(‘ ’)
+         V newword = random:choice(rule[key])
+         string ‘’= newword‘ ’
+
+         L(word) 0 .< oldwords.len
+            oldwords[word] = oldwords[(word + 1) % oldwords.len]
+         oldwords.last = newword
+
+      X.catch KeyError
+         R string
+   R string
+
+V data = File(‘alice_oz.txt’).read()
+V rule = makerule(data, 3)
+V string = makestring(rule, 100)
+V max_line_size = 100
+V cur_line_size = 0
+L(word) string.split(‘ ’)
+   I cur_line_size + word.len >= max_line_size
+      print()
+      cur_line_size = 0
+   cur_line_size += word.len + 1
+   print(word, end' ‘ ’)
+print()
+===
+template <typename T1, typename T2> auto makerule(const T1 &data, const T2 &context)
+{
+    u"Make a rule dict for given data."_S;
+    Dict<String, Array<String>> rule;
+    auto words = data.split(u" "_S);
+    auto index = context;
+
+    for (auto &&word : words[range_ei(index)]) {
+        auto key = (words[range_el(index - context, index)]).join(u" "_S);
+        if (in(key, rule))
+            rule[key].append(word);
+        else
+            rule.set(key, create_array({word}));
+        index++;
+    }
+
+    return rule;
+}
+
+template <typename T1, typename T2> auto makestring(const T1 &rule, const T2 &length)
+{
+    u"Use a given rule to make a string."_S;
+    auto oldwords = randomns::choice(create_array(rule.keys())).split(u" "_S);
+    auto string = oldwords.join(u" "_S) & u" "_S;
+
+    for (auto i : range_el(0, length)) {
+        try
+        {
+            auto key = oldwords.join(u" "_S);
+            auto newword = randomns::choice(rule[key]);
+            string &= newword & u" "_S;
+
+            for (auto word : range_el(0, oldwords.len()))
+                oldwords.set(word, oldwords[mod((word + 1), oldwords.len())]);
+            oldwords.last() = newword;
+        }
+
+        catch (const KeyError&)
+        {
+            return string;
+        }
+    }
+    return string;
+}
+
+auto data = File(u"alice_oz.txt"_S).read();
+auto rule = makerule(data, 3);
+auto string = makestring(rule, 100);
+auto max_line_size = 100;
+auto cur_line_size = 0;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&word : string.split(u" "_S)) {
+            if (cur_line_size + word.len() >= max_line_size) {
+                print();
+                cur_line_size = 0;
+            }
+            cur_line_size += word.len() + 1;
+            print(word, u" "_S);
+        }
+        print();
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Mastermind#Python
+import random
+
+def encode(correct, guess):
+    output_arr : List[str] = []
+
+    for i in range(len(correct)):
+        output_arr += ['X' if guess[i] == correct[i] else 'O' if guess[i] in correct else '-']
+
+    return output_arr
+
+def safe_int_input(prompt, min_val, max_val):
+    while True:
+        user_input_str = input(prompt)
+
+        try:
+            user_input = int(user_input_str)
+            if min_val <= user_input <= max_val:
+                return user_input
+        except ValueError:
+            continue
+
+def play_game():
+    print("Welcome to Mastermind.")
+    print("You will need to guess a random code.")
+    print("For each guess, you will receive a hint.")
+    print("In this hint, X denotes a correct letter, and O a letter in the original string but in a different position.")
+    print()
+
+    number_of_letters = safe_int_input("Select a number of possible letters for the code (2-20): ", 2, 20)
+    code_length = safe_int_input("Select a length for the code (4-10): ", 4, 10)
+
+    letters = 'ABCDEFGHIJKLMNOPQRST'[:number_of_letters]
+    code = ''
+    for i in range(code_length):
+        code += random.choice(letters)
+    guesses : List[str] = []
+
+    while True:
+        print()
+        guess = input("Enter a guess of length {} ({}): ".format(code_length, letters)).upper()
+
+        if len(guess) != code_length or any([char not in letters for char in guess]):
+            continue
+        elif guess == code:
+            print("\nYour guess", guess, 'was correct!')
+            break
+        else:
+            guesses.append("{}: {} => {}".format(len(guesses)+1, ' '.join(list(guess)), ' '.join(encode(code, guess))))
+
+        for i_guess in guesses:
+            print("------------------------------------")
+            print(i_guess)
+        print("------------------------------------")
+
+play_game()
+===
+F encode(correct, guess)
+   [String] output_arr
+
+   L(i) 0 .< correct.len
+      output_arr [+]= I guess[i] == correct[i] {‘X’} E I guess[i] C correct {‘O’} E ‘-’
+
+   R output_arr
+
+F safe_int_input(prompt, min_val, max_val)
+   L
+      V user_input_str = input(prompt)
+
+      X.try
+         V user_input = Int(user_input_str)
+         I user_input C min_val .. max_val
+            R user_input
+      X.catch ValueError
+         L.continue
+
+F play_game()
+   print(‘Welcome to Mastermind.’)
+   print(‘You will need to guess a random code.’)
+   print(‘For each guess, you will receive a hint.’)
+   print(‘In this hint, X denotes a correct letter, and O a letter in the original string but in a different position.’)
+   print()
+
+   V number_of_letters = safe_int_input(‘Select a number of possible letters for the code (2-20): ’, 2, 20)
+   V code_length = safe_int_input(‘Select a length for the code (4-10): ’, 4, 10)
+
+   V letters = ‘ABCDEFGHIJKLMNOPQRST’[0 .< number_of_letters]
+   V code = ‘’
+   L(i) 0 .< code_length
+      code ‘’= random:choice(letters)
+   [String] guesses
+
+   L
+      print()
+      V guess = input(‘Enter a guess of length #. (#.): ’.format(code_length, letters)).uppercase()
+
+      I guess.len != code_length | any(guess.map(char -> char !C @letters))
+         L.continue
+      E I guess == code
+         print("\nYour guess "guess‘ was correct!’)
+         L.break
+      E
+         guesses.append(‘#.: #. => #.’.format(guesses.len + 1, Array(guess).join(‘ ’), encode(code, guess).join(‘ ’)))
+
+      L(i_guess) guesses
+         print(‘------------------------------------’)
+         print(i_guess)
+      print(‘------------------------------------’)
+
+play_game()
+===
+template <typename T1, typename T2> auto encode(const T1 &correct, const T2 &guess)
+{
+    Array<String> output_arr;
+
+    for (auto i : range_el(0, correct.len()))
+        output_arr.append(guess[i] == correct[i] ? u"X"_S : in(guess[i], correct) ? u'O'_C : u'-'_C);
+
+    return output_arr;
+}
+
+template <typename T1, typename T2, typename T3> auto safe_int_input(const T1 &prompt, const T2 &min_val, const T3 &max_val)
+{
+    while (true) {
+        auto user_input_str = input(prompt);
+
+        try
+        {
+            auto user_input = to_int(user_input_str);
+            if (in(user_input, range_ee(min_val, max_val)))
+                return user_input;
+        }
+        catch (const ValueError&)
+        {
+            continue;
+        }
+    }
+}
+
+auto play_game()
+{
+    print(u"Welcome to Mastermind."_S);
+    print(u"You will need to guess a random code."_S);
+    print(u"For each guess, you will receive a hint."_S);
+    print(u"In this hint, X denotes a correct letter, and O a letter in the original string but in a different position."_S);
+    print();
+
+    auto number_of_letters = safe_int_input(u"Select a number of possible letters for the code (2-20): "_S, 2, 20);
+    auto code_length = safe_int_input(u"Select a length for the code (4-10): "_S, 4, 10);
+
+    auto letters = u"ABCDEFGHIJKLMNOPQRST"_S[range_el(0, number_of_letters)];
+    auto code = u""_S;
+    for (auto i : range_el(0, code_length))
+        code &= randomns::choice(letters);
+    Array<String> guesses;
+
+    while (true) {
+        print();
+        auto guess = input(u"Enter a guess of length #. (#.): "_S.format(code_length, letters)).uppercase();
+
+        if (guess.len() != code_length || any_map(guess, [&letters](const auto &_char_){return !in(_char_, letters);}))
+            continue;
+        else if (guess == code) {
+            print(u"\nYour guess "_S & guess & u" was correct!"_S);
+            break;
+        }
+        else
+            guesses.append(u"#.: #. => #."_S.format(guesses.len() + 1, create_array(guess).join(u" "_S), encode(code, guess).join(u" "_S)));
+
+        for (auto &&i_guess : guesses) {
+            print(u"------------------------------------"_S);
+            print(i_guess);
+        }
+        print(u"------------------------------------"_S);
+    }
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        play_game();
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Matrix-exponentiation_operator#Python
+def matrix_mul(m1, m2):
+    assert(len(m1[0]) == len(m2))
+    r = [[0] * len(m2[0]) for i in range(len(m1))]
+    for j in range(len(m1)):
+        for i in range(len(m2[0])):
+            s = 0
+            for k in range(len(m2)):
+                s += m1[j][k] * m2[k][i]
+            r[j][i] = s
+    return r
+
+def identity(size):
+    rsize = range(size)
+    return [[int(i==j) for i in rsize] for j in rsize]
+
+def matrixExp(m, pow):
+    assert pow>=0 and int(pow)==pow, "Only non-negative, integer powers allowed"
+    accumulator = identity(len(m))
+    for i in range(pow):
+        accumulator = matrix_mul(accumulator, m)
+    return accumulator
+
+def printtable(data):
+    for row in data:
+        print(' '.join('%-5s' % cell for cell in row))
+
+m = [[3,2], [2,1]]
+for i in range(5):
+    print('\n%i:' % i)
+    printtable( matrixExp(m, i) )
+
+print("\n10:")
+printtable( matrixExp(m, 10) )
+===
+F matrix_mul(m1, m2)
+   assert(m1[0].len == m2.len)
+   V r = [[0] * m2[0].len] * m1.len
+   L(j) 0 .< m1.len
+      L(i) 0 .< m2[0].len
+         V s = 0
+         L(k) 0 .< m2.len
+            s += m1[j][k] * m2[k][i]
+         r[j][i] = s
+   R r
+
+F identity(size)
+   V rsize = 0 .< size
+   R rsize.map(j -> @rsize.map(i -> Int(i == @j)))
+
+F matrixExp(m, pow)
+   assert(pow >= 0 & Int(pow) == pow, ‘Only non-negative, integer powers allowed’)
+   V accumulator = identity(m.len)
+   L(i) 0 .< pow
+      accumulator = matrix_mul(accumulator, m)
+   R accumulator
+
+F printtable(data)
+   L(row) data
+      print(row.map(cell -> ‘#<5’.format(cell)).join(‘ ’))
+
+V m = [[3, 2], [2, 1]]
+L(i) 5
+   print("\n#.:".format(i))
+   printtable(matrixExp(m, i))
+
+print("\n10:")
+printtable(matrixExp(m, 10))
+===
+template <typename T1, typename T2> auto matrix_mul(const T1 &m1, const T2 &m2)
+{
+    assert(_get<0>(m1).len() == m2.len());
+    auto r = create_array({create_array({0}) * _get<0>(m2).len()}) * m1.len();
+    for (auto j : range_el(0, m1.len()))
+        for (auto i : range_el(0, _get<0>(m2).len())) {
+            auto s = 0;
+            for (auto k : range_el(0, m2.len()))
+                s += m1[j][k] * m2[k][i];
+            r[j].set(i, s);
+        }
+    return r;
+}
+
+template <typename T1> auto identity(const T1 &size)
+{
+    auto rsize = range_el(0, size);
+    return rsize.map([&rsize](const auto &j){return rsize.map([&j](const auto &i){return to_int(i == j);});});
+}
+
+template <typename T1, typename T2> auto matrixExp(const T1 &m, const T2 &pow)
+{
+    assert(pow >= 0 && to_int(pow) == pow, u"Only non-negative, integer powers allowed"_S);
+    auto accumulator = identity(m.len());
+    for (auto i : range_el(0, pow))
+        accumulator = matrix_mul(accumulator, m);
+    return accumulator;
+}
+
+template <typename T1> auto printtable(const T1 &data)
+{
+    for (auto &&row : data)
+        print(row.map([](const auto &cell){return u"#<5"_S.format(cell);}).join(u" "_S));
+}
+
+auto m = create_array({create_array({3, 2}), create_array({2, 1})});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (int i = 0; i < 5; i++) {
+            print(u"\n#.:"_S.format(i));
+            printtable(matrixExp(m, i));
+        }
+
+        print(u"\n10:"_S);
+        printtable(matrixExp(m, 10));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Matrix_multiplication#Nim
+def matrix_mul(m1, m2):
+    assert(len(m1[0]) == len(m2))
+    r = [[0.0] * len(m2[0]) for i in range(len(m1))]
+    for j in range(len(m1)):
+        for i in range(len(m2[0])):
+            s = 0.0
+            for k in range(len(m2)):
+                s += m1[j][k] * m2[k][i]
+            r[j][i] = s
+    return r
+
+def to_str(m):
+    result = "(["
+    for r in m:
+        if len(result) > 2: result += "]\n ["
+        for val in r: result += "%8.2f" % val
+    return result + "])"
+
+a = [[1.0,  1.0,  1.0,   1.0],
+     [2.0,  4.0,  8.0,  16.0],
+     [3.0,  9.0, 27.0,  81.0],
+     [4.0, 16.0, 64.0, 256.0]]
+
+b = [[    4.0, -3.0  ,  4/3.0,   -1/4.0],
+     [-13/3.0, 19/4.0, -7/3.0,  11/24.0],
+     [  3/2.0, -2.0  ,  7/6.0,   -1/4.0],
+     [ -1/6.0,  1/4.0, -1/6.0,   1/24.0]]
+
+print(to_str(a))
+print(to_str(b))
+print(to_str(matrix_mul(a, b)))
+print(to_str(matrix_mul(b, a)))
+===
+F matrix_mul(m1, m2)
+   assert(m1[0].len == m2.len)
+   V r = [[0.0] * m2[0].len] * m1.len
+   L(j) 0 .< m1.len
+      L(i) 0 .< m2[0].len
+         V s = 0.0
+         L(k) 0 .< m2.len
+            s += m1[j][k] * m2[k][i]
+         r[j][i] = s
+   R r
+
+F to_str(m)
+   V result = ‘([’
+   L(r) m
+      I result.len > 2
+         result ‘’= "]\n ["
+      L(val) r
+         result ‘’= ‘#5.2’.format(val)
+   R result‘])’
+
+V a = [[1.0, 1.0, 1.0, 1.0], [2.0, 4.0, 8.0, 16.0], [3.0, 9.0, 27.0, 81.0], [4.0, 16.0, 64.0, 256.0]]
+
+V b = [[4.0, -3.0, 4 / 3.0, -1 / 4.0], [-13 / 3.0, 19 / 4.0, -7 / 3.0, 11 / 24.0], [3 / 2.0, -2.0, 7 / 6.0, -1 / 4.0], [-1 / 6.0, 1 / 4.0, -1 / 6.0, 1 / 24.0]]
+
+print(to_str(a))
+print(to_str(b))
+print(to_str(matrix_mul(a, b)))
+print(to_str(matrix_mul(b, a)))
+===
+template <typename T1, typename T2> auto matrix_mul(const T1 &m1, const T2 &m2)
+{
+    assert(_get<0>(m1).len() == m2.len());
+    auto r = create_array({create_array({0.0}) * _get<0>(m2).len()}) * m1.len();
+    for (auto j : range_el(0, m1.len()))
+        for (auto i : range_el(0, _get<0>(m2).len())) {
+            auto s = 0.0;
+            for (auto k : range_el(0, m2.len()))
+                s += m1[j][k] * m2[k][i];
+            r[j].set(i, s);
+        }
+    return r;
+}
+
+template <typename T1> auto to_str(const T1 &m)
+{
+    auto result = u"(["_S;
+    for (auto &&r : m) {
+        if (result.len() > 2)
+            result &= u"]\n ["_S;
+        for (auto &&val : r)
+            result &= u"#5.2"_S.format(val);
+    }
+    return result & u"])"_S;
+}
+
+auto a = create_array({create_array({1.0, 1.0, 1.0, 1.0}), create_array({2.0, 4.0, 8.0, 16.0}), create_array({3.0, 9.0, 27.0, 81.0}), create_array({4.0, 16.0, 64.0, 256.0})});
+
+auto b = create_array({create_array({4.0, -3.0, 4.0 / 3.0, -1 / 4.0}), create_array({-13 / 3.0, 19.0 / 4.0, -7 / 3.0, 11.0 / 24.0}), create_array({3.0 / 2.0, -2.0, 7.0 / 6.0, -1 / 4.0}), create_array({-1 / 6.0, 1.0 / 4.0, -1 / 6.0, 1.0 / 24.0})});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(to_str(a));
+        print(to_str(b));
+        print(to_str(matrix_mul(a, b)));
+        print(to_str(matrix_mul(b, a)));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Matrix_chain_multiplication#Nim
+from typing import List
+
+class Optimizer:
+    dims : List[int]
+    m : List[List[int]]
+    s : List[List[int]]
+
+    def __init__(self, dims):
+        self.dims = dims
+
+    def findMatrixChainOrder(self):
+        n = len(self.dims) - 1
+        self.m = [[0] * n for i in range(n)]
+        self.s = [[0] * n for i in range(n)]
+
+        for lg in range(1, n):
+            for i in range(n - lg):
+                j = i + lg
+                self.m[i][j] = 0x7FFF_FFFF
+                for k in range(i, j):
+                    cost = self.m[i][k] + self.m[k+1][j] + self.dims[i] * self.dims[k+1] * self.dims[j+1]
+                    if cost < self.m[i][j]:
+                        self.m[i][j] = cost
+                        self.s[i][j] = k
+
+    def optimalChainOrder(self, i, j):
+        if i == j:
+            return str(chr(i + ord('A')))
+        else:
+            return '(' + self.optimalChainOrder(i, self.s[i][j]) \
+                       + self.optimalChainOrder(self.s[i][j] + 1, j) + ')'
+
+Dims1 = [5, 6, 3, 1]
+Dims2 = [1, 5, 25, 30, 100, 70, 2, 1, 100, 250, 1, 1000, 2]
+Dims3 = [1000, 1, 500, 12, 1, 700, 2500, 3, 2, 5, 14, 10]
+
+for dims in [Dims1, Dims2, Dims3]:
+    opt = Optimizer(dims)
+    opt.findMatrixChainOrder()
+    print("Dims: ", dims)
+    print("Order:", opt.optimalChainOrder(0, len(dims) - 2))
+    print("Cost: ", opt.m[0][len(dims) - 2])
+    print("")
+===
+T Optimizer
+   [Int] dims
+   [[Int]] m
+   [[Int]] s
+
+   F (dims)
+      .dims = dims
+
+   F findMatrixChainOrder()
+      V n = .dims.len - 1
+      .m = [[0] * n] * n
+      .s = [[0] * n] * n
+
+      L(lg) 1 .< n
+         L(i) 0 .< n - lg
+            V j = i + lg
+            .m[i][j] = 7FFF'FFFF
+            L(k) i .< j
+               V cost = .m[i][k] + .m[k + 1][j] + .dims[i] * .dims[k + 1] * .dims[j + 1]
+               I cost < .m[i][j]
+                  .m[i][j] = cost
+                  .s[i][j] = k
+
+   F optimalChainOrder(i, j)
+      I i == j
+         R String(Char(code' i + ‘A’.code))
+      E
+         R ‘(’(.optimalChainOrder(i, .s[i][j]))‘’.optimalChainOrder(.s[i][j] + 1, j)‘)’
+
+V Dims1 = [5, 6, 3, 1]
+V Dims2 = [1, 5, 25, 30, 100, 70, 2, 1, 100, 250, 1, 1000, 2]
+V Dims3 = [1000, 1, 500, 12, 1, 700, 2500, 3, 2, 5, 14, 10]
+
+L(dims) [Dims1, Dims2, Dims3]
+   V opt = Optimizer(dims)
+   opt.findMatrixChainOrder()
+   print(‘Dims:  ’dims)
+   print(‘Order: ’opt.optimalChainOrder(0, dims.len - 2))
+   print(‘Cost:  ’opt.m[0][dims.len - 2])
+   print(‘’)
+===
+class Optimizer
+{
+public:
+    Array<int> dims;
+    Array<Array<int>> m;
+    Array<Array<int>> s;
+
+    template <typename T1> Optimizer(const T1 &dims) :
+        dims(dims)
+    {
+    }
+
+    auto findMatrixChainOrder()
+    {
+        auto n = dims.len() - 1;
+        m = create_array({create_array({0}) * n}) * n;
+        s = create_array({create_array({0}) * n}) * n;
+
+        for (auto lg : range_el(1, n))
+            for (auto i : range_el(0, n - lg)) {
+                auto j = i + lg;
+                m[i].set(j, 0x7FFF'FFFF);
+                for (auto k : range_el(i, j)) {
+                    auto cost = m[i][k] + m[k + 1][j] + dims[i] * dims[k + 1] * dims[j + 1];
+                    if (cost < m[i][j]) {
+                        m[i].set(j, cost);
+                        s[i].set(j, k);
+                    }
+                }
+            }
+    }
+
+    template <typename T1, typename T2> auto optimalChainOrder(const T1 &i, const T2 &j)
+    {
+        if (i == j)
+            return String(Char(i + u'A'_C.code));
+        else
+            return u"("_S & (optimalChainOrder(i, s[i][j])) & optimalChainOrder(s[i][j] + 1, j) & u")"_S;
+    }
+};
+
+auto Dims1 = create_array({5, 6, 3, 1});
+auto Dims2 = create_array({1, 5, 25, 30, 100, 70, 2, 1, 100, 250, 1, 1000, 2});
+auto Dims3 = create_array({1000, 1, 500, 12, 1, 700, 2500, 3, 2, 5, 14, 10});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&dims : create_array({Dims1, Dims2, Dims3})) {
+            auto opt = Optimizer(dims);
+            opt.findMatrixChainOrder();
+            print(u"Dims:  "_S & dims);
+            print(u"Order: "_S & opt.optimalChainOrder(0, dims.len() - 2));
+            print(u"Cost:  "_S & _get<0>(opt.m)[dims.len() - 2]);
+            print(u""_S);
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Maximum_difference_between_adjacent_elements_of_list#Python
+def maxDeltas(ns):
+    pairs = [
+        (abs(a - b), (a, b)) for a, b
+        in zip(ns, ns[1:])
+    ]
+    delta = max(pairs, key=lambda ab: ab[0])[0]
+
+    return [
+        ab for ab in pairs
+        if delta == ab[0]
+    ]
+
+maxPairs = maxDeltas([
+    float(1), 8, 2, -3, 0, 1, 1, -2.3, 0,
+    5.5, 8, 6, 2, 9, 11, 10, 3
+])
+
+for ab in maxPairs:
+    print(ab)
+===
+F maxDeltas(ns)
+   V pairs = zip(ns, ns[1..]).map((a, b) -> (abs(a - b), (a, b)))
+   V delta = max(pairs, key' ab -> ab[0])[0]
+
+   R pairs.filter(ab -> @delta == ab[0])
+
+V maxPairs = maxDeltas([Float(1), 8, 2, -3, 0, 1, 1, -2.3, 0, 5.5, 8, 6, 2, 9, 11, 10, 3])
+
+L(ab) maxPairs
+   print(ab)
+===
+template <typename T1> auto maxDeltas(const T1 &ns)
+{
+    auto pairs = zip(ns, ns[range_ei(1)]).map([](const auto &a, const auto &b){return make_tuple(abs(a - b), make_tuple(a, b));});
+    auto delta = _get<0>(max_with_key(pairs, [](const auto &ab){return _get<0>(ab);}));
+
+    return pairs.filter([&delta](const auto &ab){return delta == _get<0>(ab);});
+}
+
+auto maxPairs = maxDeltas(create_array<double>({to_float(1), 8, 2, -3, 0, 1, 1, -2.3, 0, 5.5, 8, 6, 2, 9, 11, 10, 3}));
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&ab : maxPairs)
+            print(ab);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Mayan_numerals#Nim
+UL = "╔"
+UC = "╦"
+UR = "╗"
+LL = "╚"
+LC = "╩"
+LR = "╝"
+HB = "═"
+VB = "║"
+
+Mayan = ["    ",
+         " ∙  ",
+         " ∙∙ ",
+         "∙∙∙ ",
+         "∙∙∙∙"]
+
+M0 = " @  "
+M5 = "────"
+
+def toBase20(n):
+    result = [n % 20]
+    n //= 20
+    while n != 0:
+        result += [n % 20]
+        n //= 20
+    return result[::-1]
+
+def toMayanNumeral(d):
+    result = [Mayan[0], Mayan[0], Mayan[0], Mayan[0]]
+    if d == 0:
+        result[3] = M0
+        return result
+
+    for i in range(3, -1, -1):
+        if d >= 5:
+            result[i] = M5
+            d -= 5
+        else:
+            result[i] = Mayan[d]
+            break
+
+    return result
+
+def draw(mayans):
+    idx = len(mayans) - 1
+
+    print(UL, end = '')
+    for i in range(idx + 1):
+        for j in range(4):
+            print(HB, end = '')
+        if i < idx:
+            print(UC, end = '')
+        else:
+            print(UR)
+
+    for i in range(1, 5):
+        print(VB, end = '')
+        for j in range(idx + 1):
+            print(mayans[j][i-1] + VB, end = '')
+        print()
+
+    print(LL, end = '')
+    for i in range(idx + 1):
+        for j in range(4):
+            print(HB, end = '')
+        if i < idx:
+            print(LC, end = '')
+        else:
+            print(LR)
+
+for n in [4005, 8017, 326205, 886205, 1081439556]:
+    print("Converting", n, "to Mayan:")
+    digits = toBase20(n)
+    mayans = list(map(lambda d: toMayanNumeral(d), digits))
+    draw(mayans)
+    print()
+===
+V UL = ‘╔’
+V UC = ‘╦’
+V UR = ‘╗’
+V LL = ‘╚’
+V LC = ‘╩’
+V LR = ‘╝’
+V HB = ‘═’
+V VB = ‘║’
+
+V Mayan = [‘    ’, ‘ ∙  ’, ‘ ∙∙ ’, ‘∙∙∙ ’, ‘∙∙∙∙’]
+
+V M0 = ‘ @  ’
+V M5 = ‘────’
+
+F toBase20(=n)
+   V result = [n % 20]
+   n I/= 20
+   L n != 0
+      result [+]= n % 20
+      n I/= 20
+   R reversed(result)
+
+F toMayanNumeral(=d)
+   V result = [Mayan[0], Mayan[0], Mayan[0], Mayan[0]]
+   I d == 0
+      result[3] = :M0
+      R result
+
+   L(i) (3 .< -1).step(-1)
+      I d >= 5
+         result[i] = :M5
+         d -= 5
+      E
+         result[i] = Mayan[d]
+         L.break
+
+   R result
+
+F draw(mayans)
+   V idx = mayans.len - 1
+
+   print(:UL, end' ‘’)
+   L(i) 0 .. idx
+      L(j) 4
+         print(:HB, end' ‘’)
+      I i < idx
+         print(:UC, end' ‘’)
+      E
+         print(:UR)
+
+   L(i) 1..4
+      print(:VB, end' ‘’)
+      L(j) 0 .. idx
+         print(mayans[j][i - 1]‘’:VB, end' ‘’)
+      print()
+
+   print(:LL, end' ‘’)
+   L(i) 0 .. idx
+      L(j) 4
+         print(:HB, end' ‘’)
+      I i < idx
+         print(:LC, end' ‘’)
+      E
+         print(:LR)
+
+L(n) [4005, 8017, 326205, 886205, 1081439556]
+   print(‘Converting ’n‘ to Mayan:’)
+   V digits = toBase20(n)
+   V mayans = digits.map(d -> toMayanNumeral(d))
+   draw(mayans)
+   print()
+===
+auto UL = u"╔"_S;
+auto UC = u"╦"_S;
+auto UR = u"╗"_S;
+auto LL = u"╚"_S;
+auto LC = u"╩"_S;
+auto LR = u"╝"_S;
+auto HB = u"═"_S;
+auto VB = u"║"_S;
+
+auto Mayan = create_array({u"    "_S, u" ∙  "_S, u" ∙∙ "_S, u"∙∙∙ "_S, u"∙∙∙∙"_S});
+
+auto M0 = u" @  "_S;
+auto M5 = u"────"_S;
+
+template <typename T1> auto toBase20(T1 n)
+{
+    auto result = create_array({mod(n, 20)});
+    n = idiv(n, 20);
+    while (n != 0) {
+        result.append(mod(n, 20));
+        n = idiv(n, 20);
+    }
+    return reversed(result);
+}
+
+template <typename T1> auto toMayanNumeral(T1 d)
+{
+    auto result = create_array({_get<0>(Mayan), _get<0>(Mayan), _get<0>(Mayan), _get<0>(Mayan)});
+    if (d == 0) {
+        _set<3>(result, ::M0);
+        return result;
+    }
+
+    for (auto i : range_el(3, -1).step(-1))
+        if (d >= 5) {
+            result.set(i, ::M5);
+            d -= 5;
+        }
+        else {
+            result.set(i, Mayan[d]);
+            break;
+        }
+
+    return result;
+}
+
+template <typename T1> auto draw(const T1 &mayans)
+{
+    auto idx = mayans.len() - 1;
+
+    print(::UL, u""_S);
+    for (auto i : range_ee(0, idx)) {
+        for (int j = 0; j < 4; j++)
+            print(::HB, u""_S);
+        if (i < idx)
+            print(::UC, u""_S);
+        else
+            print(::UR);
+    }
+
+    for (auto i : range_ee(1, 4)) {
+        print(::VB, u""_S);
+        for (auto j : range_ee(0, idx))
+            print(mayans[j][i - 1] & ::VB, u""_S);
+        print();
+    }
+
+    print(::LL, u""_S);
+    for (auto i : range_ee(0, idx)) {
+        for (int j = 0; j < 4; j++)
+            print(::HB, u""_S);
+        if (i < idx)
+            print(::LC, u""_S);
+        else
+            print(::LR);
+    }
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&n : create_array({4005, 8017, 326205, 886205, 1081439556})) {
+            print(u"Converting "_S & n & u" to Mayan:"_S);
+            auto digits = toBase20(n);
+            auto mayans = digits.map([](const auto &d){return toMayanNumeral(d);});
+            draw(mayans);
+            print();
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Mertens_function#Python
+def mertens(count):
+    """Generate Mertens numbers"""
+    m = [-1, 1]
+    for n in range(2, count+1):
+        m.append(1)
+        for k in range(2, n+1):
+            m[n] -= m[n//k]
+    return m
+
+ms = mertens(1000)
+
+print("The first 99 Mertens numbers are:")
+print("  ", end=' ')
+col = 1
+for n in ms[1:100]:
+    print("{:2}".format(n), end=' ')
+    col += 1
+    if col == 10:
+        print()
+        col = 0
+
+zeroes = sum(int(x==0) for x in ms)
+crosses = sum(int(a!=0 and b==0) for a,b in zip(ms, ms[1:]))
+print("M(N) equals zero {} times.".format(zeroes))
+print("M(N) crosses zero {} times.".format(crosses))
+===
+F mertens(count)
+   ‘Generate Mertens numbers’
+   V m = [-1, 1]
+   L(n) 2 .. count
+      m.append(1)
+      L(k) 2 .. n
+         m[n] -= m[n I/ k]
+   R m
+
+V ms = mertens(1000)
+
+print(‘The first 99 Mertens numbers are:’)
+print(‘  ’, end' ‘ ’)
+V col = 1
+L(n) ms[1.<100]
+   print(‘#2’.format(n), end' ‘ ’)
+   col++
+   I col == 10
+      print()
+      col = 0
+
+V zeroes = sum(ms.map(x -> Int(x == 0)))
+V crosses = sum(zip(ms, ms[1..]).map((a, b) -> Int(a != 0 & b == 0)))
+print(‘M(N) equals zero #. times.’.format(zeroes))
+print(‘M(N) crosses zero #. times.’.format(crosses))
+===
+template <typename T1> auto mertens(const T1 &count)
+{
+    u"Generate Mertens numbers"_S;
+    auto m = create_array({-1, 1});
+    for (auto n : range_ee(2, count)) {
+        m.append(1);
+        for (auto k : range_ee(2, n))
+            m[n] -= m[idiv(n, k)];
+    }
+    return m;
+}
+
+auto ms = mertens(1000);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"The first 99 Mertens numbers are:"_S);
+        print(u"  "_S, u" "_S);
+    }
+} code_block_1;
+
+auto col = 1;
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        for (auto &&n : ms[range_el(1, 100)]) {
+            print(u"#2"_S.format(n), u" "_S);
+            col++;
+            if (col == 10) {
+                print();
+                col = 0;
+            }
+        }
+    }
+} code_block_2;
+
+auto zeroes = sum_map(ms, [](const auto &x){return to_int(x == 0);});
+auto crosses = sum_map(zip(ms, ms[range_ei(1)]), [](const auto &a, const auto &b){return to_int(a != 0 && b == 0);});
+
+struct CodeBlock3
+{
+    CodeBlock3()
+    {
+        print(u"M(N) equals zero #. times."_S.format(zeroes));
+        print(u"M(N) crosses zero #. times."_S.format(crosses));
+    }
+} code_block_3;
+
+
+# https://www.rosettacode.org/wiki/Miller%E2%80%93Rabin_primality_test#D
+import random
+
+def isProbablePrime(n, k = 10):
+    if n < 2 or n % 2 == 0:
+        return n == 2
+
+    d = n - 1
+    s = 0
+    while d % 2 == 0:
+        d //= 2
+        s += 1
+
+    assert(2 ** s * d == n - 1)
+
+    for _ in range(k):
+        a = random.randrange(2, n)
+        x = pow(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(s - 1):
+            x = pow(x, 2, n)
+            if x == 1:
+                return False
+            if x == n - 1:
+                break # `^L.continue`
+        else:
+            return False
+
+    return True
+
+print([x for x in range(2, 30) if isProbablePrime(x)])
+===
+F isProbablePrime(n, k = 10)
+   I n < 2 | n % 2 == 0
+      R n == 2
+
+   V d = n - 1
+   V s = 0
+   L d % 2 == 0
+      d I/= 2
+      s++
+
+   assert(2 ^ s * d == n - 1)
+
+   L(_) 0 .< k
+      V a = random:(2 .< n)
+      V x = pow(a, d, n)
+      I x == 1 | x == n - 1
+         L.continue
+      L(_) 0 .< s - 1
+         x = pow(x, 2, n)
+         I x == 1
+            R 0B
+         I x == n - 1
+            L.break
+      L.was_no_break
+         R 0B
+
+   R 1B
+
+print((2..29).filter(x -> isProbablePrime(x)))
+===
+template <typename T1, typename T2 = decltype(10)> auto isProbablePrime(const T1 &n, const T2 &k = 10)
+{
+    if (n < 2 || mod(n, 2) == 0)
+        return n == 2;
+
+    auto d = n - 1;
+    auto s = 0;
+    while (mod(d, 2) == 0) {
+        d = idiv(d, 2);
+        s++;
+    }
+
+    assert(pow(2, s) * d == n - 1);
+
+    for (auto _ : range_el(0, k)) {
+        auto a = randomns::_(range_el(2, n));
+        auto x = pow(a, d, n);
+        if (x == 1 || x == n - 1)
+            continue;
+        for (auto _ : range_el(0, s - 1)) {
+            x = pow(x, 2, n);
+            if (x == 1)
+                return false;
+            if (x == n - 1)
+                goto break_;
+        }
+        return false;
+        break_:;
+    }
+
+    return true;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(range_ee(2, 29).filter([](const auto &x){return isProbablePrime(x);}));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Minimal_steps_down_to_1#Python:_Tabulated
+from typing import Set
+from copy import copy
+
+class Mintab:
+    divs : Set[int]
+    subs : Set[int]
+
+    def __init__(self, divs, subs):
+        self.divs = copy(divs)
+        self.subs = copy(subs)
+        self.table : List[int] = [] # Last tabulated table
+        self.hows : List[List[str]] = [] # Last tabulated sample steps
+
+    def _mintab(self, n):
+        "Tabulation, memoised minimised steps to 1"
+        table = [n + 2] * (n + 1)   # sentinels
+        table[1] = 0                # zero steps to 1 from 1
+        how = [[''] for _ in range(n + 2)]  # What steps are taken
+        how[1] = [str('=')]
+        for t in range(1, n):
+            thisplus1 = table[t] + 1
+            for d in self.divs:
+                dt = d * t
+                if dt <= n and thisplus1 < table[dt]:
+                    table[dt] = thisplus1
+                    how[dt] = how[t] + ['/{}=>{:2}'.format(d, t)]
+            for s in self.subs:
+                st = s + t
+                if st <= n and thisplus1 < table[st]:
+                    table[st] = thisplus1
+                    how[st] = how[t] + ['-{}=>{:2}'.format(s, t)]
+        self.table = table
+        self.hows = [h[::-1][:-1] for h in how]   # Order and trim
+        return (self.table, self.hows)
+
+    def __call__(self, n):
+        "Tabulation"
+        (table, hows) = self._mintab(n)
+        return (table[n], hows[n])
+
+for DIVS, SUBS in [([2, 3], [1]), ([2, 3], [2])]:
+    print('\nMINIMUM STEPS TO 1: Tabulation algorithm')
+    print('  Possible divisors:  ', DIVS)
+    print('  Possible decrements:', SUBS)
+    mintab = Mintab(set(DIVS), set(SUBS))
+    mintab(10)
+    for n in range(1, 11):
+        (steps, how) = (mintab.table[n], mintab.hows[n])
+        print('    mintab({:2}) in {:2} by: '.format(n, steps), ', '.join(how))
+
+    for upto in [2000, 50_000]:
+        mintab(upto)
+        print('\n    Those numbers up to', upto, 'that take the maximum, "minimal steps down to 1":')
+        mx = max(mintab.table[1:])
+        ans = [n for n, steps in enumerate(mintab.table) if steps == mx]
+        print('      Taking', mx, 'steps is/are the', len(ans), 'numbers:',
+              ', '.join(str(n) for n in ans))
+===
+T Mintab
+   Set[Int] divs
+   Set[Int] subs
+   [Int] table
+   [[String]] hows
+
+   F (divs, subs)
+      .divs = copy(divs)
+      .subs = copy(subs)
+
+   F _mintab(n)
+      ‘Tabulation, memoised minimised steps to 1’
+      V table = [n + 2] * (n + 1)
+      table[1] = 0
+      V how = (0 .< n + 2).map(_ -> [‘’])
+      how[1] = [String(‘=’)]
+      L(t) 1 .< n
+         V thisplus1 = table[t] + 1
+         L(d) .divs
+            V dt = d * t
+            I dt <= n & thisplus1 < table[dt]
+               table[dt] = thisplus1
+               how[dt] = how[t] [+] [‘/#.=>#2’.format(d, t)]
+         L(s) .subs
+            V st = s + t
+            I st <= n & thisplus1 < table[st]
+               table[st] = thisplus1
+               how[st] = how[t] [+] [‘-#.=>#2’.format(s, t)]
+      .table = table
+      .hows = how.map(h -> reversed(h)[0 .< (len)-1])
+      R (.table, .hows)
+
+   F ()(n)
+      ‘Tabulation’
+      V (table, hows) = ._mintab(n)
+      R (table[n], hows[n])
+
+L(DIVS, SUBS) [([2, 3], [1]), ([2, 3], [2])]
+   print("\nMINIMUM STEPS TO 1: Tabulation algorithm")
+   print(‘  Possible divisors:   ’DIVS)
+   print(‘  Possible decrements: ’SUBS)
+   V mintab = Mintab(Set(DIVS), Set(SUBS))
+   mintab(10)
+   L(n) 1..10
+      V (steps, how) = (mintab.table[n], mintab.hows[n])
+      print(‘    mintab(#2) in #2 by: ’.format(n, steps)‘ ’how.join(‘, ’))
+
+   L(upto) [2000, 50'000]
+      mintab(upto)
+      print("\n    Those numbers up to "upto‘ that take the maximum, "minimal steps down to 1":’)
+      V mx = max(mintab.table[1..])
+      V ans = enumerate(mintab.table).filter((n, steps) -> steps == @mx).map((n, steps) -> n)
+      print(‘      Taking ’mx‘ steps is/are the ’ans.len‘ numbers: ’ans.map(n -> String(n)).join(‘, ’))
+===
+class Mintab
+{
+public:
+    Set<int> divs;
+    Set<int> subs;
+    Array<int> table;
+    Array<Array<String>> hows;
+
+    template <typename T1, typename T2> Mintab(const T1 &divs, const T2 &subs)
+    {
+        this->divs = copy(divs);
+        this->subs = copy(subs);
+    }
+
+    template <typename T1> auto _mintab(const T1 &n)
+    {
+        u"Tabulation, memoised minimised steps to 1"_S;
+        auto table = create_array({n + 2}) * (n + 1);
+        _set<1>(table, 0);
+        auto how = range_el(0, n + 2).map([](const auto &_){return create_array({u""_S});});
+        _set<1>(how, create_array({u"="_S}));
+        for (auto t : range_el(1, n)) {
+            auto thisplus1 = table[t] + 1;
+            for (auto &&d : divs) {
+                auto dt = d * t;
+                if (dt <= n && thisplus1 < table[dt]) {
+                    table.set(dt, thisplus1);
+                    how.set(dt, how[t] + create_array({u"/#.=>#2"_S.format(d, t)}));
+                }
+            }
+            for (auto &&s : subs) {
+                auto st = s + t;
+                if (st <= n && thisplus1 < table[st]) {
+                    table.set(st, thisplus1);
+                    how.set(st, how[t] + create_array({u"-#.=>#2"_S.format(s, t)}));
+                }
+            }
+        }
+        this->table = table;
+        hows = how.map([](const auto &h){return reversed(h)[range_e_llen(0,  - 1)];});
+        return make_tuple(this->table, hows);
+    }
+
+    template <typename T1> auto operator()(const T1 &n)
+    {
+        u"Tabulation"_S;
+        auto [table, hows] = _mintab(n);
+        return make_tuple(table[n], hows[n]);
+    }
+};
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&[DIVS, SUBS] : create_array({make_tuple(create_array({2, 3}), create_array({1})), make_tuple(create_array({2, 3}), create_array({2}))})) {
+            print(u"\nMINIMUM STEPS TO 1: Tabulation algorithm"_S);
+            print(u"  Possible divisors:   "_S & DIVS);
+            print(u"  Possible decrements: "_S & SUBS);
+            auto mintab = Mintab(create_set(DIVS), create_set(SUBS));
+            mintab(10);
+            for (auto n : range_ee(1, 10)) {
+                auto [steps, how] = make_tuple(mintab.table[n], mintab.hows[n]);
+                print(u"    mintab(#2) in #2 by: "_S.format(n, steps) & u" "_S & how.join(u", "_S));
+            }
+
+            for (auto &&upto : create_array({2000, 50'000})) {
+                mintab(upto);
+                print(u"\n    Those numbers up to "_S & upto & u" that take the maximum, \"minimal steps down to 1\":"_S);
+                auto mx = max(mintab.table[range_ei(1)]);
+                auto ans = enumerate(mintab.table).filter([&mx](const auto &n, const auto &steps){return steps == mx;}).map([](const auto &n, const auto &steps){return n;});
+                print(u"      Taking "_S & mx & u" steps is/are the "_S & ans.len() & u" numbers: "_S & ans.map([](const auto &n){return String(n);}).join(u", "_S));
+            }
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Minkowski_question-mark_function#Python
+import math
+
+MAXITER = 151
+
+def minkowski(x) -> float:
+    if x > 1 or x < 0:
+        return math.floor(x) + minkowski(x - math.floor(x))
+
+    p = int(x)
+    q = 1
+    r = p + 1
+    s = 1
+    d = 1.0
+    y = float(p)
+
+    while True:
+        d /= 2
+        if y + d == y:
+            break
+
+        m = p + r
+        if m < 0 or p < 0:
+            break
+
+        n = q + s
+        if n < 0:
+            break
+
+        if x < float(m) / n:
+            r = m
+            s = n
+        else:
+            y += d
+            p = m
+            q = n
+
+    return y + d
+
+def minkowski_inv(x) -> float:
+    if x > 1 or x < 0:
+        return math.floor(x) + minkowski_inv(x - math.floor(x))
+
+    if x == 1 or x == 0:
+        return x
+
+    cont_frac = [0]
+    current = 0
+    count = 1
+    i = 0
+
+    while True:
+        x *= 2
+
+        if current == 0:
+            if x < 1:
+                count += 1
+            else:
+                cont_frac.append(0)
+                cont_frac[i] = count
+
+                i += 1
+                count = 1
+                current = 1
+                x -= 1
+        else:
+            if x > 1:
+                count += 1
+                x -= 1
+            else:
+                cont_frac.append(0)
+                cont_frac[i] = count
+
+                i += 1
+                count = 1
+                current = 0
+
+        if x == math.floor(x):
+            cont_frac[i] = count
+            break
+
+        if i == MAXITER:
+            break
+
+    ret = 1.0 / cont_frac[i]
+    for j in range(i - 1, -1, -1):
+        ret = cont_frac[j] + 1.0 / ret
+
+    return 1.0 / ret
+
+print(
+    "{:19.16f} {:19.16f}".format(
+        minkowski(0.5 * (1 + math.sqrt(5))),
+        5.0 / 3.0
+    )
+)
+
+print(
+    "{:19.16f} {:19.16f}".format(
+        minkowski_inv(-5.0 / 9.0),
+        (math.sqrt(13) - 7) / 6
+    )
+)
+
+print(
+    "{:19.16f} {:19.16f}".format(
+        minkowski(minkowski_inv(0.718281828)),
+        minkowski_inv(minkowski(0.1213141516171819))
+    )
+)
+===
+V MAXITER = 151
+
+F minkowski(x) -> Float
+   I x > 1 | x < 0
+      R floori(x) + minkowski(x - floori(x))
+
+   V p = Int(x)
+   V q = 1
+   V r = p + 1
+   V s = 1
+   V d = 1.0
+   V y = Float(p)
+
+   L
+      d /= 2
+      I y + d == y
+         L.break
+
+      V m = p + r
+      I m < 0 | p < 0
+         L.break
+
+      V n = q + s
+      I n < 0
+         L.break
+
+      I x < Float(m) / n
+         r = m
+         s = n
+      E
+         y += d
+         p = m
+         q = n
+
+   R y + d
+
+F minkowski_inv(=x) -> Float
+   I x > 1 | x < 0
+      R floori(x) + minkowski_inv(x - floori(x))
+
+   I x == 1 | x == 0
+      R x
+
+   V cont_frac = [0]
+   V current = 0
+   V count = 1
+   V i = 0
+
+   L
+      x *= 2
+
+      I current == 0
+         I x < 1
+            count++
+         E
+            cont_frac.append(0)
+            cont_frac[i] = count
+
+            i++
+            count = 1
+            current = 1
+            x--
+      E
+         I x > 1
+            count++
+            x--
+         E
+            cont_frac.append(0)
+            cont_frac[i] = count
+
+            i++
+            count = 1
+            current = 0
+
+      I x == floori(x)
+         cont_frac[i] = count
+         L.break
+
+      I i == :MAXITER
+         L.break
+
+   V ret = 1.0 / cont_frac[i]
+   L(j) (i - 1 .< -1).step(-1)
+      ret = cont_frac[j] + 1.0 / ret
+
+   R 1.0 / ret
+
+print(‘#2.16 #2.16’.format(minkowski(0.5 * (1 + sqrt(5))), 5.0 / 3.0))
+
+print(‘#2.16 #2.16’.format(minkowski_inv(-5.0 / 9.0), (sqrt(13) - 7) / 6))
+
+print(‘#2.16 #2.16’.format(minkowski(minkowski_inv(0.718281828)), minkowski_inv(minkowski(0.1213141516171819))))
+===
+auto MAXITER = 151;
+
+template <typename T1> double minkowski(const T1 &x)
+{
+    if (x > 1 || x < 0)
+        return floori(x) + minkowski(x - floori(x));
+
+    auto p = to_int(x);
+    auto q = 1;
+    auto r = p + 1;
+    auto s = 1;
+    auto d = 1.0;
+    auto y = to_float(p);
+
+    while (true) {
+        d /= 2;
+        if (y + d == y)
+            break;
+
+        auto m = p + r;
+        if (m < 0 || p < 0)
+            break;
+
+        auto n = q + s;
+        if (n < 0)
+            break;
+
+        if (x < to_float(m) / n) {
+            r = m;
+            s = n;
+        }
+        else {
+            y += d;
+            p = m;
+            q = n;
+        }
+    }
+
+    return y + d;
+}
+
+template <typename T1> double minkowski_inv(T1 x)
+{
+    if (x > 1 || x < 0)
+        return floori(x) + minkowski_inv(x - floori(x));
+
+    if (x == 1 || x == 0)
+        return x;
+
+    auto cont_frac = create_array({0});
+    auto current = 0;
+    auto count = 1;
+    auto i = 0;
+
+    while (true) {
+        x *= 2;
+
+        if (current == 0) {
+            if (x < 1)
+                count++;
+            else {
+                cont_frac.append(0);
+                cont_frac.set(i, count);
+
+                i++;
+                count = 1;
+                current = 1;
+                x--;
+            }
+        }
+        else
+            if (x > 1) {
+                count++;
+                x--;
+            }
+            else {
+                cont_frac.append(0);
+                cont_frac.set(i, count);
+
+                i++;
+                count = 1;
+                current = 0;
+            }
+
+        if (x == floori(x)) {
+            cont_frac.set(i, count);
+            break;
+        }
+
+        if (i == ::MAXITER)
+            break;
+    }
+
+    auto ret = 1.0 / cont_frac[i];
+    for (auto j : range_el(i - 1, -1).step(-1))
+        ret = cont_frac[j] + 1.0 / ret;
+
+    return 1.0 / ret;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"#2.16 #2.16"_S.format(minkowski(0.5 * (1 + sqrt(5))), 5.0 / 3.0));
+
+        print(u"#2.16 #2.16"_S.format(minkowski_inv(-5.0 / 9.0), (sqrt(13) - 7) / 6.0));
+
+        print(u"#2.16 #2.16"_S.format(minkowski(minkowski_inv(0.718281828)), minkowski_inv(minkowski(0.1213141516171819))));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Modified_random_distribution#Python
+import random, collections
+from typing import List, Callable, Optional
+
+def modifier(x: float) -> float:
+    return 2*(.5 - x) if x < 0.5 else 2*(x - .5)
+
+def modified_random_distribution(modifier: Callable[[float], float],
+                                 n: int) -> List[float]:
+    d: List[float] = []
+    while len(d) < n:
+        prob = random.random()
+        if random.random() < modifier(prob):
+            d.append(prob)
+    return d
+
+data = modified_random_distribution(modifier, 50_000)
+bins = 15
+#counts = Counter(d // (1 / bins) for d in data)
+counts = collections.defaultdict(int) # int
+for d in data:
+    counts[d // (1 / bins)] += 1
+
+mx = max(counts.values())
+print("   BIN, COUNTS, DELTA: HISTOGRAM\n")
+last: Optional[float] = None
+for b, count in sorted(counts.items()):
+    delta = 'N/A' if last is None else str(count - last)
+    print('  {:5.2f},  {:4},  {:>4}: '.format(float(b) / bins, count, delta) + '#' * int(40 * count / mx))
+    last = count
+===
+F modifier(Float x) -> Float
+   R I x < 0.5 {2 * (.5 - x)} E 2 * (x - .5)
+
+F modified_random_distribution((Float -> Float) modifier, Int n) -> [Float]
+   [Float] d
+   L d.len < n
+      V prob = random:()
+      I random:() < modifier(prob)
+         d.append(prob)
+   R d
+
+V data = modified_random_distribution(modifier, 50'000)
+V bins = 15
+V counts = DefaultDict[Int, Int]()
+L(d) data
+   counts[d I/ (1 / bins)]++
+
+V mx = max(counts.values())
+print("   BIN, COUNTS, DELTA: HISTOGRAM\n")
+Float? last
+L(b, count) sorted(counts.items())
+   V delta = I last == N {‘N/A’} E String(count - last)
+   print(‘  #2.2,  #4,  #4: ’.format(Float(b) / bins, count, delta)‘’(‘#’ * Int(40 * count / mx)))
+   last = count
+===
+double modifier(const double x)
+{
+    return x < 0.5 ? 2 * (.5 - x) : 2 * (x - .5);
+}
+
+Array<double> modified_random_distribution(const std::function<double(const double)> &modifier, const int n)
+{
+    Array<double> d;
+    while (d.len() < n) {
+        auto prob = randomns::_();
+        if (randomns::_() < modifier(prob))
+            d.append(prob);
+    }
+    return d;
+}
+
+auto data = modified_random_distribution(modifier, 50'000);
+auto bins = 15;
+auto counts = DefaultDict<int, int>();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&d : data)
+            counts[idiv(d, (1.0 / bins))]++;
+    }
+} code_block_1;
+
+auto mx = max(counts.values());
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        print(u"   BIN, COUNTS, DELTA: HISTOGRAM\n"_S);
+    }
+} code_block_2;
+
+Nullable<double> last;
+
+struct CodeBlock3
+{
+    CodeBlock3()
+    {
+        for (auto &&[b, count] : sorted(counts.items())) {
+            auto delta = last == nullptr ? u"N/A"_S : String(count - *last);
+            print(u"  #2.2,  #4,  #4: "_S.format(to_float(b) / bins, count, delta) & (u"#"_S * to_int(40 * count / mx)));
+            last = count;
+        }
+    }
+} code_block_3;
+
+
+# https://www.rosettacode.org/wiki/Multiplicative_order#D
+import math
+from typing import NamedTuple
+BigInt = int
+
+class PExp(NamedTuple):
+    prime : BigInt
+    exp : int
+
+def isqrt(self):
+    b = self
+    while True:
+        a = b
+        b = (self // a + a) // 2
+        if b >= a: return a
+
+def factor(n : BigInt):
+    pf : List[PExp] = []
+    nn = n
+    b = 0
+    while ((nn % 2) == 0):
+        nn //= 2
+        b += 1
+
+    if b > 0:
+        pf += [PExp(BigInt(2), b)]
+
+    s = isqrt(nn)
+    d = BigInt(3)
+    while nn > 1:
+        if d > s: d = nn
+        e = 0
+        while True:
+            (div, rem) = divmod(nn, d)
+            if rem.bit_length() > 0: break
+            nn = div
+            e += 1
+
+        if e > 0:
+            pf += [PExp(d, e)]
+            s = isqrt(nn)
+
+        d += 2
+
+    return pf
+
+def moBachShallit58(a : BigInt, n : BigInt, pf):
+    n1 = n - 1
+    mo = BigInt(1)
+    for pe in pf:
+        y = n1 // pow(pe.prime, BigInt(pe.exp))
+        o = 0
+        x = pow(a, y, n)
+        while x > 1:
+            x = pow(x, pe.prime, n)
+            o += 1
+        o1 = pow(pe.prime, BigInt(o))
+        o1 //= math.gcd(mo, o1)
+        mo *= o1
+    return mo
+
+def moTest(a, n):
+    if a.bit_length() < 100:
+        print('ord(' + str(a) + ')', end = '')
+    else:
+        print('ord([big])', end = '')
+    print(' mod', n, '=', moBachShallit58(a, n, factor(n - 1)))
+
+moTest(37, 3343)
+
+moTest(pow(BigInt(10), 100) + 1, 7919)
+moTest(pow(BigInt(10), 1000) + 1, 15485863)
+moTest(pow(BigInt(10), 10000) - 1, BigInt(22801763489))
+
+moTest(1511678068, 7379191741)
+moTest(BigInt('3047753288'), BigInt('2257683301'))
+===
+T PExp = (BigInt prime, Int exp)
+
+F isqrt(self)
+   V b = self
+   L
+      V a = b
+      b = (self I/ a + a) I/ 2
+      I b >= a
+         R a
+
+F factor(BigInt n)
+   [PExp] pf
+   V nn = n
+   V b = 0
+   L ((nn % 2) == 0)
+      nn I/= 2
+      b++
+
+   I b > 0
+      pf [+]= PExp(BigInt(2), b)
+
+   V s = isqrt(nn)
+   V d = BigInt(3)
+   L nn > 1
+      I d > s
+         d = nn
+      V e = 0
+      L
+         V (div, rem) = divmod(nn, d)
+         I bits:length(rem) > 0
+            L.break
+         nn = div
+         e++
+
+      I e > 0
+         pf [+]= PExp(d, e)
+         s = isqrt(nn)
+
+      d += 2
+
+   R pf
+
+F moBachShallit58(BigInt a, BigInt n; pf)
+   V n1 = n - 1
+   V mo = BigInt(1)
+   L(pe) pf
+      V y = n1 I/ pow(pe.prime, BigInt(pe.exp))
+      V o = 0
+      V x = pow(a, y, n)
+      L x > 1
+         x = pow(x, pe.prime, n)
+         o++
+      V o1 = pow(pe.prime, BigInt(o))
+      o1 I/= gcd(mo, o1)
+      mo *= o1
+   R mo
+
+F moTest(a, n)
+   I bits:length(a) < 100
+      print(‘ord(’String(a)‘)’, end' ‘’)
+   E
+      print(‘ord([big])’, end' ‘’)
+   print(‘ mod ’n‘ = ’moBachShallit58(a, n, factor(n - 1)))
+
+moTest(37, 3343)
+
+moTest(pow(BigInt(10), 100) + 1, 7919)
+moTest(pow(BigInt(10), 1000) + 1, 15485863)
+moTest(pow(BigInt(10), 10000) - 1, BigInt(22801763489))
+
+moTest(1511678068, 7379191741)
+moTest(BigInt(‘3047753288’), BigInt(‘2257683301’))
+===
+class PExp
+{
+public:
+    BigInt prime;
+    int exp;
+
+    PExp(const BigInt &prime, const int &exp) :
+        prime(prime), exp(exp) {}
+};
+
+template <typename T1> auto isqrt(const T1 &self)
+{
+    auto b = self;
+    while (true) {
+        auto a = b;
+        b = idiv((idiv(self, a) + a), 2);
+        if (b >= a)
+            return a;
+    }
+}
+
+auto factor(const BigInt &n)
+{
+    Array<PExp> pf;
+    auto nn = n;
+    auto b = 0;
+    while (((mod(nn, 2)) == 0)) {
+        nn = idiv(nn, 2);
+        b++;
+    }
+
+    if (b > 0)
+        pf.append(PExp(BigInt(2), b));
+
+    auto s = isqrt(nn);
+    auto d = BigInt(3);
+    while (nn > 1) {
+        if (d > s)
+            d = nn;
+        auto e = 0;
+        while (true) {
+            auto [div, rem] = divmod(nn, d);
+            if (bits::length(rem) > 0)
+                break;
+            nn = div;
+            e++;
+        }
+
+        if (e > 0) {
+            pf.append(PExp(d, e));
+            s = isqrt(nn);
+        }
+
+        d += 2;
+    }
+
+    return pf;
+}
+
+template <typename T3> auto moBachShallit58(const BigInt &a, const BigInt &n, const T3 &pf)
+{
+    auto n1 = n - 1;
+    auto mo = BigInt(1);
+    for (auto &&pe : pf) {
+        auto y = idiv(n1, pow(pe.prime, BigInt(pe.exp)));
+        auto o = 0;
+        auto x = pow(a, y, n);
+        while (x > 1) {
+            x = pow(x, pe.prime, n);
+            o++;
+        }
+        auto o1 = pow(pe.prime, BigInt(o));
+        o1 = idiv(o1, gcd(mo, o1));
+        mo *= o1;
+    }
+    return mo;
+}
+
+template <typename T1, typename T2> auto moTest(const T1 &a, const T2 &n)
+{
+    if (bits::length(a) < 100)
+        print(u"ord("_S & String(a) & u")"_S, u""_S);
+    else
+        print(u"ord([big])"_S, u""_S);
+    print(u" mod "_S & n & u" = "_S & moBachShallit58(a, n, factor(n - 1)));
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        moTest(37, 3343);
+
+        moTest(pow(BigInt(10), 100) + 1, 7919);
+        moTest(pow(BigInt(10), 1000) + 1, 15485863);
+        moTest(pow(BigInt(10), 10000) - 1, BigInt(22801763489));
+
+        moTest(1511678068, 7379191741);
+        moTest(BigInt(u"3047753288"_S), BigInt(u"2257683301"_S));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Minimum_number_of_cells_after,_before,_above_and_below_NxN_squares#Python
+def min_cells_matrix(siz):
+    return [[min(row, col, siz - row - 1, siz - col - 1) for col in range(siz)] for row in range(siz)]
+
+def display_matrix(mat):
+    siz = len(mat)
+    spaces = 2 if siz < 20 else 3 if siz < 200 else 4
+    print(f"\nMinimum number of cells after, before, above and below {siz} x {siz} square:")
+    for row in range(siz):
+        print("".join([str(n).rjust(spaces) for n in mat[row]]))
+
+for siz in [23, 10, 9, 2, 1]:
+    display_matrix(min_cells_matrix(siz))
+===
+F min_cells_matrix(siz)
+   R (0 .< siz).map(row -> (0 .< @siz).map(col -> min(@row, col, @@siz - @row - 1, @@siz - col - 1)))
+
+F display_matrix(mat)
+   V siz = mat.len
+   V spaces = I siz < 20 {2} E I siz < 200 {3} E 4
+   print("\nMinimum number of cells after, before, above and below "siz‘ x ’siz‘ square:’)
+   L(row) 0 .< siz
+      print((mat[row].map(n -> String(n).rjust(@spaces))).join(‘’))
+
+L(siz) [23, 10, 9, 2, 1]
+   display_matrix(min_cells_matrix(siz))
+===
+template <typename T1> auto min_cells_matrix(const T1 &siz)
+{
+    return range_el(0, siz).map([&siz](const auto &row){return range_el(0, siz).map([&row, &siz](const auto &col){return min(row, col, siz - row - 1, siz - col - 1);});});
+}
+
+template <typename T1> auto display_matrix(const T1 &mat)
+{
+    auto siz = mat.len();
+    auto spaces = siz < 20 ? 2 : siz < 200 ? 3 : 4;
+    print(u"\nMinimum number of cells after, before, above and below "_S & siz & u" x "_S & siz & u" square:"_S);
+    for (auto row : range_el(0, siz))
+        print((mat[row].map([&spaces](const auto &n){return String(n).rjust(spaces);})).join(u""_S));
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&siz : create_array({23, 10, 9, 2, 1}))
+            display_matrix(min_cells_matrix(siz));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Minimum_numbers_of_three_lists#Python
+numbers1 = [5,45,23,21,67]
+numbers2 = [43,22,78,46,38]
+numbers3 = [9,98,12,98,53]
+
+numbers = [min(numbers1[i],numbers2[i],numbers3[i]) for i in range(0,len(numbers1))]
+
+print(numbers)
+===
+V numbers1 = [5, 45, 23, 21, 67]
+V numbers2 = [43, 22, 78, 46, 38]
+V numbers3 = [9, 98, 12, 98, 53]
+
+V numbers = (0 .< numbers1.len).map(i -> min(:numbers1[i], :numbers2[i], :numbers3[i]))
+
+print(numbers)
+===
+auto numbers1 = create_array({5, 45, 23, 21, 67});
+auto numbers2 = create_array({43, 22, 78, 46, 38});
+auto numbers3 = create_array({9, 98, 12, 98, 53});
+
+auto numbers = range_el(0, numbers1.len()).map([](const auto &i){return min(::numbers1[i], ::numbers2[i], ::numbers3[i]);});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(numbers);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Minimum_positive_multiple_in_base_10_using_only_0_and_1#Kotlin
+# Slow BigInt
+BigInt = int
+
+def modp(m, n):
+    result = m % n
+    if result < 0:
+        result += n
+    return result
+
+def getA004290(n):
+    if n == 1:
+        return BigInt(1)
+    arr = [[0] * n for i in range(n)]
+    arr[0][0] = 1
+    arr[0][1] = 1
+    m = 0
+    ten = BigInt(10)
+    nBi = BigInt(n)
+    while True:
+        m += 1
+        if arr[m - 1][int(modp(-pow(ten, m), nBi))] == 1:
+            break
+        arr[m][0] = 1
+        for k in range(1, n):
+            arr[m][k] = max(arr[m - 1][k], arr[m - 1][int(modp(BigInt(k) - pow(ten, m), nBi))])
+
+    r = pow(ten, m)
+    k = int(modp(-r, nBi))
+    for j in range(m - 1, 0, -1):
+        if arr[j - 1][k] == 0:
+            r += pow(ten, j)
+            k = int(modp(BigInt(k) - pow(ten, j), nBi))
+    if k == 1:
+        r += 1
+    return r
+
+for n in list(range(1, 11)) + list(range(95, 106)) + [297, 576, 594, 891, 909, 999, 1998, 2079, 2251, 2277, 2439, 2997, 4878]:
+    result = getA004290(n)
+    print(f'A004290({n}) = {result} = {n} * {result // n}')
+===
+F modp(m, n)
+   V result = m % n
+   I result < 0
+      result += n
+   R result
+
+F getA004290(n)
+   I n == 1
+      R BigInt(1)
+   V arr = [[0] * n] * n
+   arr[0][0] = 1
+   arr[0][1] = 1
+   V m = 0
+   V ten = BigInt(10)
+   V nBi = BigInt(n)
+   L
+      m++
+      I arr[m - 1][Int(modp(-pow(ten, m), nBi))] == 1
+         L.break
+      arr[m][0] = 1
+      L(k) 1 .< n
+         arr[m][k] = max(arr[m - 1][k], arr[m - 1][Int(modp(BigInt(k) - pow(ten, m), nBi))])
+
+   V r = pow(ten, m)
+   V k = Int(modp(-r, nBi))
+   L(j) (m - 1 .< 0).step(-1)
+      I arr[j - 1][k] == 0
+         r += pow(ten, j)
+         k = Int(modp(BigInt(k) - pow(ten, j), nBi))
+   I k == 1
+      r++
+   R r
+
+L(n) Array(1..10) [+] Array(95..105) [+] [297, 576, 594, 891, 909, 999, 1998, 2079, 2251, 2277, 2439, 2997, 4878]
+   V result = getA004290(n)
+   print(‘A004290(’n‘) = ’result‘ = ’n‘ * ’(result I/ n))
+===
+template <typename T1, typename T2> auto modp(const T1 &m, const T2 &n)
+{
+    auto result = mod(m, n);
+    if (result < 0)
+        result += n;
+    return result;
+}
+
+template <typename T1> auto getA004290(const T1 &n)
+{
+    if (n == 1)
+        return BigInt(1);
+    auto arr = create_array({create_array({0}) * n}) * n;
+    _set<0>(_get<0>(arr), 1);
+    _set<1>(_get<0>(arr), 1);
+    auto m = 0;
+    auto ten = BigInt(10);
+    auto nBi = BigInt(n);
+    while (true) {
+        m++;
+        if (arr[m - 1][to_int(modp(-pow(ten, m), nBi))] == 1)
+            break;
+        _set<0>(arr[m], 1);
+        for (auto k : range_el(1, n))
+            arr[m].set(k, max(arr[m - 1][k], arr[m - 1][to_int(modp(BigInt(k) - pow(ten, m), nBi))]));
+    }
+
+    auto r = pow(ten, m);
+    auto k = to_int(modp(-r, nBi));
+    for (auto j : range_el(m - 1, 0).step(-1))
+        if (arr[j - 1][k] == 0) {
+            r += pow(ten, j);
+            k = to_int(modp(BigInt(k) - pow(ten, j), nBi));
+        }
+    if (k == 1)
+        r++;
+    return r;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&n : create_array(range_ee(1, 10)) + create_array(range_ee(95, 105)) + create_array({297, 576, 594, 891, 909, 999, 1998, 2079, 2251, 2277, 2439, 2997, 4878})) {
+            auto result = getA004290(n);
+            print(u"A004290("_S & n & u") = "_S & result & u" = "_S & n & u" * "_S & (idiv(result, n)));
+        }
+    }
+} code_block_1;
+
+
+# https://rosettacode.org/wiki/M%C3%B6bius_function#Python
+def isPrime(n) :
+    if (n < 2) :
+        return False
+    for i in range(2, n + 1) :
+        if (i * i <= n and n % i == 0) :
+            return False
+    return True
+
+def mobius(n) :
+    # Base Case
+    if (n == 1) :
+        return 1
+
+    # For a prime factor i
+    # check if i^2 is also
+    # a factor.
+    p = 0
+    for i in range(1, n + 1) :
+        if (n % i == 0 and
+                isPrime(i)) :
+
+            # Check if n is
+            # divisible by i^2
+            if (n % (i * i) == 0) :
+                return 0
+            else :
+
+                # i occurs only once,
+                # increase f
+                p = p + 1
+
+    # All prime factors are
+    # contained only once
+    # Return 1 if p is even
+    # else -1
+    if(p % 2 != 0) :
+        return -1
+    else :
+        return 1
+
+# Driver Code
+print("Mobius numbers from 1..99:")
+
+for i in range(1, 100):
+    print(f"{mobius(i):>4}", end = '')
+
+    if i % 20 == 0: print()
+===
+F isPrime(n)
+   I (n < 2)
+      R 0B
+   L(i) 2 .. n
+      I (i * i <= n & n % i == 0)
+         R 0B
+   R 1B
+
+F mobius(n)
+   I (n == 1)
+      R 1
+
+   V p = 0
+   L(i) 1 .. n
+      I (n % i == 0 & isPrime(i))
+
+         I (n % (i * i) == 0)
+            R 0
+         E
+
+            p = p + 1
+
+   I (p % 2 != 0)
+      R -1
+   E
+      R 1
+
+print(‘Mobius numbers from 1..99:’)
+
+L(i) 1..99
+   print(f:‘{mobius(i):4}’, end' ‘’)
+
+   I i % 20 == 0
+      print()
+===
+template <typename T1> auto isPrime(const T1 &n)
+{
+    if ((n < 2))
+        return false;
+    for (auto i : range_ee(2, n))
+        if ((i * i <= n && mod(n, i) == 0))
+            return false;
+    return true;
+}
+
+template <typename T1> auto mobius(const T1 &n)
+{
+    if ((n == 1))
+        return 1;
+
+    auto p = 0;
+    for (auto i : range_ee(1, n))
+        if ((mod(n, i) == 0 && isPrime(i))) {
+
+            if ((mod(n, (i * i)) == 0))
+                return 0;
+            else
+
+                p = p + 1;
+        }
+
+    if ((mod(p, 2) != 0))
+        return -1;
+    else
+        return 1;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"Mobius numbers from 1..99:"_S);
+
+        for (auto i : range_ee(1, 99)) {
+            print(u"#4"_S.format(mobius(i)), u""_S);
+
+            if (mod(i, 20) == 0)
+                print();
+        }
+    }
+} code_block_1;
+
+
+# https://rosettacode.org/wiki/Magic_constant#Python
+def a(n):
+    n += 2
+    return n*(n**2 + 1)/2
+
+def inv_a(x):
+    k = 0
+    while k*(k**2.0+1)/2+2 < x:
+        k+=1
+    return k
+
+print("The first 20 magic constants are:")
+for n in range(1, 20):
+    print(int(a(n)), end = " ");
+print("\nThe 1,000th magic constant is:",int(a(1000)))
+
+for e in range(1, 20):
+    print(f'10^{e}: {inv_a(10.0**e)}')
+===
+F a(=n)
+   n += 2
+   R n * (n ^ 2 + 1) / 2
+
+F inv_a(x)
+   V k = 0
+   L k * (k ^ 2.0 + 1) / 2 + 2 < x
+      k++
+   R k
+
+print(‘The first 20 magic constants are:’)
+L(n) 1..19
+   print(Int(a(n)), end' ‘ ’)
+print("\nThe 1,000th magic constant is: "Int(a(1000)))
+
+L(e) 1..19
+   print(‘10^’e‘: ’inv_a(10.0 ^ e))
+===
+template <typename T1> auto a(T1 n)
+{
+    n += 2;
+    return n * (square(n) + 1) / 2.0;
+}
+
+template <typename T1> auto inv_a(const T1 &x)
+{
+    auto k = 0;
+    while (k * (pow(k, 2.0) + 1) / 2.0 + 2 < x)
+        k++;
+    return k;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"The first 20 magic constants are:"_S);
+        for (auto n : range_ee(1, 19))
+            print(to_int(a(n)), u" "_S);
+        print(u"\nThe 1,000th magic constant is: "_S & to_int(a(1000)));
+
+        for (auto e : range_ee(1, 19))
+            print(u"10^"_S & e & u": "_S & inv_a(pow(10.0, e)));
+    }
+} code_block_1;
+
+
+# https://rosettacode.org/wiki/Marching_squares#Wren
+from typing import List, Tuple
+
+DIR_E  = ( 1,  0)
+DIR_NE = ( 1,  1)
+DIR_N  = ( 0,  1)
+DIR_NW = (-1,  1)
+DIR_W  = (-1,  0)
+DIR_SW = (-1, -1)
+DIR_S  = ( 0, -1)
+DIR_SE = ( 1, -1)
+
+def path_str(origin_x, origin_y, directions):
+    dirn = {DIR_E : 'E',
+            DIR_NE: 'NE',
+            DIR_N : 'N',
+            DIR_NW: 'NW',
+            DIR_W : 'W',
+            DIR_SW: 'SW',
+            DIR_S : 'S',
+            DIR_SE: 'SE'}
+    return f'X: {origin_x}, Y: {origin_y}, Path: {[dirn[d] for d in directions]}'
+
+class MarchingSquares:
+    width: int
+    height: int
+    data: List[int]
+
+    def __init__(self, width, height, data):
+        self.width = width
+        self.height = height
+        self.data = data[:]
+
+    def is_set(self, x, y):
+        if x <= 0 or x > self.width or y <= 0 or y > self.height:
+            return False
+        return self.data[(y - 1) * self.width + (x - 1)] != 0
+
+    def value(self, x, y):
+        sum = 0
+        if self.is_set(x, y): sum |= 1
+        if self.is_set(x + 1, y): sum |= 2
+        if self.is_set(x, y + 1): sum |= 4
+        if self.is_set(x + 1, y + 1): sum |= 8
+        return sum
+
+    def identify_perimeter_(self, initial_x, initial_y):
+        if initial_x < 0: initial_x = 0
+        if initial_x > self.width: initial_x = self.width
+        if initial_y < 0: initial_y = 0
+        if initial_y > self.height: initial_y = self.height
+        initial_value = self.value(initial_x, initial_y)
+        if initial_value in (0, 15):
+            raise RuntimeError('Supplied initial coordinates (%d, %d) do not lie on a perimeter.' % (initial_x, initial_y))
+
+        directions: List[Tuple[int, int]] = []
+        x = initial_x
+        y = initial_y
+        previous = (0, 0)
+
+        while True:
+            direction: Tuple[int, int]
+
+            v = self.value(x, y)
+            if v in (1, 5, 13):
+                direction = DIR_N
+            elif v in (2, 3, 7):
+                direction = DIR_E
+            elif v in (4, 12, 14):
+                direction = DIR_W
+            elif v in (8, 10, 11):
+                direction = DIR_S
+            elif v == 6:
+                direction = DIR_W if previous == DIR_N else DIR_E
+            elif v == 9:
+                direction = DIR_N if previous == DIR_E else DIR_S
+            else:
+                raise RuntimeError('Illegal state.')
+
+            directions.append(direction)
+            x += direction[0]
+            y -= direction[1]
+            previous = direction
+            if x == initial_x and y == initial_y:
+                break
+
+        return path_str(initial_x, -initial_y, directions)
+
+    def identify_perimeter(self):
+        size = self.width * self.height
+        for i in range(size):
+            if self.data[i] != 0:
+                return self.identify_perimeter_(i % self.width, i // self.width)
+
+example = [
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 1, 1, 0,
+    0, 0, 1, 1, 0,
+    0, 0, 0, 1, 0,
+    0, 0, 0, 0, 0
+]
+ms = MarchingSquares(5, 6, example)
+print(ms.identify_perimeter())
+===
+V DIR_E = (1, 0)
+V DIR_NE = (1, 1)
+V DIR_N = (0, 1)
+V DIR_NW = (-1, 1)
+V DIR_W = (-1, 0)
+V DIR_SW = (-1, -1)
+V DIR_S = (0, -1)
+V DIR_SE = (1, -1)
+
+F path_str(origin_x, origin_y, directions)
+   V dirn = [
+      :DIR_E  = ‘E’,
+      :DIR_NE = ‘NE’,
+      :DIR_N  = ‘N’,
+      :DIR_NW = ‘NW’,
+      :DIR_W  = ‘W’,
+      :DIR_SW = ‘SW’,
+      :DIR_S  = ‘S’,
+      :DIR_SE = ‘SE’
+   ]
+   R ‘X: ’origin_x‘, Y: ’origin_y‘, Path: ’directions.map(d -> @dirn[d])
+
+T MarchingSquares
+   Int width
+   Int height
+   [Int] data
+
+   F (width, height, data)
+      .width = width
+      .height = height
+      .data = copy(data)
+
+   F is_set(x, y)
+      I x <= 0 | x > .width | y <= 0 | y > .height
+         R 0B
+      R .data[(y - 1) * .width + (x - 1)] != 0
+
+   F value(x, y)
+      V sum = 0
+      I .is_set(x, y)
+         sum [|]= 1
+      I .is_set(x + 1, y)
+         sum [|]= 2
+      I .is_set(x, y + 1)
+         sum [|]= 4
+      I .is_set(x + 1, y + 1)
+         sum [|]= 8
+      R sum
+
+   F identify_perimeter_(=initial_x, =initial_y)
+      I initial_x < 0
+         initial_x = 0
+      I initial_x > .width
+         initial_x = .width
+      I initial_y < 0
+         initial_y = 0
+      I initial_y > .height
+         initial_y = .height
+      V initial_value = .value(initial_x, initial_y)
+      I initial_value C (0, 15)
+         X.throw RuntimeError(‘Supplied initial coordinates (#., #.) do not lie on a perimeter.’.format(initial_x, initial_y))
+
+      [(Int, Int)] directions
+      V x = initial_x
+      V y = initial_y
+      V previous = (0, 0)
+
+      L
+         (Int, Int) direction
+
+         S .value(x, y)
+            1, 5, 13
+               direction = :DIR_N
+            2, 3, 7
+               direction = :DIR_E
+            4, 12, 14
+               direction = :DIR_W
+            8, 10, 11
+               direction = :DIR_S
+            6
+               direction = I previous == :DIR_N {:DIR_W} E :DIR_E
+            9
+               direction = I previous == :DIR_E {:DIR_N} E :DIR_S
+            E
+               X.throw RuntimeError(‘Illegal state.’)
+
+         directions.append(direction)
+         x += direction[0]
+         y -= direction[1]
+         previous = direction
+         I x == initial_x & y == initial_y
+            L.break
+
+      R path_str(initial_x, -initial_y, directions)
+
+   F identify_perimeter()
+      V size = .width * .height
+      L(i) 0 .< size
+         I .data[i] != 0
+            R .identify_perimeter_(i % .width, i I/ .width)
+
+V example = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+V ms = MarchingSquares(5, 6, example)
+print(ms.identify_perimeter())
+===
+auto DIR_E = make_tuple(1, 0);
+auto DIR_NE = make_tuple(1, 1);
+auto DIR_N = make_tuple(0, 1);
+auto DIR_NW = make_tuple(-1, 1);
+auto DIR_W = make_tuple(-1, 0);
+auto DIR_SW = make_tuple(-1, -1);
+auto DIR_S = make_tuple(0, -1);
+auto DIR_SE = make_tuple(1, -1);
+
+template <typename T1, typename T2, typename T3> auto path_str(const T1 &origin_x, const T2 &origin_y, const T3 &directions)
+{
+    auto dirn = create_dict(dict_of(::DIR_E, u"E"_S)(::DIR_NE, u"NE"_S)(::DIR_N, u"N"_S)(::DIR_NW, u"NW"_S)(::DIR_W, u"W"_S)(::DIR_SW, u"SW"_S)(::DIR_S, u"S"_S)(::DIR_SE, u"SE"_S));
+    return u"X: "_S & origin_x & u", Y: "_S & origin_y & u", Path: "_S & directions.map([&dirn](const auto &d){return dirn[d];});
+}
+
+class MarchingSquares
+{
+public:
+    int width;
+    int height;
+    Array<int> data;
+
+    template <typename T1, typename T2, typename T3> MarchingSquares(const T1 &width, const T2 &height, const T3 &data) :
+        width(width),
+        height(height)
+    {
+        this->data = copy(data);
+    }
+
+    template <typename T1, typename T2> auto is_set(const T1 &x, const T2 &y)
+    {
+        if (x <= 0 || x > width || y <= 0 || y > height)
+            return false;
+        return data[(y - 1) * width + (x - 1)] != 0;
+    }
+
+    template <typename T1, typename T2> auto value(const T1 &x, const T2 &y)
+    {
+        auto sum = 0;
+        if (is_set(x, y))
+            sum |= 1;
+        if (is_set(x + 1, y))
+            sum |= 2;
+        if (is_set(x, y + 1))
+            sum |= 4;
+        if (is_set(x + 1, y + 1))
+            sum |= 8;
+        return sum;
+    }
+
+    template <typename T1, typename T2> auto identify_perimeter_(T1 initial_x, T2 initial_y)
+    {
+        if (initial_x < 0)
+            initial_x = 0;
+        if (initial_x > width)
+            initial_x = width;
+        if (initial_y < 0)
+            initial_y = 0;
+        if (initial_y > height)
+            initial_y = height;
+        auto initial_value = value(initial_x, initial_y);
+        if (in(initial_value, make_tuple(0, 15)))
+            throw RuntimeError(u"Supplied initial coordinates (#., #.) do not lie on a perimeter."_S.format(initial_x, initial_y));
+
+        Array<ivec2> directions;
+        auto x = initial_x;
+        auto y = initial_y;
+        auto previous = make_tuple(0, 0);
+
+        while (true) {
+            ivec2 direction;
+
+            switch (value(x, y))
+            {
+            case 1:
+            case 5:
+            case 13:
+                direction = ::DIR_N;
+                break;
+            case 2:
+            case 3:
+            case 7:
+                direction = ::DIR_E;
+                break;
+            case 4:
+            case 12:
+            case 14:
+                direction = ::DIR_W;
+                break;
+            case 8:
+            case 10:
+            case 11:
+                direction = ::DIR_S;
+                break;
+            case 6:
+                direction = previous == ::DIR_N ? ::DIR_W : ::DIR_E;
+                break;
+            case 9:
+                direction = previous == ::DIR_E ? ::DIR_N : ::DIR_S;
+                break;
+            default:
+                throw RuntimeError(u"Illegal state."_S);
+                break;
+            }
+
+            directions.append(direction);
+            x += _get<0>(direction);
+            y -= _get<1>(direction);
+            previous = direction;
+            if (x == initial_x && y == initial_y)
+                break;
+        }
+
+        return path_str(initial_x, -initial_y, directions);
+    }
+
+    auto identify_perimeter()
+    {
+        auto size = width * height;
+        for (auto i : range_el(0, size))
+            if (data[i] != 0)
+                return identify_perimeter_(mod(i, width), idiv(i, width));
+    }
+};
+
+auto example = create_array({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0});
+auto ms = MarchingSquares(5, 6, example);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(ms.identify_perimeter());
+    }
+} code_block_1;
+
+
+# https://rosettacode.org/wiki/Matrix_with_two_diagonals#Wren
+def two_diagonal_matrix(n):
+    for i in range(n):
+        for j in range(n):
+            print(1 if i == j or i + j == n - 1 else 0, end = ' ')
+        print()
+
+two_diagonal_matrix(6)
+print()
+two_diagonal_matrix(7)
+===
+F two_diagonal_matrix(n)
+   L(i) 0 .< n
+      L(j) 0 .< n
+         print(I i == j | i + j == n - 1 {1} E 0, end' ‘ ’)
+      print()
+
+two_diagonal_matrix(6)
+print()
+two_diagonal_matrix(7)
+===
+template <typename T1> auto two_diagonal_matrix(const T1 &n)
+{
+    for (auto i : range_el(0, n)) {
+        for (auto j : range_el(0, n))
+            print(i == j || i + j == n - 1 ? 1 : 0, u" "_S);
+        print();
+    }
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        two_diagonal_matrix(6);
+        print();
+        two_diagonal_matrix(7);
+    }
+} code_block_1;
+
+
+# https://rosettacode.org/wiki/Mayan_calendar#Python
+from typing import List
+
+# Utility functions (taken from [https://github.com/python/cpython/blob/main/Lib/datetime.py])
+# -1 is a placeholder for indexing purposes.
+_DAYS_IN_MONTH = [-1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+_DAYS_BEFORE_MONTH = [-1]  # -1 is a placeholder for indexing purposes.
+dbm = 0
+for dim in _DAYS_IN_MONTH[1:]:
+    _DAYS_BEFORE_MONTH.append(dbm)
+    dbm += dim
+
+def _days_before_year(year):
+    "year -> number of days before January 1st of year."
+    y = year - 1
+    return y*365 + y//4 - y//100 + y//400
+
+def _is_leap(year):
+    "year -> 1 if leap year, else 0."
+    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+
+def _days_before_month(year, month):
+    "year, month -> number of days in year preceding first day of month."
+    return _DAYS_BEFORE_MONTH[month] + (month > 2 and _is_leap(year))
+
+def _ymd2ord(year, month, day):
+    "year, month, day -> ordinal, considering 01-Jan-0001 as day 1."
+    return (_days_before_year(year) +
+            _days_before_month(year, month) +
+            day)
+
+def g2m(date, gtm_correlation=True):
+    correlation = 584283 if gtm_correlation else 584285
+
+    long_count_days = [144000, 7200, 360, 20, 1]
+
+    tzolkin_months = ['Imix\'', 'Ik\'', 'Ak\'bal', 'K\'an', 'Chikchan', 'Kimi', 'Manik\'', 'Lamat', 'Muluk', 'Ok', 'Chuwen',
+                      'Eb', 'Ben', 'Hix', 'Men', 'K\'ib\'', 'Kaban', 'Etz\'nab\'', 'Kawak', 'Ajaw']  # tzolk'in
+
+    haad_months = ['Pop', 'Wo\'', 'Sip', 'Sotz\'', 'Sek', 'Xul', 'Yaxk\'in', 'Mol', 'Ch\'en', 'Yax', 'Sak\'', 'Keh', 'Mak',
+                   'K\'ank\'in', 'Muwan', 'Pax', 'K\'ayab', 'Kumk\'u', 'Wayeb\'']  # haab'
+
+    #gregorian_days = datetime.datetime.strptime(date, '%Y-%m-%d').toordinal()
+    year, month, day = map(int, date.split('-'))
+    gregorian_days = _ymd2ord(year, month, day)
+    julian_days = gregorian_days + 1721425
+
+    # 1. calculate long count date
+
+    long_date: List[int] = list()
+    remainder = julian_days - correlation
+
+    for days in long_count_days:
+        result, remainder = divmod(remainder, days)
+        long_date.append(int(result))
+
+    long_date_str = '.'.join(['{:02}'.format(d) for d in long_date])
+
+    # 2. calculate round calendar date
+
+    tzolkin_month = (julian_days + 16) % 20
+    tzolkin_day = ((julian_days + 5) % 13) + 1
+
+    haab_month = int(((julian_days + 65) % 365) / 20)
+    haab_day = ((julian_days + 65) % 365) % 20
+    haab_day_str = str(haab_day) if haab_day else 'Chum'
+
+    lord_number = (julian_days - correlation) % 9
+    lord_number = lord_number if lord_number else 9
+
+    round_date = f'{tzolkin_day} {tzolkin_months[tzolkin_month]} {haab_day_str} {haad_months[haab_month]} G{lord_number}'
+
+    return long_date_str, round_date
+
+dates = ['2004-06-19', '2012-12-18', '2012-12-21', '2019-01-19', '2019-03-27', '2020-02-29', '2020-03-01']
+for date in dates:
+    long, round_date = g2m(date)
+    print(date, long, round_date)
+===
+V _DAYS_IN_MONTH = [-1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+V _DAYS_BEFORE_MONTH = [-1]
+V dbm = 0
+L(dim) _DAYS_IN_MONTH[1..]
+   _DAYS_BEFORE_MONTH.append(dbm)
+   dbm += dim
+
+F _days_before_year(year)
+   ‘year -> number of days before January 1st of year.’
+   V y = year - 1
+   R y * 365 + y I/ 4 - y I/ 100 + y I/ 400
+
+F _is_leap(year)
+   ‘year -> 1 if leap year, else 0.’
+   R year % 4 == 0 & (year % 100 != 0 | year % 400 == 0)
+
+F _days_before_month(year, month)
+   ‘year, month -> number of days in year preceding first day of month.’
+   R :_DAYS_BEFORE_MONTH[month] + (month > 2 & _is_leap(year))
+
+F _ymd2ord(year, month, day)
+   ‘year, month, day -> ordinal, considering 01-Jan-0001 as day 1.’
+   R (_days_before_year(year) + _days_before_month(year, month) + day)
+
+F g2m(date, gtm_correlation = 1B)
+   V correlation = I gtm_correlation {584283} E 584285
+
+   V long_count_days = [144000, 7200, 360, 20, 1]
+
+   V tzolkin_months = ["Imix'", "Ik'", "Ak'bal", "K'an", ‘Chikchan’, ‘Kimi’, "Manik'", ‘Lamat’, ‘Muluk’, ‘Ok’, ‘Chuwen’, ‘Eb’, ‘Ben’, ‘Hix’, ‘Men’, "K'ib'", ‘Kaban’, "Etz'nab'", ‘Kawak’, ‘Ajaw’]
+
+   V haad_months = [‘Pop’, "Wo'", ‘Sip’, "Sotz'", ‘Sek’, ‘Xul’, "Yaxk'in", ‘Mol’, "Ch'en", ‘Yax’, "Sak'", ‘Keh’, ‘Mak’, "K'ank'in", ‘Muwan’, ‘Pax’, "K'ayab", "Kumk'u", "Wayeb'"]
+
+   V (year, month, day) = date.split(‘-’).map(Int)
+   V gregorian_days = _ymd2ord(year, month, day)
+   V julian_days = gregorian_days + 1721425
+
+   [Int] long_date
+   V remainder = julian_days - correlation
+
+   L(days) long_count_days
+      (V result, remainder) = divmod(remainder, days)
+      long_date.append(Int(result))
+
+   V long_date_str = (long_date.map(d -> ‘#02’.format(d))).join(‘.’)
+
+   V tzolkin_month = (julian_days + 16) % 20
+   V tzolkin_day = ((julian_days + 5) % 13) + 1
+
+   V haab_month = Int(((julian_days + 65) % 365) / 20)
+   V haab_day = ((julian_days + 65) % 365) % 20
+   V haab_day_str = I haab_day {String(haab_day)} E ‘Chum’
+
+   V lord_number = (julian_days - correlation) % 9
+   lord_number = I lord_number {lord_number} E 9
+
+   V round_date = tzolkin_day‘ ’tzolkin_months[tzolkin_month]‘ ’haab_day_str‘ ’haad_months[haab_month]‘ G’lord_number
+
+   R (long_date_str, round_date)
+
+V dates = [‘2004-06-19’, ‘2012-12-18’, ‘2012-12-21’, ‘2019-01-19’, ‘2019-03-27’, ‘2020-02-29’, ‘2020-03-01’]
+L(date) dates
+   V (long, round_date) = g2m(date)
+   print(date‘ ’long‘ ’round_date)
+===
+auto _DAYS_IN_MONTH = create_array({-1, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31});
+
+auto _DAYS_BEFORE_MONTH = create_array({-1});
+auto dbm = 0;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&dim : _DAYS_IN_MONTH[range_ei(1)]) {
+            _DAYS_BEFORE_MONTH.append(dbm);
+            dbm += dim;
+        }
+    }
+} code_block_1;
+
+template <typename T1> auto _days_before_year(const T1 &year)
+{
+    u"year -> number of days before January 1st of year."_S;
+    auto y = year - 1;
+    return y * 365 + idiv(y, 4) - idiv(y, 100) + idiv(y, 400);
+}
+
+template <typename T1> auto _is_leap(const T1 &year)
+{
+    u"year -> 1 if leap year, else 0."_S;
+    return mod(year, 4) == 0 && (mod(year, 100) != 0 || mod(year, 400) == 0);
+}
+
+template <typename T1, typename T2> auto _days_before_month(const T1 &year, const T2 &month)
+{
+    u"year, month -> number of days in year preceding first day of month."_S;
+    return ::_DAYS_BEFORE_MONTH[month] + (month > 2 && _is_leap(year));
+}
+
+template <typename T1, typename T2, typename T3> auto _ymd2ord(const T1 &year, const T2 &month, const T3 &day)
+{
+    u"year, month, day -> ordinal, considering 01-Jan-0001 as day 1."_S;
+    return (_days_before_year(year) + _days_before_month(year, month) + day);
+}
+
+template <typename T1, typename T2 = decltype(true)> auto g2m(const T1 &date, const T2 &gtm_correlation = true)
+{
+    auto correlation = gtm_correlation ? 584283 : 584285;
+
+    auto long_count_days = create_array({144000, 7200, 360, 20, 1});
+
+    auto tzolkin_months = create_array({u"Imix'"_S, u"Ik'"_S, u"Ak'bal"_S, u"K'an"_S, u"Chikchan"_S, u"Kimi"_S, u"Manik'"_S, u"Lamat"_S, u"Muluk"_S, u"Ok"_S, u"Chuwen"_S, u"Eb"_S, u"Ben"_S, u"Hix"_S, u"Men"_S, u"K'ib'"_S, u"Kaban"_S, u"Etz'nab'"_S, u"Kawak"_S, u"Ajaw"_S});
+
+    auto haad_months = create_array({u"Pop"_S, u"Wo'"_S, u"Sip"_S, u"Sotz'"_S, u"Sek"_S, u"Xul"_S, u"Yaxk'in"_S, u"Mol"_S, u"Ch'en"_S, u"Yax"_S, u"Sak'"_S, u"Keh"_S, u"Mak"_S, u"K'ank'in"_S, u"Muwan"_S, u"Pax"_S, u"K'ayab"_S, u"Kumk'u"_S, u"Wayeb'"_S});
+
+    auto [year, month, day] = bind_array<3>(date.split(u"-"_S).map([](const auto &x){return to_int(x);}));
+    auto gregorian_days = _ymd2ord(year, month, day);
+    auto julian_days = gregorian_days + 1721425;
+
+    Array<int> long_date;
+    auto remainder = julian_days - correlation;
+
+    for (auto &&days : long_count_days) {
+        TUPLE_ELEMENT_T(0, divmod(remainder, days)) result;
+        assign_from_tuple(result, remainder, divmod(remainder, days));
+        long_date.append(to_int(result));
+    }
+
+    auto long_date_str = (long_date.map([](const auto &d){return u"#02"_S.format(d);})).join(u"."_S);
+
+    auto tzolkin_month = mod((julian_days + 16), 20);
+    auto tzolkin_day = (mod((julian_days + 5), 13)) + 1;
+
+    auto haab_month = to_int((mod((julian_days + 65), 365)) / 20.0);
+    auto haab_day = mod((mod((julian_days + 65), 365)), 20);
+    auto haab_day_str = haab_day ? String(haab_day) : u"Chum"_S;
+
+    auto lord_number = mod((julian_days - correlation), 9);
+    lord_number = lord_number ? lord_number : 9;
+
+    auto round_date = tzolkin_day & u" "_S & tzolkin_months[tzolkin_month] & u" "_S & haab_day_str & u" "_S & haad_months[haab_month] & u" G"_S & lord_number;
+
+    return make_tuple(long_date_str, round_date);
+}
+
+auto dates = create_array({u"2004-06-19"_S, u"2012-12-18"_S, u"2012-12-21"_S, u"2019-01-19"_S, u"2019-03-27"_S, u"2020-02-29"_S, u"2020-03-01"_S});
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        for (auto &&date : dates) {
+            auto [_long_, round_date] = g2m(date);
+            print(date & u" "_S & _long_ & u" "_S & round_date);
+        }
+    }
+} code_block_2;
+
+
+# https://rosettacode.org/wiki/Meissel%E2%80%93Mertens_constant#Python
+import math
+
+def primes_up_to_limit(limit: int):
+    r: List[int] = []
+    if limit >= 2:
+        r.append(2)
+
+    # Sieve of Eratosthenes, storing only odd numbers starting at 3
+    isprime = [True] * ((limit - 1) // 2)
+    sieveend = int(math.sqrt(limit))
+    for i in range(len(isprime)):
+        if isprime[i]:
+            p: int = i * 2 + 3
+            r.append(p)
+            if i <= sieveend:
+                for j in range((p * p - 3) >> 1, len(isprime), p):
+                    isprime[j] = False
+    return r
+
+euler = 0.57721566490153286
+m = 0.0
+for x in primes_up_to_limit(10_000_000):
+    m += math.log(1-(1/x)) + (1/x)
+
+print("MM = %.16f" % (euler + m))
+===
+F primes_up_to_limit(Int limit)
+   [Int] r
+   I limit >= 2
+      r.append(2)
+
+   V isprime = [1B] * ((limit - 1) I/ 2)
+   V sieveend = Int(sqrt(limit))
+   L(i) 0 .< isprime.len
+      I isprime[i]
+         Int p = i * 2 + 3
+         r.append(p)
+         I i <= sieveend
+            L(j) ((p * p - 3) >> 1 .< isprime.len).step(p)
+               isprime[j] = 0B
+   R r
+
+V euler = 0.57721566490153286
+V m = 0.0
+L(x) primes_up_to_limit(10'000'000)
+   m += log(1 - (1 / x)) + (1 / x)
+
+print(‘MM = #.16’.format(euler + m))
+===
+auto primes_up_to_limit(const int limit)
+{
+    Array<int> r;
+    if (limit >= 2)
+        r.append(2);
+
+    auto isprime = create_array({true}) * (idiv((limit - 1), 2));
+    auto sieveend = to_int(sqrt(limit));
+    for (auto i : range_el(0, isprime.len()))
+        if (isprime[i]) {
+            int p = i * 2 + 3;
+            r.append(p);
+            if (i <= sieveend)
+                for (auto j : range_el((p * p - 3) >> 1, isprime.len()).step(p))
+                    isprime.set(j, false);
+        }
+    return r;
+}
+
+auto euler = 0.57721566490153286;
+auto m = 0.0;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&x : primes_up_to_limit(10'000'000))
+            m += log(1 - (1.0 / x)) + (1.0 / x);
+
+        print(u"MM = #.16"_S.format(euler + m));
+    }
+} code_block_1;
+
+
+# https://rosettacode.org/wiki/Minimum_multiple_of_m_where_digital_sum_equals_m#C++
+import itertools
+
+def digit_sum(n):
+    sum = 0
+    while n > 0:
+        sum += n % 10
+        n //= 10
+    return sum
+
+for n in range(1, 71):
+    for m in itertools.count(1):
+        if digit_sum(m * n) == n:
+            print('%8i' % m, end = "\n" if n % 10 == 0 else ' ')
+            break
+===
+F digit_sum(=n)
+   V sum = 0
+   L n > 0
+      sum += n % 10
+      n I/= 10
+   R sum
+
+L(n) 1..70
+   L(m) 1..
+      I digit_sum(m * n) == n
+         print(‘#8’.format(m), end' I n % 10 == 0 {"\n"} E ‘ ’)
+         L.break
+===
+template <typename T1> auto digit_sum(T1 n)
+{
+    auto sum = 0;
+    while (n > 0) {
+        sum += mod(n, 10);
+        n = idiv(n, 10);
+    }
+    return sum;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto n : range_ee(1, 70))
+            for (auto m : range_ei(1))
+                if (digit_sum(m * n) == n) {
+                    print(u"#8"_S.format(m), mod(n, 10) == 0 ? u'\n'_C : u' '_C);
+                    break;
+                }
+    }
+} code_block_1;
+
+
+# https://rosettacode.org/wiki/Mosaic_matrix#Python
+size = 9
+for Row in range(size):
+    for Col in range(size):
+        if (Row % 2 == 1 and Col % 2 == 1) or (Row % 2 == 0 and Col % 2 == 0):
+            print("1", end=" ")
+        else:
+            print("0", end=" ")
+    print()
+===
+V size = 9
+L(Row) 0 .< size
+   L(Col) 0 .< size
+      I (Row % 2 == 1 & Col % 2 == 1) | (Row % 2 == 0 & Col % 2 == 0)
+         print(‘1’, end' ‘ ’)
+      E
+         print(‘0’, end' ‘ ’)
+   print()
+===
+auto size = 9;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto Row : range_el(0, size)) {
+            for (auto Col : range_el(0, size))
+                if ((mod(Row, 2) == 1 && mod(Col, 2) == 1) || (mod(Row, 2) == 0 && mod(Col, 2) == 0))
+                    print(u"1"_S, u" "_S);
+                else
+                    print(u"0"_S, u" "_S);
+            print();
+        }
+    }
+} code_block_1;

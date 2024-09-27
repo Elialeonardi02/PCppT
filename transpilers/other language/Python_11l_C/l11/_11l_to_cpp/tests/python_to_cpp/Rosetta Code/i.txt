@@ -1,0 +1,1622 @@
+# https://www.rosettacode.org/wiki/Inheritance/Single#Python
+class Animal:
+  pass #functions go here...
+class Dog(Animal):
+  pass #functions go here...
+class Cat(Animal):
+  pass #functions go here...
+class Lab(Dog):
+  pass #functions go here...
+class Collie(Dog):
+  pass #functions go here...
+===
+T Animal
+{
+}
+T Dog(Animal)
+{
+}
+T Cat(Animal)
+{
+}
+T Lab(Dog)
+{
+}
+T Collie(Dog)
+{
+}
+===
+class Animal
+{
+};
+
+class Dog : public Animal
+{
+};
+
+class Cat : public Animal
+{
+};
+
+class Lab : public Dog
+{
+};
+
+class Collie : public Dog
+{
+};
+
+
+# https://www.rosettacode.org/wiki/Input/Output_for_lines_of_text#Python
+def do_stuff(words):
+    print(words)
+
+linecount = int(input())
+for x in range(linecount):
+    line = input()
+    do_stuff(line)
+===
+F do_stuff(words)
+   print(words)
+
+V linecount = Int(input())
+L(x) 0 .< linecount
+   V line = input()
+   do_stuff(line)
+===
+template <typename T1> auto do_stuff(const T1 &words)
+{
+    print(words);
+}
+
+auto linecount = to_int(input());
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto x : range_el(0, linecount)) {
+            auto line = input();
+            do_stuff(line);
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Input/Output_for_pairs_of_numbers#Python
+def do_stuff(a, b):
+    return a + b
+
+t = int(input())
+for x in range(0, t):
+    (a, b) = map(int, input().split(' '))
+    print(do_stuff(a, b))
+===
+F do_stuff(a, b)
+   R a + b
+
+V t = Int(input())
+L(x) 0 .< t
+   V (a, b) = input().split(‘ ’).map(Int)
+   print(do_stuff(a, b))
+===
+template <typename T1, typename T2> auto do_stuff(const T1 &a, const T2 &b)
+{
+    return a + b;
+}
+
+auto t = to_int(input());
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto x : range_el(0, t)) {
+            auto [a, b] = bind_array<2>(input().split(u" "_S).map([](const auto &x){return to_int(x);}));
+            print(do_stuff(a, b));
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Integer_comparison#Python
+a = int(input('Enter value of a: '))
+b = int(input('Enter value of b: '))
+
+if a < b:
+    print('a is less than b')
+if a > b:
+    print('a is greater than b')
+if a == b:
+    print('a is equal to b')
+===
+V a = Int(input(‘Enter value of a: ’))
+V b = Int(input(‘Enter value of b: ’))
+
+I a < b
+   print(‘a is less than b’)
+I a > b
+   print(‘a is greater than b’)
+I a == b
+   print(‘a is equal to b’)
+===
+auto a = to_int(input(u"Enter value of a: "_S));
+auto b = to_int(input(u"Enter value of b: "_S));
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        if (a < b)
+            print(u"a is less than b"_S);
+        if (a > b)
+            print(u"a is greater than b"_S);
+        if (a == b)
+            print(u"a is equal to b"_S);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Integer_sequence#Python
+import itertools
+
+for i in itertools.count(1):
+    print(i)
+===
+L(i) 1..
+   print(i)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto i : range_ei(1))
+            print(i);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Intersecting_number_wheels#Python:_Simplified_procedural
+from typing import Dict, List
+
+def nextfrom(w : dict, name):
+    while True:
+        nxt = w[name][0]
+        w[name] = w[name][1:] + w[name][:1]
+        if '0' <= nxt[0] <= '9':
+            return nxt
+        name = nxt
+
+for group in '''
+A: 1 2 3
+A: 1 B 2; B: 3 4
+A: 1 D D; D: 6 7 8
+A: 1 B C; B: 3 4; C: 5 B'''.strip("\n").split('\n'):
+    print("Intersecting Number Wheel group:\n  " + group)
+    wheel : Dict[str, List[str]] = {}
+    first = ''
+    for w in group.split(';'):
+        s = w.strip(' ').split(' ')
+        name = s[0]
+        wheel[name[:-1]] = s[1:]
+        first = name[:-1] if first == '' else first
+    gen = ' '.join(nextfrom(wheel, first) for i in range(20))
+    print("  Generates:\n    " + gen + " ...\n")
+===
+F nextfrom(&w, =name)
+   L
+      V nxt = w[name][0]
+      w[name] = w[name][1..] + w[name][0.<1]
+      I nxt[0] C ‘0’..‘9’
+         R nxt
+      name = nxt
+
+L(group) ‘
+A: 1 2 3
+A: 1 B 2; B: 3 4
+A: 1 D D; D: 6 7 8
+A: 1 B C; B: 3 4; C: 5 B’.trim("\n").split("\n")
+   print("Intersecting Number Wheel group:\n  "group)
+   [String = [String]] wheel
+   V first = ‘’
+   L(w) group.split(‘;’)
+      V s = w.trim(‘ ’).split(‘ ’)
+      V name = s[0]
+      wheel[name[0 .< (len)-1]] = s[1..]
+      first = I first == ‘’ {name[0 .< (len)-1]} E first
+   V gen = (0.<20).map(i -> nextfrom(&@wheel, @first)).join(‘ ’)
+   print("  Generates:\n    "gen" ...\n")
+===
+template <typename T1, typename T2> auto nextfrom(T1 &w, T2 name)
+{
+    while (true) {
+        auto nxt = _get<0>(w[name]);
+        w.set(name, w[name][range_ei(1)] + w[name][range_el(0, 1)]);
+        if (in(_get<0>(nxt), range_ee(u'0'_C, u'9'_C)))
+            return nxt;
+        name = nxt;
+    }
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&group : uR"(
+A: 1 2 3
+A: 1 B 2; B: 3 4
+A: 1 D D; D: 6 7 8
+A: 1 B C; B: 3 4; C: 5 B)"_S.trim(u"\n"_S).split(u"\n"_S)) {
+            print(u"Intersecting Number Wheel group:\n  "_S & group);
+            Dict<String, Array<String>> wheel;
+            auto first = u""_S;
+            for (auto &&w : group.split(u";"_S)) {
+                auto s = w.trim(u" "_S).split(u" "_S);
+                auto name = _get<0>(s);
+                wheel.set(name[range_e_llen(0,  - 1)], s[range_ei(1)]);
+                first = first == u"" ? name[range_e_llen(0,  - 1)] : first;
+            }
+            auto gen = range_el(0, 20).map([&first, &wheel](const auto &i){return nextfrom(wheel, first);}).join(u" "_S);
+            print(u"  Generates:\n    "_S & gen & u" ...\n"_S);
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/ISBN13_check_digit#Python
+def is_isbn13(n):
+    n = n.replace('-','').replace(' ', '')
+    if len(n) != 13:
+        return False
+    product = (sum(int(ch) for ch in n[::2])
+               + sum(int(ch) * 3 for ch in n[1::2]))
+    return product % 10 == 0
+
+tests = '''
+978-1734314502
+978-1734314509
+978-1788399081
+978-1788399083'''.strip("\n").split("\n")
+for t in tests:
+    print("ISBN13 "+t+" validates "+is_isbn13(t))
+===
+F is_isbn13(=n)
+   n = n.replace(‘-’, ‘’).replace(‘ ’, ‘’)
+   I n.len != 13
+      R 0B
+   V product = (sum(n[(0..).step(2)].map(ch -> Int(ch))) + sum(n[(1..).step(2)].map(ch -> Int(ch) * 3)))
+   R product % 10 == 0
+
+V tests = ‘
+978-1734314502
+978-1734314509
+978-1788399081
+978-1788399083’.trim("\n").split("\n")
+L(t) tests
+   print(‘ISBN13 ’t‘ validates ’is_isbn13(t))
+===
+template <typename T1> auto is_isbn13(T1 n)
+{
+    n = n.replace(u"-"_S, u""_S).replace(u" "_S, u""_S);
+    if (n.len() != 13)
+        return false;
+    auto product = (sum_map(n[range_ei(0).step(2)], [](const auto &ch){return to_int(ch);}) + sum_map(n[range_ei(1).step(2)], [](const auto &ch){return to_int(ch) * 3;}));
+    return mod(product, 10) == 0;
+}
+
+auto tests = uR"(
+978-1734314502
+978-1734314509
+978-1788399081
+978-1788399083)"_S.trim(u"\n"_S).split(u"\n"_S);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&t : tests)
+            print(u"ISBN13 "_S & t & u" validates "_S & is_isbn13(t));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/I_before_E_except_after_C#Python
+import re
+
+PLAUSIBILITY_RATIO = 2
+
+def plausibility_check(comment, x, y):
+    print('\n  Checking plausibility of: %s' % comment)
+    if x > PLAUSIBILITY_RATIO * y:
+        print('    PLAUSIBLE. As we have counts of %i vs %i, a ratio of %4.1f times'
+              % (x, y, float(x) / y))
+    else:
+        if x > y:
+            print('    IMPLAUSIBLE. As although we have counts of %i vs %i, a ratio of %4.1f times does not make it plausible'
+                  % (x, y, float(x) / y))
+        else:
+            print('    IMPLAUSIBLE, probably contra-indicated. As we have counts of %i vs %i, a ratio of %4.1f times'
+                  % (x, y, float(x) / y))
+    return x > PLAUSIBILITY_RATIO * y
+
+def simple_stats():
+    words = open('unixdict.txt').read().split("\n")
+    cie = len({word for word in words if 'cie' in word})
+    cei = len({word for word in words if 'cei' in word})
+    not_c_ie = len({word for word in words if re.search(r'(^ie|[^c]ie)', word)})
+    not_c_ei = len({word for word in words if re.search(r'(^ei|[^c]ei)', word)})
+    return (cei, cie, not_c_ie, not_c_ei)
+
+def print_result(cei, cie, not_c_ie, not_c_ei):
+    if ( plausibility_check('I before E when not preceded by C', not_c_ie, not_c_ei)
+         and plausibility_check('E before I when preceded by C', cei, cie) ):
+        print('\nOVERALL IT IS PLAUSIBLE!')
+    else:
+        print('\nOVERALL IT IS IMPLAUSIBLE!')
+    print('(To be plausible, one count must exceed another by %i times)' % PLAUSIBILITY_RATIO)
+
+print('Checking plausibility of "I before E except after C":')
+(cei, cie, not_c_ie, not_c_ei) = simple_stats()
+print_result(cei, cie, not_c_ie, not_c_ei)
+===
+V PLAUSIBILITY_RATIO = 2
+
+F plausibility_check(comment, x, y)
+   print("\n  Checking plausibility of: #.".format(comment))
+   I x > :PLAUSIBILITY_RATIO * y
+      print(‘    PLAUSIBLE. As we have counts of #. vs #., a ratio of #2.1 times’.format(x, y, Float(x) / y))
+   E
+      I x > y
+         print(‘    IMPLAUSIBLE. As although we have counts of #. vs #., a ratio of #2.1 times does not make it plausible’.format(x, y, Float(x) / y))
+      E
+         print(‘    IMPLAUSIBLE, probably contra-indicated. As we have counts of #. vs #., a ratio of #2.1 times’.format(x, y, Float(x) / y))
+   R x > :PLAUSIBILITY_RATIO * y
+
+F simple_stats()
+   V words = File(‘unixdict.txt’).read().split("\n")
+   V cie = Set(words.filter(word -> ‘cie’ C word)).len
+   V cei = Set(words.filter(word -> ‘cei’ C word)).len
+   V not_c_ie = Set(words.filter(word -> re:‘(^ie|[^c]ie)’.search(word))).len
+   V not_c_ei = Set(words.filter(word -> re:‘(^ei|[^c]ei)’.search(word))).len
+   R (cei, cie, not_c_ie, not_c_ei)
+
+F print_result(cei, cie, not_c_ie, not_c_ei)
+   I (plausibility_check(‘I before E when not preceded by C’, not_c_ie, not_c_ei) & plausibility_check(‘E before I when preceded by C’, cei, cie))
+      print("\nOVERALL IT IS PLAUSIBLE!")
+   E
+      print("\nOVERALL IT IS IMPLAUSIBLE!")
+   print(‘(To be plausible, one count must exceed another by #. times)’.format(:PLAUSIBILITY_RATIO))
+
+print(‘Checking plausibility of "I before E except after C":’)
+V (cei, cie, not_c_ie, not_c_ei) = simple_stats()
+print_result(cei, cie, not_c_ie, not_c_ei)
+===
+auto PLAUSIBILITY_RATIO = 2;
+
+template <typename T1, typename T2, typename T3> auto plausibility_check(const T1 &comment, const T2 &x, const T3 &y)
+{
+    print(u"\n  Checking plausibility of: #."_S.format(comment));
+    if (x > ::PLAUSIBILITY_RATIO * y)
+        print(u"    PLAUSIBLE. As we have counts of #. vs #., a ratio of #2.1 times"_S.format(x, y, to_float(x) / y));
+    else
+        if (x > y)
+            print(u"    IMPLAUSIBLE. As although we have counts of #. vs #., a ratio of #2.1 times does not make it plausible"_S.format(x, y, to_float(x) / y));
+        else
+            print(u"    IMPLAUSIBLE, probably contra-indicated. As we have counts of #. vs #., a ratio of #2.1 times"_S.format(x, y, to_float(x) / y));
+    return x > ::PLAUSIBILITY_RATIO * y;
+}
+
+auto simple_stats()
+{
+    auto words = File(u"unixdict.txt"_S).read().split(u"\n"_S);
+    auto cie = create_set(words.filter([](const auto &word){return in(u"cie"_S, word);})).len();
+    auto cei = create_set(words.filter([](const auto &word){return in(u"cei"_S, word);})).len();
+    auto not_c_ie = create_set(words.filter([](const auto &word){return re::_(u"(^ie|[^c]ie)"_S).search(word);})).len();
+    auto not_c_ei = create_set(words.filter([](const auto &word){return re::_(u"(^ei|[^c]ei)"_S).search(word);})).len();
+    return make_tuple(cei, cie, not_c_ie, not_c_ei);
+}
+
+template <typename T1, typename T2, typename T3, typename T4> auto print_result(const T1 &cei, const T2 &cie, const T3 &not_c_ie, const T4 &not_c_ei)
+{
+    if ((plausibility_check(u"I before E when not preceded by C"_S, not_c_ie, not_c_ei) && plausibility_check(u"E before I when preceded by C"_S, cei, cie)))
+        print(u"\nOVERALL IT IS PLAUSIBLE!"_S);
+    else
+        print(u"\nOVERALL IT IS IMPLAUSIBLE!"_S);
+    print(u"(To be plausible, one count must exceed another by #. times)"_S.format(::PLAUSIBILITY_RATIO));
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"Checking plausibility of \"I before E except after C\":"_S);
+    }
+} code_block_1;
+
+auto [cei, cie, not_c_ie, not_c_ei] = simple_stats();
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        print_result(cei, cie, not_c_ie, not_c_ei);
+    }
+} code_block_2;
+
+
+# https://www.rosettacode.org/wiki/Inverted_index#D
+from typing import DefaultDict, Set
+import collections, re
+
+index : DefaultDict[str, Set[str]] = collections.defaultdict(set)
+
+def parse_file(fname, fcontents):
+    for word in re.split(r"\W", fcontents):
+        index[word.lower()].add(fname)
+
+for fname, fcontents in [('inv1.txt', 'It is what it is.'),
+                         ('inv2.txt', 'What is it?'),
+                         ('inv3.txt', 'It is a banana!')]:
+    parse_file(fname, fcontents)
+
+for w in ['cat', 'is', 'banana', 'it', 'what']:
+    print("\nEnter a word to search for: (q to quit):", w)
+    if w in index:
+        print("'%s' found in %s." % (w, sorted(list(index[w]))))
+    else:
+        print("'%s' not found." % w)
+===
+DefaultDict[String, Set[String]] index
+
+F parse_file(fname, fcontents)
+   L(word) fcontents.split(re:‘\W’)
+      :index[word.lowercase()].add(fname)
+
+L(fname, fcontents) [(‘inv1.txt’, ‘It is what it is.’), (‘inv2.txt’, ‘What is it?’), (‘inv3.txt’, ‘It is a banana!’)]
+   parse_file(fname, fcontents)
+
+L(w) [‘cat’, ‘is’, ‘banana’, ‘it’, ‘what’]
+   print("\nEnter a word to search for: (q to quit): "w)
+   I w C index
+      print(‘'#.' found in #..’.format(w, sorted(Array(index[w]))))
+   E
+      print(‘'#.' not found.’.format(w))
+===
+DefaultDict<String, Set<String>> index;
+
+template <typename T1, typename T2> auto parse_file(const T1 &fname, const T2 &fcontents)
+{
+    for (auto &&word : fcontents.split(re::_(uR"(\W)"_S)))
+        ::index[word.lowercase()].add(fname);
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&[fname, fcontents] : create_array({make_tuple(u"inv1.txt"_S, u"It is what it is."_S), make_tuple(u"inv2.txt"_S, u"What is it?"_S), make_tuple(u"inv3.txt"_S, u"It is a banana!"_S)}))
+            parse_file(fname, fcontents);
+
+        for (auto &&w : create_array({u"cat"_S, u"is"_S, u"banana"_S, u"it"_S, u"what"_S})) {
+            print(u"\nEnter a word to search for: (q to quit): "_S & w);
+            if (in(w, index))
+                print(u"'#.' found in #.."_S.format(w, sorted(create_array(index[w]))));
+            else
+                print(u"'#.' not found."_S.format(w));
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Iterated_digits_squaring#Python
+import math
+
+def next_step(x):
+    result = 0
+    while x > 0:
+        result += (x % 10) ** 2
+        x //= 10
+    return result
+
+def check(number):
+    candidate = 0
+    for n in number:
+        candidate = candidate * 10 + n
+
+    while candidate != 89 and candidate != 1:
+        candidate = next_step(candidate)
+
+    if candidate == 89:
+        digits_count = [0] * 10
+        for d in number:
+            digits_count[d] += 1
+
+        result = math.factorial(len(number))
+        for c in digits_count:
+            result //= math.factorial(c)
+        return result
+
+    return 0
+
+limit = 100000000
+cache_size = math.ceil(math.log10(limit))
+assert 10 ** cache_size == limit
+
+number = [0] * cache_size
+result = 0
+i = cache_size - 1
+
+while True:
+    if i == 0 and number[i] == 9:
+        break
+    if i == cache_size - 1 and number[i] < 9:
+        number[i] += 1
+        result += check(number)
+    elif number[i] == 9:
+        i -= 1
+    else:
+        number[i] += 1
+        for j in range(i + 1, cache_size):
+            number[j] = number[i]
+        i = cache_size - 1
+        result += check(number)
+
+print(result)
+===
+F next_step(=x)
+   V result = 0
+   L x > 0
+      result += (x % 10) ^ 2
+      x I/= 10
+   R result
+
+F check(number)
+   V candidate = 0
+   L(n) number
+      candidate = candidate * 10 + n
+
+   L candidate != 89 & candidate != 1
+      candidate = next_step(candidate)
+
+   I candidate == 89
+      V digits_count = [0] * 10
+      L(d) number
+         digits_count[d]++
+
+      V result = factorial(number.len)
+      L(c) digits_count
+         result I/= factorial(c)
+      R result
+
+   R 0
+
+V limit = 100000000
+V cache_size = ceili(log10(limit))
+assert(10 ^ cache_size == limit)
+
+V number = [0] * cache_size
+V result = 0
+V i = cache_size - 1
+
+L
+   I i == 0 & number[i] == 9
+      L.break
+   I i == cache_size - 1 & number[i] < 9
+      number[i]++
+      result += check(number)
+   E I number[i] == 9
+      i--
+   E
+      number[i]++
+      L(j) i + 1 .< cache_size
+         number[j] = number[i]
+      i = cache_size - 1
+      result += check(number)
+
+print(result)
+===
+template <typename T1> auto next_step(T1 x)
+{
+    auto result = 0;
+    while (x > 0) {
+        result += square((mod(x, 10)));
+        x = idiv(x, 10);
+    }
+    return result;
+}
+
+template <typename T1> auto check(const T1 &number)
+{
+    auto candidate = 0;
+    for (auto &&n : number)
+        candidate = candidate * 10 + n;
+
+    while (candidate != 89 && candidate != 1)
+        candidate = next_step(candidate);
+
+    if (candidate == 89) {
+        auto digits_count = create_array({0}) * 10;
+        for (auto &&d : number)
+            digits_count[d]++;
+
+        auto result = factorial(number.len());
+        for (auto &&c : digits_count)
+            result = idiv(result, factorial(c));
+        return result;
+    }
+
+    return 0;
+}
+
+auto limit = 100000000;
+auto cache_size = ceili(log10(limit));
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        assert(pow(10, cache_size) == limit);
+    }
+} code_block_1;
+
+auto number = create_array({0}) * cache_size;
+auto result = 0;
+auto i = cache_size - 1;
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        while (true) {
+            if (i == 0 && number[i] == 9)
+                break;
+            if (i == cache_size - 1 && number[i] < 9) {
+                number[i]++;
+                result += check(number);
+            }
+            else if (number[i] == 9)
+                i--;
+            else {
+                number[i]++;
+                for (auto j : range_el(i + 1, cache_size))
+                    number.set(j, number[i]);
+                i = cache_size - 1;
+                result += check(number);
+            }
+        }
+
+        print(result);
+    }
+} code_block_2;
+
+
+# https://www.rosettacode.org/wiki/Imaginary_base_numbers#Python
+import math
+import re
+from typing import ClassVar
+
+def inv(c):
+    denom = c.real * c.real + c.imag * c.imag
+    return complex(c.real / denom, -c.imag / denom)
+
+class QuaterImaginary:
+    twoI : ClassVar[complex] = complex(0, 2)
+    invTwoI : ClassVar[complex] = inv(QuaterImaginary.twoI)
+
+    b2i : str
+
+    def __init__(self, str):
+        if not re.fullmatch("[0123.]+", str) or str.count('.') > 1:
+            assert False, 'Invalid base 2i number'
+        self.b2i = str
+
+    def toComplex(self):
+        pointPos = self.b2i.find('.')
+        posLen = len(self.b2i) if (pointPos < 0) else pointPos
+        sum = complex(0, 0)
+        prod = complex(1, 0)
+        for j in range(0, posLen):
+            k = int(self.b2i[posLen - 1 - j])
+            if k > 0:
+                sum += prod * k
+            prod *= QuaterImaginary.twoI
+        if pointPos != -1:
+            prod = QuaterImaginary.invTwoI
+            for j in range(posLen + 1, len(self.b2i)):
+                k = int(self.b2i[j])
+                if k > 0:
+                    sum += prod * k
+                prod *= QuaterImaginary.invTwoI
+        return sum
+
+    def __str__(self):
+        return str(self.b2i)
+
+def toQuaterImaginary(c):
+    if c.real == 0.0 and c.imag == 0.0:
+        return QuaterImaginary("0")
+
+    re = int(c.real)
+    im = int(c.imag)
+    fi = -1
+    ss = ""
+    while re != 0:
+        (re, rem) = divmod(re, -4)
+        if rem < 0:
+            rem += 4
+            re += 1
+        ss += str(rem) + '0'
+    if im != 0:
+        f = c.imag / 2
+        im = math.ceil(f)
+        f = -4 * (f - im)
+        index = 1
+        while im != 0:
+            (im, rem) = divmod(im, -4)
+            if rem < 0:
+                rem += 4
+                im += 1
+            if index < len(ss):
+                assert(False)
+                #ss[index] = str(rem)
+            else:
+                ss += '0' + str(rem)
+            index = index + 2
+        fi = int(f)
+    ss = ss[::-1]
+    if fi != -1:
+        ss += '.' + str(fi)
+    ss = ss.lstrip('0')
+    if ss[0] == '.':
+        ss = '0' + ss
+    return QuaterImaginary(ss)
+
+for i in range(1,17):
+    c1 = complex(i, 0)
+    qi = toQuaterImaginary(c1)
+    c2 = qi.toComplex()
+    print("{0:8} -> {1:>8} -> {2:8}     ".format(c1, str(qi), c2), end=' ')
+
+    c1 = -c1
+    qi = toQuaterImaginary(c1)
+    c2 = qi.toComplex()
+    print("{0:8} -> {1:>8} -> {2:8}".format(c1, str(qi), c2))
+print()
+
+for i in range(1,17):
+    c1 = complex(0, i)
+    qi = toQuaterImaginary(c1)
+    c2 = qi.toComplex()
+    print("{0:8} -> {1:>8} -> {2:8}     ".format(c1, str(qi), c2), end=' ')
+
+    c1 = -c1
+    qi = toQuaterImaginary(c1)
+    c2 = qi.toComplex()
+    print("{0:8} -> {1:>8} -> {2:8}".format(c1, str(qi), c2))
+
+print("done")
+===
+F inv(c)
+   V denom = c.real * c.real + c.imag * c.imag
+   R Complex(c.real / denom, -c.imag / denom)
+
+T QuaterImaginary
+   Complex :twoI = Complex(0, 2)
+   Complex :invTwoI = inv(QuaterImaginary.:twoI)
+
+   String b2i
+
+   F (str)
+      I !re:‘[0123.]+’.match(str) | str.count(‘.’) > 1
+         assert(0B, ‘Invalid base 2i number’)
+      .b2i = str
+
+   F toComplex()
+      V pointPos = .b2i.findi(‘.’)
+      V posLen = I (pointPos < 0) {.b2i.len} E pointPos
+      V sum = Complex(0, 0)
+      V prod = Complex(1, 0)
+      L(j) 0 .< posLen
+         V k = Int(.b2i[posLen - 1 - j])
+         I k > 0
+            sum += prod * k
+         prod *= QuaterImaginary.:twoI
+      I pointPos != -1
+         prod = QuaterImaginary.:invTwoI
+         L(j) posLen + 1 .< .b2i.len
+            V k = Int(.b2i[j])
+            I k > 0
+               sum += prod * k
+            prod *= QuaterImaginary.:invTwoI
+      R sum
+
+   F String()
+      R String(.b2i)
+
+F toQuaterImaginary(c)
+   I c.real == 0.0 & c.imag == 0.0
+      R QuaterImaginary(‘0’)
+
+   V re = Int(c.real)
+   V im = Int(c.imag)
+   V fi = -1
+   V ss = ‘’
+   L re != 0
+      (re, V rem) = divmod(re, -4)
+      I rem < 0
+         rem += 4
+         re++
+      ss ‘’= String(rem)‘0’
+   I im != 0
+      V f = c.imag / 2
+      im = ceili(f)
+      f = -4 * (f - im)
+      V index = 1
+      L im != 0
+         (im, V rem) = divmod(im, -4)
+         I rem < 0
+            rem += 4
+            im++
+         I index < ss.len
+            assert(0B)
+         E
+            ss ‘’= ‘0’String(rem)
+         index = index + 2
+      fi = Int(f)
+   ss = reversed(ss)
+   I fi != -1
+      ss ‘’= ‘.’String(fi)
+   ss = ss.ltrim(‘0’)
+   I ss[0] == ‘.’
+      ss = ‘0’ss
+   R QuaterImaginary(ss)
+
+L(i) 1..16
+   V c1 = Complex(i, 0)
+   V qi = toQuaterImaginary(c1)
+   V c2 = qi.toComplex()
+   print(‘#8 -> #8 -> #8     ’.format(c1, String(qi), c2), end' ‘ ’)
+
+   c1 = -c1
+   qi = toQuaterImaginary(c1)
+   c2 = qi.toComplex()
+   print(‘#8 -> #8 -> #8’.format(c1, String(qi), c2))
+print()
+
+L(i) 1..16
+   V c1 = Complex(0, i)
+   V qi = toQuaterImaginary(c1)
+   V c2 = qi.toComplex()
+   print(‘#8 -> #8 -> #8     ’.format(c1, String(qi), c2), end' ‘ ’)
+
+   c1 = -c1
+   qi = toQuaterImaginary(c1)
+   c2 = qi.toComplex()
+   print(‘#8 -> #8 -> #8’.format(c1, String(qi), c2))
+
+print(‘done’)
+===
+template <typename T1> auto inv(const T1 &c)
+{
+    auto denom = c.real() * c.real() + c.imag() * c.imag();
+    return Complex(c.real() / denom, -c.imag() / denom);
+}
+
+class QuaterImaginary
+{
+public:
+    static inline Complex s_twoI = Complex(0, 2);
+    static inline Complex s_invTwoI = inv(QuaterImaginary::s_twoI);
+
+    String b2i;
+
+    template <typename T1> QuaterImaginary(const T1 &str) :
+        b2i(str)
+    {
+        if (!re::_(u"[0123.]+"_S).match(str) || str.count(u'.'_C) > 1)
+            assert(false, u"Invalid base 2i number"_S);
+    }
+
+    auto toComplex()
+    {
+        auto pointPos = b2i.findi(u"."_S);
+        auto posLen = (pointPos < 0) ? b2i.len() : pointPos;
+        auto sum = Complex(0, 0);
+        auto prod = Complex(1, 0);
+        for (auto j : range_el(0, posLen)) {
+            auto k = to_int(b2i[posLen - 1 - j]);
+            if (k > 0)
+                sum += prod * k;
+            prod *= QuaterImaginary::s_twoI;
+        }
+        if (pointPos != -1) {
+            prod = QuaterImaginary::s_invTwoI;
+            for (auto j : range_el(posLen + 1, b2i.len())) {
+                auto k = to_int(b2i[j]);
+                if (k > 0)
+                    sum += prod * k;
+                prod *= QuaterImaginary::s_invTwoI;
+            }
+        }
+        return sum;
+    }
+
+    operator String() const
+    {
+        return String(b2i);
+    }
+};
+
+template <typename T1> auto toQuaterImaginary(const T1 &c)
+{
+    if (c.real() == 0.0 && c.imag() == 0.0)
+        return QuaterImaginary(u"0"_S);
+
+    auto re = to_int(c.real());
+    auto im = to_int(c.imag());
+    auto fi = -1;
+    auto ss = u""_S;
+    while (re != 0) {
+        TUPLE_ELEMENT_T(1, divmod(re, -4)) rem;
+        assign_from_tuple(re, rem, divmod(re, -4));
+        if (rem < 0) {
+            rem += 4;
+            re++;
+        }
+        ss &= String(rem) & u"0"_S;
+    }
+    if (im != 0) {
+        auto f = c.imag() / 2.0;
+        im = ceili(f);
+        f = -4 * (f - im);
+        auto index = 1;
+        while (im != 0) {
+            TUPLE_ELEMENT_T(1, divmod(im, -4)) rem;
+            assign_from_tuple(im, rem, divmod(im, -4));
+            if (rem < 0) {
+                rem += 4;
+                im++;
+            }
+            if (index < ss.len())
+                assert(false);
+            else
+                ss &= u"0"_S & String(rem);
+            index = index + 2;
+        }
+        fi = to_int(f);
+    }
+    ss = reversed(ss);
+    if (fi != -1)
+        ss &= u"."_S & String(fi);
+    ss = ss.ltrim(u"0"_S);
+    if (_get<0>(ss) == u'.')
+        ss = u"0"_S & ss;
+    return QuaterImaginary(ss);
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto i : range_ee(1, 16)) {
+            auto c1 = Complex(i, 0);
+            auto qi = toQuaterImaginary(c1);
+            auto c2 = qi.toComplex();
+            print(u"#8 -> #8 -> #8     "_S.format(c1, String(qi), c2), u" "_S);
+
+            c1 = -c1;
+            qi = toQuaterImaginary(c1);
+            c2 = qi.toComplex();
+            print(u"#8 -> #8 -> #8"_S.format(c1, String(qi), c2));
+        }
+        print();
+
+        for (auto i : range_ee(1, 16)) {
+            auto c1 = Complex(0, i);
+            auto qi = toQuaterImaginary(c1);
+            auto c2 = qi.toComplex();
+            print(u"#8 -> #8 -> #8     "_S.format(c1, String(qi), c2), u" "_S);
+
+            c1 = -c1;
+            qi = toQuaterImaginary(c1);
+            c2 = qi.toComplex();
+            print(u"#8 -> #8 -> #8"_S.format(c1, String(qi), c2));
+        }
+
+        print(u"done"_S);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Increasing_gaps_between_consecutive_Niven_numbers#Python
+def digit_sum(n, sum):
+    sum += 1
+    while n > 0 and n % 10 == 0:
+        sum -= 9
+        n /= 10
+
+    return sum
+
+previous = 1
+gap = 0
+s = 0
+niven_index = 0
+gap_index = 1
+
+print("Gap index  Gap    Niven index    Niven number")
+
+niven = 1
+
+while gap_index <= 22:
+    s = digit_sum(niven, s)
+    if niven % s == 0:
+        if niven > previous + gap:
+            gap = niven - previous
+            print('{0:9} {1:4}  {2:13}     {3:11}'.format(gap_index, gap, niven_index, previous))
+            gap_index += 1
+        previous = niven
+        niven_index += 1
+    niven += 1
+===
+F digit_sum(=n, =sum)
+   sum++
+   L n > 0 & n % 10 == 0
+      sum -= 9
+      n /= 10
+
+   R sum
+
+V previous = 1
+V gap = 0
+V s = 0
+V niven_index = 0
+V gap_index = 1
+
+print(‘Gap index  Gap    Niven index    Niven number’)
+
+V niven = 1
+
+L gap_index <= 22
+   s = digit_sum(niven, s)
+   I niven % s == 0
+      I niven > previous + gap
+         gap = niven - previous
+         print(‘#9 #4  #13     #11’.format(gap_index, gap, niven_index, previous))
+         gap_index++
+      previous = niven
+      niven_index++
+   niven++
+===
+template <typename T1, typename T2> auto digit_sum(T1 n, T2 sum)
+{
+    sum++;
+    while (n > 0 && mod(n, 10) == 0) {
+        sum -= 9;
+        n /= 10;
+    }
+
+    return sum;
+}
+
+auto previous = 1;
+auto gap = 0;
+auto s = 0;
+auto niven_index = 0;
+auto gap_index = 1;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"Gap index  Gap    Niven index    Niven number"_S);
+    }
+} code_block_1;
+
+auto niven = 1;
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        while (gap_index <= 22) {
+            s = digit_sum(niven, s);
+            if (mod(niven, s) == 0) {
+                if (niven > previous + gap) {
+                    gap = niven - previous;
+                    print(u"#9 #4  #13     #11"_S.format(gap_index, gap, niven_index, previous));
+                    gap_index++;
+                }
+                previous = niven;
+                niven_index++;
+            }
+            niven++;
+        }
+    }
+} code_block_2;
+
+
+# https://www.rosettacode.org/wiki/Index_finite_lists_of_positive_integers#Python
+from _11l import *
+
+def rank(x): return BigInt('A'.join(map(str, [1] + x)), 11)
+
+def unrank(n):
+    s = int_to_str_with_radix(n, 11)
+    return list(map(int, s.split('A')))[1:]
+
+l = [1, 2, 3, 10, 100, 987654321]
+print(l)
+n = rank(l)
+print(n)
+l = unrank(n)
+print(l)
+===
+F rank(x)
+   R BigInt(([1] [+] x).map(String).join(‘A’), radix' 11)
+
+F unrank(n)
+   V s = String(n, radix' 11)
+   R s.split(‘A’).map(Int)[1..]
+
+V l = [1, 2, 3, 10, 100, 987654321]
+print(l)
+V n = rank(l)
+print(n)
+l = unrank(n)
+print(l)
+===
+template <typename T1> auto rank(const T1 &x)
+{
+    return BigInt((create_array({1}) + x).map([](const auto &x){return String(x);}).join(u"A"_S), 11);
+}
+
+template <typename T1> auto unrank(const T1 &n)
+{
+    auto s = int_to_str_with_radix(n, 11);
+    return s.split(u"A"_S).map([](const auto &x){return to_int(x);})[range_ei(1)];
+}
+
+auto l = create_array({1, 2, 3, 10, 100, 987654321});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(l);
+    }
+} code_block_1;
+
+auto n = rank(l);
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        print(n);
+        l = unrank(n);
+        print(l);
+    }
+} code_block_2;
+
+
+# https://www.rosettacode.org/wiki/Integer_roots#D
+# Slow BigInt
+BigInt = int
+
+def iRoot(b : BigInt, n : int):
+    if b < 2: return b
+    n1 = n - 1
+    n2 = BigInt(n)
+    n3 = BigInt(n1)
+    c = BigInt(1)
+    d = (n3 + b) // n2
+    e = (n3 * d + b // d**n1) // n2
+    while c != d and c != e:
+        c = d
+        d = e
+        e = (n3 * e + b // e**n1) // n2
+    if d < e: return d
+    return e
+
+print('3rd root of 8 =', iRoot(8, 3))
+print('3rd root of 9 =', iRoot(9, 3))
+print('First 2001 digits of the square root of 2:', iRoot(BigInt(100)**2000 * 2, 2))
+===
+F iRoot(BigInt b, Int n)
+   I b < 2
+      R b
+   V n1 = n - 1
+   V n2 = BigInt(n)
+   V n3 = BigInt(n1)
+   V c = BigInt(1)
+   V d = (n3 + b) I/ n2
+   V e = (n3 * d + b I/ d ^ n1) I/ n2
+   L c != d & c != e
+      c = d
+      d = e
+      e = (n3 * e + b I/ e ^ n1) I/ n2
+   I d < e
+      R d
+   R e
+
+print(‘3rd root of 8 = ’iRoot(8, 3))
+print(‘3rd root of 9 = ’iRoot(9, 3))
+print(‘First 2001 digits of the square root of 2: ’iRoot(BigInt(100) ^ 2000 * 2, 2))
+===
+auto iRoot(const BigInt &b, const int n)
+{
+    if (b < 2)
+        return b;
+    auto n1 = n - 1;
+    auto n2 = BigInt(n);
+    auto n3 = BigInt(n1);
+    auto c = BigInt(1);
+    auto d = idiv((n3 + b), n2);
+    auto e = idiv((n3 * d + idiv(b, pow(d, n1))), n2);
+    while (c != d && c != e) {
+        c = d;
+        d = e;
+        e = idiv((n3 * e + idiv(b, pow(e, n1))), n2);
+    }
+    if (d < e)
+        return d;
+    return e;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"3rd root of 8 = "_S & iRoot(8, 3));
+        print(u"3rd root of 9 = "_S & iRoot(9, 3));
+        print(u"First 2001 digits of the square root of 2: "_S & iRoot(pow(BigInt(100), 2000) * 2, 2));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Isqrt_(integer_square_root)_of_X#D
+BigInt = int
+
+def commatize(number, step = 3, sep = ','):
+    s = str(number)[::-1]
+    r : str = s[0]
+    for i in range(1, len(s)):
+        if i % step == 0:
+            r += sep
+        r += s[i]
+    return r[::-1]
+
+def isqrt(x : BigInt):
+    assert(x >= 0)
+
+    q = BigInt(1)
+    while q <= x:
+        q *= 4
+
+    z = x
+    r = BigInt(0)
+    while q > 1:
+        q //= 4
+        t = z - r - q
+        r //= 2
+        if t >= 0:
+            z = t
+            r += q
+
+    return r
+
+print('The integer square root of integers from 0 to 65 are:')
+for i in range(66):
+    print(isqrt(BigInt(i)), end = ' ')
+print()
+
+print('The integer square roots of powers of 7 from 7^1 up to 7^73 are:')
+print('power                                    7 ^ power                                                 integer square root')
+print('----- --------------------------------------------------------------------------------- -----------------------------------------')
+pow7 = BigInt(7)
+bi49 = BigInt(49)
+for i in range(1, 74, 2):
+    print('%2d %84s %41s' % (i, commatize(pow7), commatize(isqrt(pow7))))
+    pow7 *= bi49
+===
+F commatize(number, step = 3, sep = ‘,’)
+   V s = reversed(String(number))
+   String r = s[0]
+   L(i) 1 .< s.len
+      I i % step == 0
+         r ‘’= sep
+      r ‘’= s[i]
+   R reversed(r)
+
+F isqrt(BigInt x)
+   assert(x >= 0)
+
+   V q = BigInt(1)
+   L q <= x
+      q *= 4
+
+   V z = x
+   V r = BigInt(0)
+   L q > 1
+      q I/= 4
+      V t = z - r - q
+      r I/= 2
+      I t >= 0
+         z = t
+         r += q
+
+   R r
+
+print(‘The integer square root of integers from 0 to 65 are:’)
+L(i) 66
+   print(isqrt(BigInt(i)), end' ‘ ’)
+print()
+
+print(‘The integer square roots of powers of 7 from 7^1 up to 7^73 are:’)
+print(‘power                                    7 ^ power                                                 integer square root’)
+print(‘----- --------------------------------------------------------------------------------- -----------------------------------------’)
+V pow7 = BigInt(7)
+V bi49 = BigInt(49)
+L(i) (1.<74).step(2)
+   print(‘#2 #84 #41’.format(i, commatize(pow7), commatize(isqrt(pow7))))
+   pow7 *= bi49
+===
+template <typename T1, typename T2 = decltype(3), typename T3 = decltype(u","_S)> auto commatize(const T1 &number, const T2 &step = 3, const T3 &sep = u","_S)
+{
+    auto s = reversed(String(number));
+    String r = _get<0>(s);
+    for (auto i : range_el(1, s.len())) {
+        if (mod(i, step) == 0)
+            r &= sep;
+        r &= s[i];
+    }
+    return reversed(r);
+}
+
+auto isqrt(const BigInt &x)
+{
+    assert(x >= 0);
+
+    auto q = BigInt(1);
+    while (q <= x)
+        q *= 4;
+
+    auto z = x;
+    auto r = BigInt(0);
+    while (q > 1) {
+        q = idiv(q, 4);
+        auto t = z - r - q;
+        r = idiv(r, 2);
+        if (t >= 0) {
+            z = t;
+            r += q;
+        }
+    }
+
+    return r;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"The integer square root of integers from 0 to 65 are:"_S);
+        for (int i = 0; i < 66; i++)
+            print(isqrt(BigInt(i)), u" "_S);
+        print();
+
+        print(u"The integer square roots of powers of 7 from 7^1 up to 7^73 are:"_S);
+        print(u"power                                    7 ^ power                                                 integer square root"_S);
+        print(u"----- --------------------------------------------------------------------------------- -----------------------------------------"_S);
+    }
+} code_block_1;
+
+auto pow7 = BigInt(7);
+auto bi49 = BigInt(49);
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        for (auto i : range_el(1, 74).step(2)) {
+            print(u"#2 #84 #41"_S.format(i, commatize(pow7), commatize(isqrt(pow7))));
+            pow7 *= bi49;
+        }
+    }
+} code_block_2;
+
+
+# https://rosettacode.org/wiki/Idoneal_numbers#Python
+def is_idoneal(num):
+    ''' Return true if num is an idoneal number '''
+    for a in range(1, num):
+        for b in range(a + 1, num):
+            if a * b + a + b > num:
+                break
+            for c in range(b + 1, num):
+                sum3 = a * b + b * c + a * c
+                if sum3 == num:
+                    return False
+                if sum3 > num:
+                    break
+    return True
+
+row = 0
+for n in range(1, 2000):
+    if is_idoneal(n):
+        row += 1
+        print(f'{n:5}', end='\n' if row % 13 == 0 else '')
+===
+F is_idoneal(num)
+   ‘ Return true if num is an idoneal number ’
+   L(a) 1 .< num
+      L(b) a + 1 .< num
+         I a * b + a + b > num
+            L.break
+         L(c) b + 1 .< num
+            V sum3 = a * b + b * c + a * c
+            I sum3 == num
+               R 0B
+            I sum3 > num
+               L.break
+   R 1B
+
+V row = 0
+L(n) 1..1999
+   I is_idoneal(n)
+      row++
+      print(f:‘{n:5}’, end' I row % 13 == 0 {"\n"} E ‘’)
+===
+template <typename T1> auto is_idoneal(const T1 &num)
+{
+    u" Return true if num is an idoneal number "_S;
+    for (auto a : range_el(1, num))
+        for (auto b : range_el(a + 1, num)) {
+            if (a * b + a + b > num)
+                break;
+            for (auto c : range_el(b + 1, num)) {
+                auto sum3 = a * b + b * c + a * c;
+                if (sum3 == num)
+                    return false;
+                if (sum3 > num)
+                    break;
+            }
+        }
+    return true;
+}
+
+auto row = 0;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto n : range_ee(1, 1999))
+            if (is_idoneal(n)) {
+                row++;
+                print(u"#5"_S.format(n), mod(row, 13) == 0 ? u"\n"_S : u""_S);
+            }
+    }
+} code_block_1;
+
+
+# https://rosettacode.org/wiki/Inconsummate_numbers_in_base_10#Python
+from typing import List
+Int64 = int
+
+def digitalsum(num):
+    ''' Return sum of digits of a number in base 10 '''
+    return sum(int(d) for d in str(num))
+
+def generate_inconsummate(max_wanted):
+    ''' generate the series of inconsummate numbers up to max_wanted '''
+    minimum_digitsums = [(Int64(10)**i, int((Int64(10)**i - 1) / (9 * i)))
+                         for i in range(1, 15)]
+    limit = 20 * int(min(p[0] for p in minimum_digitsums if p[1] > max_wanted))
+    arr = [1] + [0] * (limit - 1)
+
+    for dividend in range(1, limit):
+        quo, rem = divmod(dividend, digitalsum(dividend))
+        if rem == 0 and quo < limit:
+            arr[quo] = 1
+    r: List[int] = []
+    for j, flag in enumerate(arr):
+        if flag == 0:
+            r.append(j)
+    return r
+
+for i, n in enumerate(generate_inconsummate(100000)):
+    if i < 50:
+        print(f'{n:6}', end='\n' if (i + 1) % 10 == 0 else '')
+    elif i == 999:
+        print('\nThousandth inconsummate number:', n)
+    elif i == 9999:
+        print('\nTen-thousanth inconsummate number:', n)
+    elif i == 99999:
+        print('\nHundred-thousanth inconsummate number:', n)
+        break
+===
+F digitalsum(num)
+   ‘ Return sum of digits of a number in base 10 ’
+   R sum(String(num).map(d -> Int(d)))
+
+F generate_inconsummate(max_wanted)
+   ‘ generate the series of inconsummate numbers up to max_wanted ’
+   V minimum_digitsums = (1..14).map(i -> (Int64(10) ^ i, Int((Int64(10) ^ i - 1) / (9 * i))))
+   V limit = 20 * Int(min(minimum_digitsums.filter(p -> p[1] > @max_wanted).map(p -> p[0])))
+   V arr = [1] [+] [0] * (limit - 1)
+
+   L(dividend) 1 .< limit
+      V (quo, rem) = divmod(dividend, digitalsum(dividend))
+      I rem == 0 & quo < limit
+         arr[quo] = 1
+   [Int] r
+   L(flag) arr
+      V j = L.index
+      I flag == 0
+         r.append(j)
+   R r
+
+L(n) generate_inconsummate(100000)
+   V i = L.index
+   I i < 50
+      print(f:‘{n:6}’, end' I (i + 1) % 10 == 0 {"\n"} E ‘’)
+   E I i == 999
+      print("\nThousandth inconsummate number: "n)
+   E I i == 9999
+      print("\nTen-thousanth inconsummate number: "n)
+   E I i == 99999
+      print("\nHundred-thousanth inconsummate number: "n)
+      L.break
+===
+template <typename T1> auto digitalsum(const T1 &num)
+{
+    u" Return sum of digits of a number in base 10 "_S;
+    return sum_map(String(num), [](const auto &d){return to_int(d);});
+}
+
+template <typename T1> auto generate_inconsummate(const T1 &max_wanted)
+{
+    u" generate the series of inconsummate numbers up to max_wanted "_S;
+    auto minimum_digitsums = range_ee(1, 14).map([](const auto &i){return make_tuple(pow(to_int64(10), i), to_int((pow(to_int64(10), i) - 1) / (9 * i)));});
+    auto limit = 20 * to_int(min_map(minimum_digitsums.filter([&max_wanted](const auto &p){return _get<1>(p) > max_wanted;}), [](const auto &p){return _get<0>(p);}));
+    auto arr = create_array({1}) + create_array({0}) * (limit - 1);
+
+    for (auto dividend : range_el(1, limit)) {
+        auto [quo, rem] = divmod(dividend, digitalsum(dividend));
+        if (rem == 0 && quo < limit)
+            arr.set(quo, 1);
+    }
+    Array<int> r;
+    {int Lindex = 0;
+    for (auto &&flag : arr) {
+        auto j = Lindex;
+        if (flag == 0)
+            r.append(j);
+        Lindex++;
+    }}
+    return r;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        {int Lindex = 0;
+
+        for (auto &&n : generate_inconsummate(100000)) {
+            auto i = Lindex;
+            if (i < 50)
+                print(u"#6"_S.format(n), mod((i + 1), 10) == 0 ? u"\n"_S : u""_S);
+            else if (i == 999)
+                print(u"\nThousandth inconsummate number: "_S & n);
+            else if (i == 9999)
+                print(u"\nTen-thousanth inconsummate number: "_S & n);
+            else if (i == 99999) {
+                print(u"\nHundred-thousanth inconsummate number: "_S & n);
+                break;
+            }
+            Lindex++;
+        }}
+    }
+} code_block_1;

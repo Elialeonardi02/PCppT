@@ -1,0 +1,82 @@
+sqrtb
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘x; ; BigInt; ’
+        ]
+    ]
+is_square
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘x; ; ; ’
+        ]
+    ]
+is_prime
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘x; ; ; ’
+        ]
+    ]
+list_primality
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘n; ; ; ’
+        ]
+    ]
+list_primes
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘n; ; ; ’
+        ]
+    ]
+primes_up_to_limit
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘limit; ; Int; ’
+        ]
+    ]
+list_smallest_prime_factors
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘n; ; Int; ’
+        ]
+    ]
+list_totients
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘n; ; ; ’
+        ]
+    ]
+binomial
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘n; ; BigInt; ’
+            ‘k; ; BigInt; ’
+        ]
+    ]
+reciprocal_mod
+    type = ‘’
+    ast_nodes = [
+    .   node_type = function
+        function_arguments = [
+            ‘x; ; Int; =’
+            ‘m; ; Int; ’
+        ]
+    ]

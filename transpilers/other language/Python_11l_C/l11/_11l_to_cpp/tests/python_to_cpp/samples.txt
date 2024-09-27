@@ -1,0 +1,5425 @@
+def parse_int(s):
+    i = 0
+    r = 0
+    while i < len(s) and '0' <= s[i] <= '9':
+        r = r*10 + ord(s[i]) - ord('0')
+        i += 1
+    return r
+===
+F parse_int(s)
+   V i = 0
+   V r = 0
+   L i < s.len & s[i] C ‘0’..‘9’
+      r = r * 10 + s[i].code - ‘0’.code
+      i++
+   R r
+===
+template <typename T1> auto parse_int(const T1 &s)
+{
+    auto i = 0;
+    auto r = 0;
+    while (i < s.len() && in(s[i], range_ee(u'0'_C, u'9'_C))) {
+        r = r * 10 + s[i].code - u'0'_C.code;
+        i++;
+    }
+    return r;
+}
+
+
+class Object:
+    a : int
+    b : int
+    def __init__(self, a = 1, b = 2):
+        self.a = a
+        self.b = b
+object = Object(b = 3)
+===
+T Object
+   Int a
+   Int b
+   F (a = 1, b = 2)
+      .a = a
+      .b = b
+V object = Object(b' 3)
+===
+class Object
+{
+public:
+    int a;
+    int b;
+    template <typename T1 = decltype(1), typename T2 = decltype(2)> Object(const T1 &a = 1, const T2 &b = 2) :
+        a(a),
+        b(b)
+    {
+    }
+};
+auto object = Object(1, 3);
+
+
+def print_seconds(sec):
+    r60 = sec % 60
+    print(chr(ord('0') + r60 // 10) + ''
+        + chr(ord('0') + r60 %  10))
+===
+F print_seconds(sec)
+   V r60 = sec % 60
+   print(Char(code' ‘0’.code + r60 I/ 10)‘’Char(code' ‘0’.code + r60 % 10))
+===
+template <typename T1> auto print_seconds(const T1 &sec)
+{
+    auto r60 = mod(sec, 60);
+    print(Char(u'0'_C.code + idiv(r60, 10)) & Char(u'0'_C.code + mod(r60, 10)));
+}
+
+
+print("Prepare files' list...", end = '')
+print("Prepare files' list...", flush = True)
+===
+print(‘Prepare files' list...’, end' ‘’)
+print(‘Prepare files' list...’, flush' 1B)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"Prepare files' list..."_S, u""_S);
+        print(u"Prepare files' list..."_S, u"\n"_S, true);
+    }
+} code_block_1;
+
+
+def f(a = 1, b = 2):
+    return a + b
+print(f(b = 3))
+print(f(0, b = 3))
+def f2(a = 1, b = 2, c = 3):
+    return a + b + c
+print(f2(b = 3, c = 4))
+===
+F f(a = 1, b = 2)
+   R a + b
+print(f(b' 3))
+print(f(0, b' 3))
+F f2(a = 1, b = 2, c = 3)
+   R a + b + c
+print(f2(b' 3, c' 4))
+===
+template <typename T1 = decltype(1), typename T2 = decltype(2)> auto f(const T1 &a = 1, const T2 &b = 2)
+{
+    return a + b;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(f(1, 3));
+        print(f(0, 3));
+    }
+} code_block_1;
+
+template <typename T1 = decltype(1), typename T2 = decltype(2), typename T3 = decltype(3)> auto f2(const T1 &a = 1, const T2 &b = 2, const T3 &c = 3)
+{
+    return a + b + c;
+}
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        print(f2(1, 3, 4));
+    }
+} code_block_2;
+
+
+def f(a = 10, *, b, c = 20):
+    return a + b + c
+f(b = 1)
+===
+F f(a = 10, ', b, c = 20)
+   R a + b + c
+f(b' 1)
+===
+template <typename T1, typename T2, typename T3 = decltype(20)> auto f(const T1 &a, const T2 &b, const T3 &c = 20)
+{
+    return a + b + c;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        f(10, 1);
+    }
+} code_block_1;
+
+
+def f():
+    for i in range(0, 11, 2):
+        print(i)
+    for i in range(11):
+        print(i)
+===
+F f()
+   L(i) (0.<11).step(2)
+      print(i)
+   L(i) 11
+      print(i)
+===
+auto f()
+{
+    for (auto i : range_el(0, 11).step(2))
+        print(i);
+    for (int i = 0; i < 11; i++)
+        print(i);
+}
+
+
+def f():
+    dict : Dict[str, int] = {}
+    dict['key'] = 1
+    assert('key' in dict)
+    arr : List[int] = []
+    arr += [10]
+===
+F f()
+   [String = Int] dict
+   dict[‘key’] = 1
+   assert(‘key’ C dict)
+   [Int] arr
+   arr [+]= 10
+===
+auto f()
+{
+    Dict<String, int> dict;
+    dict.set(u"key"_S, 1);
+    assert(in(u"key"_S, dict));
+    Array<int> arr;
+    arr.append(10);
+}
+
+
+R"\""
+R"""\""""
+R"a\\"
+R"""a\\"""
+r'''\''''
+r'''a
+b'''
+r'''ab'''
+r'''a\b''' # (((((((((
+r'''a\)"b'''
+r'''a\)"b)'"c'''
+'''\
+<html>\\"'''
+"""\
+<html>\\'"""
+'''\
+<html>
+<head>\\'''
+'''a'''
+"\n"
+"'"
+'"'
+"‘"
+"’"
+"don‘t"
+r"don‘t"
+"don’‘t"
+"don’t"
+r"don’t"
+'\''
+"\""
+===
+‘\"’
+‘\"’
+‘a\\’
+‘a\\’
+‘\'’
+‘a
+b’
+‘ab’
+‘a\b’
+‘a\)"b’
+‘a\)"b)'"c’
+"\
+<html>\\\""
+"\
+<html>\\'"
+"\
+<html>\n\
+<head>\\"
+‘a’
+"\n"
+‘'’
+‘"’
+"‘"
+"’"
+"don‘t"
+‘don‘t’’'
+'‘‘don’‘t’’'
+"don’t"
+'‘‘don’t’
+"'"
+"\""
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        uR"(\")"_S;
+        uR"(\")"_S;
+        uR"(a\\)"_S;
+        uR"(a\\)"_S;
+        uR"(\')"_S;
+        uR"(a
+b)"_S;
+        u"ab"_S;
+        uR"(a\b)"_S;
+        uR"'(a\)"b)'"_S;
+        uR"''(a\)"b)'"c)''"_S;
+        u"\
+<html>\\\""_S;
+        u"\
+<html>\\'"_S;
+        u"\
+<html>\n\
+<head>\\"_S;
+        u"a"_S;
+        u"\n"_S;
+        u"'"_S;
+        u"\""_S;
+        u"‘"_S;
+        u"’"_S;
+        u"don‘t"_S;
+        u"don‘t"_S;
+        u"don’‘t"_S;
+        u"don’t"_S;
+        u"don’t"_S;
+        u"'"_S;
+        u"\""_S;
+    }
+} code_block_1;
+
+
+x = ~1 ^ 2
+===
+V x = ~1 (+) 2
+===
+auto x = ~1 ^ 2;
+
+
+if __name__ == '__main__':
+    f : Callable[[str, int], str]
+    ft : Tuple[str, Callable[[int], str]]
+    fe : Callable[[], str]
+    b0 : Dict[str, Callable[[str, int], str]] = {}
+    b : Dict[str, Callable[[int], str]] = {}
+    bemp : Dict[str, Callable[[], str]] = {}
+    def ff(s, i):
+        return s * i
+    f = ff
+    assert(f('s', 2) == 'ss')
+===
+:start:
+((String, Int) -> String) f
+(String, (Int -> String)) ft
+(() -> String) fe
+[String = ((String, Int) -> String)] b0
+[String = (Int -> String)] b
+[String = (() -> String)] bemp
+F ff(s, i)
+   R s * i
+f = ff
+assert(f(‘s’, 2) == ‘ss’)
+===
+int main()
+{
+    std::function<String(const String&, const int)> f;
+    Tuple<String, std::function<String(const int)>> ft;
+    std::function<String()> fe;
+    Dict<String, std::function<String(const String&, const int)>> b0;
+    Dict<String, std::function<String(const int)>> b;
+    Dict<String, std::function<String()>> bemp;
+    auto ff = [](const auto &s, const auto &i)
+    {
+        return s * i;
+    };
+    f = ff;
+    assert(f(u"s"_S, 2) == u"ss");
+}
+
+
+def find_ending_pair_quote(instr, i):
+    nesting_level = 0
+    while True:
+        ch = instr[i]
+        if ch == "‘":
+            nesting_level += 1
+        elif ch == "’":
+            nesting_level -= 1
+            if nesting_level == 0:
+                return i
+        else:
+            return -1
+        i += 1
+===
+F find_ending_pair_quote(instr, =i)
+   V nesting_level = 0
+   L
+      S instr[i]
+         "‘"
+            nesting_level++
+         "’"
+            I --nesting_level == 0
+               R i
+         E
+            R -1
+      i++
+===
+template <typename T1, typename T2> auto find_ending_pair_quote(const T1 &instr, T2 i)
+{
+    auto nesting_level = 0;
+    while (true) {
+        switch (instr[i])
+        {
+        case u'‘':
+            nesting_level++;
+            break;
+        case u'’':
+            if (--nesting_level == 0)
+                return i;
+            break;
+        default:
+            return -1;
+            break;
+        }
+        i++;
+    }
+}
+
+
+def exit_with_error(message, pos):
+    pass
+def write_http_link(instr, i, endpos, q_offset = 1):
+    nesting_level = 0
+    i += 2
+    while True:
+        if i == len(instr):
+            exit_with_error('Unended link', endpos+q_offset)
+        ch = instr[i]
+        if ch == "[":
+            nesting_level += 1
+        elif ch == "]":
+            if nesting_level == 0:
+                break
+            nesting_level -= 1
+        elif ch == " ":
+            break
+        i += 1
+===
+F exit_with_error(message, pos)
+{
+}
+F write_http_link(instr, =i, endpos, q_offset = 1)
+   V nesting_level = 0
+   i += 2
+   L
+      I i == instr.len
+         exit_with_error(‘Unended link’, endpos + q_offset)
+      S instr[i]
+         ‘[’
+            nesting_level++
+         ‘]’
+            I nesting_level == 0
+               L.break
+            nesting_level--
+         ‘ ’
+            L.break
+      i++
+===
+template <typename T1, typename T2> auto exit_with_error(const T1 &message, const T2 &pos)
+{
+}
+
+template <typename T1, typename T2, typename T3, typename T4 = decltype(1)> auto write_http_link(const T1 &instr, T2 i, const T3 &endpos, const T4 &q_offset = 1)
+{
+    auto nesting_level = 0;
+    i += 2;
+    while (true) {
+        if (i == instr.len())
+            exit_with_error(u"Unended link"_S, endpos + q_offset);
+        switch (instr[i])
+        {
+        case u'[':
+            nesting_level++;
+            break;
+        case u']':
+            if (nesting_level == 0)
+                goto break_;
+            nesting_level--;
+            break;
+        case u' ':
+            goto break_;
+            break;
+        }
+        i++;
+    }
+    break_:;
+}
+
+
+import os, tempfile
+
+print(os.pathsep + os.path.join(tempfile.gettempdir(), 'right'))
+print(os.getenv('PATH'))
+os.environ['PATH'] += os.pathsep + 'KDiff3'
+print(os.getenv('PATH'))
+print(os.listdir())
+os.system('pause')
+===
+print(os:env_path_sep‘’fs:path:join(fs:get_temp_dir(), ‘right’))
+print(os:getenv(‘PATH’))
+os:environ[‘PATH’] ‘’= os:env_path_sep‘KDiff3’
+print(os:getenv(‘PATH’))
+print(fs:list_dir())
+os:(‘pause’)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(os::env_path_sep & fs::path::join(fs::get_temp_dir(), u"right"_S));
+        print(os::getenv(u"PATH"_S));
+        os::environ[u"PATH"_S] &= os::env_path_sep & u"KDiff3"_S;
+        print(os::getenv(u"PATH"_S));
+        print(fs::list_dir());
+        os::_(u"pause"_S);
+    }
+} code_block_1;
+
+
+import os
+
+def process_files(exclude_dir):
+    for root, dirs, files in os.walk('.'):
+        dirs[:] = [d for d in dirs if d[0] != '.' and d != exclude_dir] # exclude hidden folders (e.g. `.hg`)
+        for name in files:
+            print(os.path.join(root, name))
+
+def process_files2():
+    for root, dirs, files in os.walk('.'):
+        for name in files:
+            print(os.path.join(root, name))
+===
+F process_files(exclude_dir)
+   L(_fname) fs:walk_dir(‘.’, dir_filter' d -> d[0] != ‘.’ & d != @exclude_dir, files_only' 0B)
+      V root = fs:path:dir_name(_fname)
+      [String] dirs, files
+      I fs:is_dir(_fname) {dirs [+]= fs:path:base_name(_fname)} E files [+]= fs:path:base_name(_fname)
+      L(name) files
+         print(fs:path:join(root, name))
+
+F process_files2()
+   L(_fname) fs:walk_dir(‘.’, files_only' 0B)
+      V root = fs:path:dir_name(_fname)
+      [String] dirs, files
+      I fs:is_dir(_fname) {dirs [+]= fs:path:base_name(_fname)} E files [+]= fs:path:base_name(_fname)
+      L(name) files
+         print(fs:path:join(root, name))
+===
+template <typename T1> auto process_files(const T1 &exclude_dir)
+{
+    for (auto &&_fname : fs::walk_dir(u"."_S, [&exclude_dir](const auto &d){return _get<0>(d) != u'.' && d != exclude_dir;}, false)) {
+        auto root = fs::path::dir_name(_fname);
+        Array<String> dirs, files;
+        if (fs::is_dir(_fname))
+            dirs.append(fs::path::base_name(_fname));
+        else
+            files.append(fs::path::base_name(_fname));
+        for (auto &&name : files)
+            print(fs::path::join(root, name));
+    }
+}
+
+auto process_files2()
+{
+    for (auto &&_fname : fs::walk_dir(u"."_S, nullptr, false)) {
+        auto root = fs::path::dir_name(_fname);
+        Array<String> dirs, files;
+        if (fs::is_dir(_fname))
+            dirs.append(fs::path::base_name(_fname));
+        else
+            files.append(fs::path::base_name(_fname));
+        for (auto &&name : files)
+            print(fs::path::join(root, name));
+    }
+}
+
+
+print(round(1.12345, 3))
+===
+print(round(1.12345, 3))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(round(1.12345, 3));
+    }
+} code_block_1;
+
+
+import time
+start = time.perf_counter()
+time.sleep(0.1)
+print(time.perf_counter() - start)
+===
+V start = time:perf_counter()
+sleep(0.1)
+print(time:perf_counter() - start)
+===
+auto start = timens::perf_counter();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        sleep(0.1);
+        print(timens::perf_counter() - start);
+    }
+} code_block_1;
+
+
+import datetime
+d = datetime.timedelta(days = 1, hours = 2, minutes = 3, seconds = 4.5)
+assert(datetime.datetime(2018, 8, 2) - datetime.datetime(2018, 7, 1) == datetime.timedelta(days = 32))
+assert(datetime.date    (2018, 8, 2) - datetime.date    (2018, 7, 1) == datetime.timedelta(days = 32))
+print(d)
+print(str(d.days) + ', ' + str(d.total_seconds()))
+print(datetime.date.today())
+print(datetime.datetime.now() - datetime.date.today())
+===
+V d = TimeDelta(days' 1, hours' 2, minutes' 3, seconds' 4.5)
+assert(Time(2018, 8, 2) - Time(2018, 7, 1) == TimeDelta(days' 32))
+assert(Time(2018, 8, 2) - Time(2018, 7, 1) == TimeDelta(days' 32))
+print(d)
+print(String(d.days())‘, ’String(d.seconds))
+print(time:today())
+print(Time() - time:today())
+===
+auto d = TimeDelta(1, 2, 3, 4.5);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        assert(Time(2018, 8, 2) - Time(2018, 7, 1) == TimeDelta(32));
+        assert(Time(2018, 8, 2) - Time(2018, 7, 1) == TimeDelta(32));
+        print(d);
+        print(String(d.days()) & u", "_S & String(d.seconds));
+        print(timens::today());
+        print(Time() - timens::today());
+    }
+} code_block_1;
+
+
+import datetime
+print(datetime.datetime(2001, 2, 3, 4, 5, 6).strftime('%Y.%m.%d %H:%M:%S') == '2001.02.03 04:05:06')
+print(datetime.datetime(2001, 2, 3, 4, 5, 6).format('YYYY.MM.DD hh:mm:ss') == '2001.02.03 04:05:06')
+print(datetime.datetime(2001, 2, 3, 4, 5, 6).format('ГГГГ.ММ.ДД чч:мм:сс') == '2001.02.03 04:05:06')
+print(datetime.datetime.strptime('2001.02.03 04:05:06', '%Y.%m.%d %H:%M:%S') == datetime.datetime(2001, 2, 3, 4, 5, 6))
+print(datetime.datetime(1970, 1, 2).timestamp())
+print(datetime.datetime.fromtimestamp(datetime.datetime(1970, 1, 2).timestamp()))
+# [-TODO: Add `time:gmtime()` and `time:timegm()` [<- `calendar.timegm()`] (need good (practical) test cases!)-]
+===
+print(Time(2001, 2, 3, 4, 5, 6).strftime(‘%Y.%m.%d %H:%M:%S’) == ‘2001.02.03 04:05:06’)
+print(Time(2001, 2, 3, 4, 5, 6).format(‘YYYY.MM.DD hh:mm:ss’) == ‘2001.02.03 04:05:06’)
+print(Time(2001, 2, 3, 4, 5, 6).format(‘ГГГГ.ММ.ДД чч:мм:сс’) == ‘2001.02.03 04:05:06’)
+print(time:strptime(‘2001.02.03 04:05:06’, ‘%Y.%m.%d %H:%M:%S’) == Time(2001, 2, 3, 4, 5, 6))
+print(Time(1970, 1, 2).unix_time())
+print(Time(unix_time' Time(1970, 1, 2).unix_time()))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(Time(2001, 2, 3, 4, 5, 6).strftime(u"%Y.%m.%d %H:%M:%S"_S) == u"2001.02.03 04:05:06");
+        print(Time(2001, 2, 3, 4, 5, 6).format(u"YYYY.MM.DD hh:mm:ss"_S) == u"2001.02.03 04:05:06");
+        print(Time(2001, 2, 3, 4, 5, 6).format(u"ГГГГ.ММ.ДД чч:мм:сс"_S) == u"2001.02.03 04:05:06");
+        print(timens::strptime(u"2001.02.03 04:05:06"_S, u"%Y.%m.%d %H:%M:%S"_S) == Time(2001, 2, 3, 4, 5, 6));
+        print(Time(1970, 1, 2).unix_time());
+        print(timens::from_unix_time(Time(1970, 1, 2).unix_time()));
+    }
+} code_block_1;
+
+
+for line in open('1.py').readlines():
+    print(line)
+===
+L(line) File(‘1.py’).read_lines(1B)
+   print(line)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&line : File(u"1.py"_S).read_lines(true))
+            print(line);
+    }
+} code_block_1;
+
+
+items = ['A', 'B', 'C']
+for index, item in enumerate(items):
+    print(str(index) + '. ' + item)
+for index, item in enumerate(items, 1):
+    print(str(index) + '. ' + item)
+===
+V items = [‘A’, ‘B’, ‘C’]
+L(item) items
+   V index = L.index
+   print(String(index)‘. ’item)
+L(item) items
+   V index = L.index + 1
+   print(String(index)‘. ’item)
+===
+auto items = create_array({u'A'_C, u'B'_C, u'C'_C});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        {int Lindex = 0;
+        for (auto &&item : items) {
+            auto index = Lindex;
+            print(String(index) & u". "_S & item);
+            Lindex++;
+        }}
+        {int Lindex = 0;
+        for (auto &&item : items) {
+            auto index = Lindex + 1;
+            print(String(index) & u". "_S & item);
+            Lindex++;
+        }}
+    }
+} code_block_1;
+
+
+from typing import List
+
+class Animal:
+    def say(self) -> None:
+        raise NotImplementedError()
+
+class Sheep(Animal):
+    def say(self):
+        print('baa')
+
+class Cat(Animal):
+    def say(self):
+        print('meow')
+
+animals : List[Animal] = []
+
+def add_animal(animal : Animal):
+    class Animal: # this local class checks for `tid = self.scope+'‘.parent’'.find(arg[2].rstrip('?'))`
+        name : str
+    animals += [animal]
+
+def global_func():
+    def local_func(animal : Animal):
+        animals += [animal]
+
+if __name__ == '__main__':
+    animals += [Sheep()]
+    animals += [Cat()]
+    animal = Sheep()
+    animal.say()
+    animals += [animal]
+    for animal in animals:
+        animal.say()
+===
+T Animal
+   F.virtual.abstract say() -> Void
+
+T Sheep(Animal)
+   F.virtual.assign say() -> Void
+      print(‘baa’)
+
+T Cat(Animal)
+   F.virtual.assign say() -> Void
+      print(‘meow’)
+
+[Animal] animals
+
+F add_animal(Animal animal)
+   T Animal
+      String name
+   :animals [+]= animal
+
+F global_func()
+   F local_func(Animal animal)
+      :animals [+]= animal
+
+:start:
+animals [+]= Sheep()
+animals [+]= Cat()
+V animal = Sheep()
+animal.say()
+animals [+]= animal
+L(animal) animals
+   animal.say()
+===
+class Animal
+{
+public:
+    virtual void say() = 0;
+};
+
+class Sheep : public Animal
+{
+public:
+    virtual void say() override
+    {
+        print(u"baa"_S);
+    }
+};
+
+class Cat : public Animal
+{
+public:
+    virtual void say() override
+    {
+        print(u"meow"_S);
+    }
+};
+
+Array<std::unique_ptr<Animal>> animals;
+
+auto add_animal(std::unique_ptr<Animal> animal)
+{
+    class Animal
+    {
+    public:
+        String name;
+    };
+    ::animals.append(std::move(animal));
+}
+
+auto global_func()
+{
+    auto local_func = [](std::unique_ptr<Animal> animal)
+    {
+        ::animals.append(std::move(animal));
+    };
+}
+
+int main()
+{
+    animals.append(std::make_unique<Sheep>());
+    animals.append(std::make_unique<Cat>());
+    auto animal = std::make_unique<Sheep>();
+    animal->say();
+    animals.append(std::move(animal));
+    for (auto &&animal : animals)
+        animal->say();
+}
+
+
+class Animal:
+    def say(self) -> None:
+        print('')
+
+class Sheep(Animal):
+    def say(self):
+        print('baa')
+
+class Cat(Animal):
+    def say(self):
+        print('meow')
+===
+T Animal
+   F.virtual.new say() -> Void
+      print(‘’)
+
+T Sheep(Animal)
+   F.virtual.override say() -> Void
+      print(‘baa’)
+
+T Cat(Animal)
+   F.virtual.override say() -> Void
+      print(‘meow’)
+===
+class Animal
+{
+public:
+    virtual void say()
+    {
+        print(u""_S);
+    }
+};
+
+class Sheep : public Animal
+{
+public:
+    virtual void say() override
+    {
+        print(u"baa"_S);
+    }
+};
+
+class Cat : public Animal
+{
+public:
+    virtual void say() override
+    {
+        print(u"meow"_S);
+    }
+};
+
+
+print("\t word \t".rstrip("\t") == "\t word ")
+print("\t word \t".lstrip("\t") ==   " word \t")
+print("\t word \t". strip("\t") ==   " word ")
+print("\t word \t".rstrip("\t ") == "\t word")
+print("\t word \t".lstrip("\t ") ==    "word \t")
+print("\t word \t". strip("\t ") ==    "word")
+===
+print("\t word \t".rtrim("\t") == "\t word ")
+print("\t word \t".ltrim("\t") == " word \t")
+print("\t word \t".trim("\t") == ‘ word ’)
+print("\t word \t".rtrim([Char]("\t ")) == "\t word")
+print("\t word \t".ltrim([Char]("\t ")) == "word \t")
+print("\t word \t".trim([Char]("\t ")) == ‘word’)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"\t word \t"_S.rtrim(u"\t"_S) == u"\t word ");
+        print(u"\t word \t"_S.ltrim(u"\t"_S) == u" word \t");
+        print(u"\t word \t"_S.trim(u"\t"_S) == u" word ");
+        print(u"\t word \t"_S.rtrim(Array<Char>(u"\t "_S)) == u"\t word");
+        print(u"\t word \t"_S.ltrim(Array<Char>(u"\t "_S)) == u"word \t");
+        print(u"\t word \t"_S.trim(Array<Char>(u"\t "_S)) == u"word");
+    }
+} code_block_1;
+
+
+import math
+
+print(math.ceil(3.6) == 4)
+print(math.floor(3.6) == 3)
+print(math.trunc(-3.6) == -3)
+print(math.fabs(-3.5) == 3.5)
+print(math.exp(2) - 7.38905609893065 + 1)
+print(math.log(math.exp(1)) == 1)
+print(math.log(25, 5) == 2)
+print(math.log2(8) == 3)
+print(math.log10(100) == 2)
+print(math.pow(2, 3) == 2 ** 3)
+print(math.sqrt(4) == 2)
+print(math.acos(0.5) - 0.0471975511965979)
+print(math.asin(1) - 0.5707963267948966)
+print(math.atan(1) - 0.7853981633974483 + 1)
+print(math.atan2(1, 2) - 0.4636476090008061 + 1)
+print(math.cos(1) - 0.5403023058681398 + 1)
+print(math.sin(1) - 0.8414709848078965 + 1)
+print(math.tan(1) - 1.5574077246549023 + 1)
+print(math.degrees(1) - 57.29577951308232 + 1)
+print(math.radians(1) - 0.017453292519943295 + 1)
+print(math.pi - 2.141592653589793)
+print(math.factorial(3))
+===
+print(ceili(3.6) == 4)
+print(floori(3.6) == 3)
+print(trunc(-3.6) == -3)
+print(abs(-3.5) == 3.5)
+print(exp(2) - 7.38905609893065 + 1)
+print(log(exp(1)) == 1)
+print(log(25, 5) == 2)
+print(log2(8) == 3)
+print(log10(100) == 2)
+print(pow(2, 3) == 2 ^ 3)
+print(sqrt(4) == 2)
+print(acos(0.5) - 0.0471975511965979)
+print(asin(1) - 0.5707963267948966)
+print(atan(1) - 0.7853981633974483 + 1)
+print(atan2(1, 2) - 0.4636476090008061 + 1)
+print(cos(1) - 0.5403023058681398 + 1)
+print(sin(1) - 0.8414709848078965 + 1)
+print(tan(1) - 1.5574077246549023 + 1)
+print(degrees(1) - 57.29577951308232 + 1)
+print(radians(1) - 0.017453292519943295 + 1)
+print(math:pi - 2.141592653589793)
+print(factorial(3))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(ceili(3.6) == 4);
+        print(floori(3.6) == 3);
+        print(trunc(-3.6) == -3);
+        print(abs(-3.5) == 3.5);
+        print(exp(2) - 7.38905609893065 + 1);
+        print(log(exp(1)) == 1);
+        print(log(25, 5) == 2);
+        print(log2(8) == 3);
+        print(log10(100) == 2);
+        print(pow(2, 3) == cube(2));
+        print(sqrt(4) == 2);
+        print(acos(0.5) - 0.0471975511965979);
+        print(asin(1) - 0.5707963267948966);
+        print(atan(1) - 0.7853981633974483 + 1);
+        print(atan2(1, 2) - 0.4636476090008061 + 1);
+        print(cos(1) - 0.5403023058681398 + 1);
+        print(sin(1) - 0.8414709848078965 + 1);
+        print(tan(1) - 1.5574077246549023 + 1);
+        print(degrees(1) - 57.29577951308232 + 1);
+        print(radians(1) - 0.017453292519943295 + 1);
+        print(math::pi - 2.141592653589793);
+        print(factorial(3));
+    }
+} code_block_1;
+
+
+import re
+
+print(re.search('[a-z]', '_12b').start(0) == 3)
+print(re.search('[a-z]', '_12b').end(0) == 4)
+print(re.compile('[a-z]').search('_12b').start(0) == 3)
+print(re.search('([a-z])a', '1a2ba').group(1) == 'b')
+print(re.split(' |:', ' 1 2:3') == ['', '1', '2', '3'])
+print(re.split(' |:', ' 1 2:3 ') == ['', '1', '2', '3', ''])
+print(re.sub(R' \[[^\]]+\]', '', 'Additionally [multi-] select THIS2 [also (e.g. with Ctrl+mouse)].') == 'Additionally select THIS2.')
+print(re.sub(R'(\d)', R'\1\1', '1, 2, 3') == '11, 22, 33')
+print(re.match(R"Additionally select (THIS\d*)$", 'Additionally select THIS2').group(1) == 'THIS2')
+print(re.match('[a-z]([a-z]*)[a-z]', 'abcd').group(1) == 'bc')
+print(re.fullmatch('[a-z]([a-z]*)[a-z]', 'abcd').group(1) == 'bc')
+print(re.findall("[A-Z][1-9]", "B1, C2, D3") == ['B1', 'C2', 'D3'])
+print(re.findall("[A-Z]([1-9])", "B1, C2, D3") == ['1', '2', '3'])
+print([m.start(0) for m in re.finditer("[A-Z]([1-9])", "B1, C2, D3")] == [0, 4, 8])
+===
+print(re:‘[a-z]’.search(‘_12b’).start(0) == 3)
+print(re:‘[a-z]’.search(‘_12b’).end(0) == 4)
+print(re:(‘[a-z]’).search(‘_12b’).start(0) == 3)
+print(re:‘([a-z])a’.search(‘1a2ba’).group(1) == ‘b’)
+print(‘ 1 2:3’.split(re:‘ |:’) == [‘’, ‘1’, ‘2’, ‘3’])
+print(‘ 1 2:3 ’.split(re:‘ |:’) == [‘’, ‘1’, ‘2’, ‘3’, ‘’])
+print(‘Additionally [multi-] select THIS2 [also (e.g. with Ctrl+mouse)].’.replace(re:‘ \[[^\]]+\]’, ‘’) == ‘Additionally select THIS2.’)
+print(‘1, 2, 3’.replace(re:‘(\d)’, ‘$1$1’) == ‘11, 22, 33’)
+print(re:‘Additionally select (THIS\d*)’.match(‘Additionally select THIS2’).group(1) == ‘THIS2’)
+print(re:‘^[a-z]([a-z]*)[a-z]’.search(‘abcd’).group(1) == ‘bc’)
+print(re:‘[a-z]([a-z]*)[a-z]’.match(‘abcd’).group(1) == ‘bc’)
+print(re:‘[A-Z][1-9]’.find_strings(‘B1, C2, D3’) == [‘B1’, ‘C2’, ‘D3’])
+print(re:‘[A-Z]([1-9])’.find_strings(‘B1, C2, D3’) == [‘1’, ‘2’, ‘3’])
+print(re:‘[A-Z]([1-9])’.find_matches(‘B1, C2, D3’).map(m -> m.start(0)) == [0, 4, 8])
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(re::_(u"[a-z]"_S).search(u"_12b"_S).start(0) == 3);
+        print(re::_(u"[a-z]"_S).search(u"_12b"_S).end(0) == 4);
+        print(re::_(u"[a-z]"_S).search(u"_12b"_S).start(0) == 3);
+        print(re::_(u"([a-z])a"_S).search(u"1a2ba"_S).group(1) == u'b');
+        print(u" 1 2:3"_S.split(re::_(u" |:"_S)) == create_array({u""_S, u"1"_S, u"2"_S, u"3"_S}));
+        print(u" 1 2:3 "_S.split(re::_(u" |:"_S)) == create_array({u""_S, u"1"_S, u"2"_S, u"3"_S, u""_S}));
+        print(u"Additionally [multi-] select THIS2 [also (e.g. with Ctrl+mouse)]."_S.replace(re::_(uR"( \[[^\]]+\])"_S), u""_S) == u"Additionally select THIS2.");
+        print(u"1, 2, 3"_S.replace(re::_(uR"((\d))"_S), u"$1$1"_S) == u"11, 22, 33");
+        print(re::_(uR"(Additionally select (THIS\d*))"_S).match(u"Additionally select THIS2"_S).group(1) == u"THIS2");
+        print(re::_(u"^[a-z]([a-z]*)[a-z]"_S).search(u"abcd"_S).group(1) == u"bc");
+        print(re::_(u"[a-z]([a-z]*)[a-z]"_S).match(u"abcd"_S).group(1) == u"bc");
+        print(re::_(u"[A-Z][1-9]"_S).find_strings(u"B1, C2, D3"_S) == create_array({u"B1"_S, u"C2"_S, u"D3"_S}));
+        print(re::_(u"[A-Z]([1-9])"_S).find_strings(u"B1, C2, D3"_S) == create_array({u'1'_C, u'2'_C, u'3'_C}));
+        print(re::_(u"[A-Z]([1-9])"_S).find_matches(u"B1, C2, D3"_S).map([](const auto &m){return m.start(0);}) == create_array({0, 4, 8}));
+    }
+} code_block_1;
+
+
+import os
+os.mkdir('temp_dir')
+os.makedirs('temp_dir/dir1/dir2')
+os.rename('temp_dir', 'temp_dir_')
+===
+fs:create_dir(‘temp_dir’)
+fs:create_dirs(‘temp_dir/dir1/dir2’)
+fs:rename(‘temp_dir’, ‘temp_dir_’)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        fs::create_dir(u"temp_dir"_S);
+        fs::create_dirs(u"temp_dir/dir1/dir2"_S);
+        fs::rename(u"temp_dir"_S, u"temp_dir_"_S);
+    }
+} code_block_1;
+
+
+# [http://book.pythontips.com/en/latest/for_-_else.html <- google:‘python else for’ <- https://www.rosettacode.org/wiki/ABC_Problem#Python:_Iterative.2C_with_tests]
+for n in range(2, 10):
+    for x in range(2, n):
+        if n % x == 0:
+            print(str(n) + ' equals ' + str(x) + ' * ' + str(n/x))
+            break
+    else:
+        # loop fell through without finding a factor
+        print(str(n) + ' is a prime number')
+===
+L(n) 2..9
+   L(x) 2 .< n
+      I n % x == 0
+         print(String(n)‘ equals ’String(x)‘ * ’String(n / x))
+         L.break
+   L.was_no_break
+      print(String(n)‘ is a prime number’)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto n : range_ee(2, 9)) {
+            for (auto x : range_el(2, n))
+                if (mod(n, x) == 0) {
+                    print(String(n) & u" equals "_S & String(x) & u" * "_S & String(n / x));
+                    goto break_;
+                }
+            print(String(n) & u" is a prime number"_S);
+            break_:;
+        }
+    }
+} code_block_1;
+
+
+import os
+
+print(os.path.abspath('.'))
+print(os.path.relpath('a/b', 'a/c').replace('\\', '/') == '../b')
+print(os.path.dirname('a/b/c') == 'a/b')
+print(os.path.basename('a/b/c') == 'c')
+open('temp', 'w').write('123')
+print(os.path.getsize('temp') == 3)
+print(os.path.isfile('temp'))
+print(not os.path.isdir('temp'))
+print(not os.path.islink('temp'))
+os.remove('temp')
+os.rmdir('temp')
+print(os.path.join('a/b', 'c').replace('\\', '/') == 'a/b/c')
+print(os.path.pathsep == os.pathsep)
+print(os.path.pathsep in (':', ';'))
+print(os.path.sep == os.sep)
+print(os.path.sep in ('/', '\\'))
+print(os.path.splitext('a/b/c.txt') == ('a/b/c', '.txt'))
+print(os.path.splitext('c.txt') == ('c', '.txt'))
+print(os.path.splitext('a/b.c/d') == ('a/b.c/d', ''))
+===
+print(fs:path:absolute(‘.’))
+print(fs:path:relative(‘a/b’, ‘a/c’).replace(‘\’, ‘/’) == ‘../b’)
+print(fs:path:dir_name(‘a/b/c’) == ‘a/b’)
+print(fs:path:base_name(‘a/b/c’) == ‘c’)
+File(‘temp’, WRITE).write(‘123’)
+print(fs:file_size(‘temp’) == 3)
+print(fs:is_file(‘temp’))
+print(!fs:is_dir(‘temp’))
+print(!fs:is_symlink(‘temp’))
+fs:remove_file(‘temp’)
+fs:remove_dir(‘temp’)
+print(fs:path:join(‘a/b’, ‘c’).replace(‘\’, ‘/’) == ‘a/b/c’)
+print(os:env_path_sep == os:env_path_sep)
+print(os:env_path_sep C (‘:’, ‘;’))
+print(fs:path:sep == fs:path:sep)
+print(fs:path:sep C (‘/’, ‘\’))
+print(fs:path:split_ext(‘a/b/c.txt’) == (‘a/b/c’, ‘.txt’))
+print(fs:path:split_ext(‘c.txt’) == (‘c’, ‘.txt’))
+print(fs:path:split_ext(‘a/b.c/d’) == (‘a/b.c/d’, ‘’))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(fs::path::absolute(u"."_S));
+        print(fs::path::relative(u"a/b"_S, u"a/c"_S).replace(uR"(\)"_S, u"/"_S) == u"../b");
+        print(fs::path::dir_name(u"a/b/c"_S) == u"a/b");
+        print(fs::path::base_name(u"a/b/c"_S) == u'c');
+        FileWr(u"temp"_S).write(u"123"_S);
+        print(fs::file_size(u"temp"_S) == 3);
+        print(fs::is_file(u"temp"_S));
+        print(!fs::is_dir(u"temp"_S));
+        print(!fs::is_symlink(u"temp"_S));
+        fs::remove_file(u"temp"_S);
+        fs::remove_dir(u"temp"_S);
+        print(fs::path::join(u"a/b"_S, u"c"_S).replace(uR"(\)"_S, u"/"_S) == u"a/b/c");
+        print(os::env_path_sep == os::env_path_sep);
+        print(in(os::env_path_sep, make_tuple(u":"_S, u";"_S)));
+        print(fs::path::sep == fs::path::sep);
+        print(in(fs::path::sep, make_tuple(u"/"_S, uR"(\)"_S)));
+        print(fs::path::split_ext(u"a/b/c.txt"_S) == make_tuple(u"a/b/c"_S, u".txt"_S));
+        print(fs::path::split_ext(u"c.txt"_S) == make_tuple(u"c"_S, u".txt"_S));
+        print(fs::path::split_ext(u"a/b.c/d"_S) == make_tuple(u"a/b.c/d"_S, u""_S));
+    }
+} code_block_1;
+
+
+print('Number: %4g, %g.' % (1.1, 1.1))
+print("That's like rule #%i." % (1))
+===
+print(‘Number: #4, #..’.format(1.1, 1.1))
+print(‘That's like rule ###..’.format(1))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"Number: #4, #.."_S.format(1.1, 1.1));
+        print(u"That's like rule ###.."_S.format(1));
+    }
+} code_block_1;
+
+
+i = 0
+s = 'Array[Int]'
+while i < len(s):
+    c = s[i]
+    if c == '[':
+        print('<')
+    elif c == ']':
+        print('>')
+    else:
+        print(c, end = '')
+    i += 1
+===
+V i = 0
+V s = ‘Array[Int]’
+L i < s.len
+   V c = s[i]
+   S c
+      ‘[’
+         print(‘<’)
+      ‘]’
+         print(‘>’)
+      E
+         print(c, end' ‘’)
+   i++
+===
+auto i = 0;
+auto s = u"Array[Int]"_S;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        while (i < s.len()) {
+            auto c = s[i];
+            switch (c)
+            {
+            case u'[':
+                print(u"<"_S);
+                break;
+            case u']':
+                print(u">"_S);
+                break;
+            default:
+                print(c, u""_S);
+                break;
+            }
+            i++;
+        }
+    }
+} code_block_1;
+
+
+i = 0
+s = 'Array[Int]'
+while i < len(s):
+    c = s[i]
+    if c == '[':
+        print('<')
+    elif c == ']':
+        print('>')
+    print(c, end = '')
+    i += 1
+===
+V i = 0
+V s = ‘Array[Int]’
+L i < s.len
+   V c = s[i]
+   S c
+      ‘[’
+         print(‘<’)
+      ‘]’
+         print(‘>’)
+   print(c, end' ‘’)
+   i++
+===
+auto i = 0;
+auto s = u"Array[Int]"_S;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        while (i < s.len()) {
+            auto c = s[i];
+            switch (c)
+            {
+            case u'[':
+                print(u"<"_S);
+                break;
+            case u']':
+                print(u">"_S);
+                break;
+            }
+            print(c, u""_S);
+            i++;
+        }
+    }
+} code_block_1;
+
+
+l1 = lambda: None
+l2 = lambda x: x[0]
+l3 = lambda self: self
+l5 = lambda self: self.instr
+l4 = lambda x, y, reverse = False: y < x if reverse else x < y
+print(l4(1, 2))
+print(l4(1, 2, True))
+===
+V l1 = () -> N
+V l2 = x -> x[0]
+V l3 = self -> self
+V l5 = self -> self.instr
+V l4 = (x, y, reverse = 0B) -> I reverse {y < x} E x < y
+print(l4(1, 2))
+print(l4(1, 2, 1B))
+===
+auto l1 = [](){return nullptr;};
+auto l2 = [](const auto &x){return _get<0>(x);};
+auto l3 = [](const auto &self){return self;};
+auto l5 = [](const auto &self){return self.instr;};
+auto l4 = [](const auto &x, const auto &y, const decltype(false) &reverse = false){return reverse ? y < x : x < y;};
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(l4(1, 2));
+        print(l4(1, 2, true));
+    }
+} code_block_1;
+
+
+from enum import IntEnum
+
+class Category(IntEnum):
+    NAME = 0 # or IDENTIFIER
+    KEYWORD = 1
+    CONSTANT = 2
+    TEST_CATEGORY = 10
+    TEST_CATEGORY2 = 11
+    TEST_CATEGORY3 = 11
+===
+T.enum Category
+   NAME
+   KEYWORD
+   CONSTANT
+   TEST_CATEGORY = 10
+   TEST_CATEGORY2
+   TEST_CATEGORY3 = 11
+===
+enum class Category {
+    NAME,
+    KEYWORD,
+    CONSTANT,
+    TEST_CATEGORY = 10,
+    TEST_CATEGORY2,
+    TEST_CATEGORY3 = 11
+};
+
+
+# This test is also[‘as previous’] failed without `if token is not None:` under ‘this `if` was added in revision 105[‘Almost complete work on tests/python_to_cpp/pqmarkup.txt’]’
+c = 1
+if c == 1:
+    print(1)
+elif c == 2:
+    print(2)
+===
+S 1
+   1
+      print(1)
+   2
+      print(2)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        switch (1)
+        {
+        case 1:
+            print(1);
+            break;
+        case 2:
+            print(2);
+            break;
+        }
+    }
+} code_block_1;
+
+
+import syntax_highlighter_for_pqmarkup
+try:
+    print(syntax_highlighter_for_pqmarkup.highlight('Python', 'a = 0 # c'))
+    print(syntax_highlighter_for_pqmarkup.highlight('11l', 'V a = 0 // c'))
+except syntax_highlighter_for_pqmarkup.Error as e:
+    print('Syntax highlighter error: ' + e.message + ' at ' + str(e.pos))
+===
+X.try
+   print(syntax_highlighter_for_pqmarkup:highlight(‘Python’, ‘a = 0 # c’))
+   print(syntax_highlighter_for_pqmarkup:highlight(‘11l’, ‘V a = 0 // c’))
+X.catch syntax_highlighter_for_pqmarkup:Error e
+   print(‘Syntax highlighter error: ’e.message‘ at ’String(e.pos))
+===
+namespace syntax_highlighter_for_pqmarkup {
+#include "syntax_highlighter_for_pqmarkup.hpp"
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        try
+        {
+            print(syntax_highlighter_for_pqmarkup::highlight(u"Python"_S, u"a = 0 # c"_S));
+            print(syntax_highlighter_for_pqmarkup::highlight(u"11l"_S, u"V a = 0 // c"_S));
+        }
+        catch (const syntax_highlighter_for_pqmarkup::Error& e)
+        {
+            print(u"Syntax highlighter error: "_S & e.message & u" at "_S & String(e.pos));
+        }
+    }
+} code_block_1;
+
+
+import test_deep_imports
+print()
+===
+print()
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print();
+    }
+} code_block_1;
+
+
+class Converter:
+    instr : str
+
+    def to_html(self):
+        f = lambda: self.instr
+        def ff():
+            return self.instr
+        i = 0
+        g = lambda: self.instr[i]
+        def gg():
+            return self.instr[i]
+        a = [self.instr[i] for i in range(9)]
+===
+T Converter
+   String instr
+
+   F to_html()
+      V f = () -> @.instr
+      F ff()
+         R @.instr
+      V i = 0
+      V g = () -> @.instr[@i]
+      F gg()
+         R @.instr[@i]
+      V a = (0.<9).map(i -> @.instr[i])
+===
+class Converter
+{
+public:
+    String instr;
+
+    auto to_html()
+    {
+        auto f = [this](){return instr;};
+        auto ff = [this]()
+        {
+            return instr;
+        };
+        auto i = 0;
+        auto g = [&i, this](){return instr[i];};
+        auto gg = [&i, this]()
+        {
+            return instr[i];
+        };
+        auto a = range_el(0, 9).map([this](const auto &i){return instr[i];});
+    }
+};
+
+
+for ii in (0, 1, 2):
+    print(ii)
+for i in (10,):
+    print(i)
+===
+L(ii) (0, 1, 2)
+   print(ii)
+L(i) (10,)
+   print(i)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&ii : make_tuple(0, 1, 2))
+            print(ii);
+        for (auto &&i : make_tuple(10))
+            print(i);
+    }
+} code_block_1;
+
+
+class Aa:
+    _a : 'Aa' = None
+    class Bb:
+        _b : 'Bb' = None
+        d = 1
+    b : Bb = Bb()
+
+def f(a : Aa):
+    print(a.b.d)
+
+f(Aa())
+===
+T Aa
+   Aa? _a
+   T Bb
+      Bb? _b
+      d = 1
+   Bb b = Bb()
+
+F f(Aa a)
+   print(a.b.d)
+
+f(Aa())
+===
+class Aa
+{
+public:
+    std::unique_ptr<Aa> _a;
+    class Bb
+    {
+    public:
+        std::unique_ptr<Bb> _b;
+        decltype(1) d = 1;
+    };
+    std::unique_ptr<Bb> b = std::make_unique<Bb>();
+};
+
+auto f(std::unique_ptr<Aa> a)
+{
+    print(a->b->d);
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        f(std::make_unique<Aa>());
+    }
+} code_block_1;
+
+
+class Aa:
+    _a : 'Aa' = None
+    class Bb:
+        _b : 'Bb' = None
+        class Cc:
+            _c : 'Cc' = None
+            d = 1
+        c : Cc = Cc()
+    b : Bb = Bb()
+
+def f(a : Aa):
+    print(a.b.c.d)
+
+f(Aa())
+===
+T Aa
+   Aa? _a
+   T Bb
+      Bb? _b
+      T Cc
+         Cc? _c
+         d = 1
+      Cc c = Cc()
+   Bb b = Bb()
+
+F f(Aa a)
+   print(a.b.c.d)
+
+f(Aa())
+===
+class Aa
+{
+public:
+    std::unique_ptr<Aa> _a;
+    class Bb
+    {
+    public:
+        std::unique_ptr<Bb> _b;
+        class Cc
+        {
+        public:
+            std::unique_ptr<Cc> _c;
+            decltype(1) d = 1;
+        };
+        std::unique_ptr<Cc> c = std::make_unique<Cc>();
+    };
+    std::unique_ptr<Bb> b = std::make_unique<Bb>();
+};
+
+auto f(std::unique_ptr<Aa> a)
+{
+    print(a->b->c->d);
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        f(std::make_unique<Aa>());
+    }
+} code_block_1;
+
+
+class Node:
+    first_child : 'Node' = None
+    value : int
+n = Node()
+m : Node
+if False:
+    print(n.first_child.first_child.first_child.value)
+    print(m.first_child.first_child.first_child.value)
+===
+T Node
+   Node? first_child
+   Int value
+V n = Node()
+Node m
+I 0B
+   print(n.first_child.first_child.first_child.value)
+   print(m.first_child.first_child.first_child.value)
+===
+class Node
+{
+public:
+    std::unique_ptr<Node> first_child;
+    int value;
+};
+auto n = std::make_unique<Node>();
+std::unique_ptr<Node> m;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        if (false) {
+            print(n->first_child->first_child->first_child->value);
+            print(m->first_child->first_child->first_child->value);
+        }
+    }
+} code_block_1;
+
+
+def f():
+    nn = 2
+    nn_to_n = {n*nn: n for n in range(10)}
+    print(nn_to_n)
+===
+F f()
+   V nn = 2
+   V nn_to_n = Dict(0.<10, n -> (n * @nn, n))
+   print(nn_to_n)
+===
+auto f()
+{
+    auto nn = 2;
+    auto nn_to_n = create_dict(range_el(0, 10), [&nn](const auto &n){return make_tuple(n * nn, n);});
+    print(nn_to_n);
+}
+
+
+print(0x1000_0000_0000 // 0x1000)
+a = 6
+a //= 2
+print(a)
+===
+print(1000'0000'0000 I/ 10'00)
+V a = 6
+a I/= 2
+print(a)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(idiv(0x1000'0000'0000, 0x10'00));
+    }
+} code_block_1;
+
+auto a = 6;
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        a = idiv(a, 2);
+        print(a);
+    }
+} code_block_2;
+
+
+s = set() # int
+s.add(1)
+print(1 in s)
+print(2 in s)
+===
+V s = Set[Int]()
+s.add(1)
+print(1 C s)
+print(2 C s)
+===
+auto s = Set<int>();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        s.add(1);
+        print(in(1, s));
+        print(in(2, s));
+    }
+} code_block_1;
+
+
+class Class:
+    a : int
+
+    def __init__(a):
+        self.a = a
+        self.b = 0
+        self.s = set() # str
+        self.final : List[List[int]] = [[0] * 9 for i in range(9)]
+===
+T Class
+   Int a
+   b = 0
+   s = Set[String]()
+   [[Int]] final = [[0] * 9] * 9
+
+   F (a)
+      .a = a
+===
+class Class
+{
+public:
+    int a;
+    decltype(0) b = 0;
+    decltype(Set<String>()) s = Set<String>();
+    Array<Array<int>> final = create_array({create_array({0}) * 9}) * 9;
+
+    template <typename T1> Class(const T1 &a) :
+        a(a)
+    {
+    }
+};
+
+
+def f() -> List[str]:
+   return []
+===
+F f() -> [String]
+   R []
+===
+Array<String> f()
+{
+    return Array<String>();
+}
+
+
+def f() -> Dict[str, int]:
+   return {}
+===
+F f() -> [String = Int]
+   R Dict()
+===
+Dict<String, int> f()
+{
+    return Dict<String, int>();
+}
+
+
+from itertools import product
+
+print(list(product([1, 2], [3, 4])))     # Array<Tvec<int,2> >
+print(list(product([1.0, 2.0], [3, 4]))) # Array<std::tuple<double,int> >
+print(list(product(range(3), range(1, 4))))
+
+print(list(zip([1, 2], [10, 20])))
+print(list(zip([1.0, 2.0], [10, 20])))
+===
+print(cart_product([1, 2], [3, 4]))
+print(cart_product([1.0, 2.0], [3, 4]))
+print(cart_product(0.<3, 1..3))
+
+print(zip([1, 2], [10, 20]))
+print(zip([1.0, 2.0], [10, 20]))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(cart_product(create_array({1, 2}), create_array({3, 4})));
+        print(cart_product(create_array({1.0, 2.0}), create_array({3, 4})));
+        print(cart_product(range_el(0, 3), range_ee(1, 3)));
+
+        print(zip(create_array({1, 2}), create_array({10, 20})));
+        print(zip(create_array({1.0, 2.0}), create_array({10, 20})));
+    }
+} code_block_1;
+
+
+print(set([1, 2, 3]).difference(set([2, 4]))); print({1, 2, 3}.difference({2, 4}))
+print(set([2, 4]).difference(set([1, 2, 3]))); print({2, 4}.difference({1, 2, 3}))
+print({1})
+print({1,})
+Byte = int
+print([Byte(1), 2])
+print({Byte(1), 2})
+import collections
+print(collections.deque([3]))
+===
+print(Set([1, 2, 3]).difference(Set([2, 4])))
+print(Set([1, 2, 3]).difference(Set([2, 4])))
+print(Set([2, 4]).difference(Set([1, 2, 3])))
+print(Set([2, 4]).difference(Set([1, 2, 3])))
+print(Set([1]))
+print(Set([1]))
+print([Byte(1), 2])
+print(Set([Byte(1), 2]))
+print(Deque([3]))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(create_set({1, 2, 3}).difference(create_set({2, 4})));
+        print(create_set({1, 2, 3}).difference(create_set({2, 4})));
+        print(create_set({2, 4}).difference(create_set({1, 2, 3})));
+        print(create_set({2, 4}).difference(create_set({1, 2, 3})));
+        print(create_set({1}));
+        print(create_set({1}));
+        print(create_array<Byte>({Byte(1), 2}));
+        print(create_set<Byte>({Byte(1), 2}));
+        print(create_deque({3}));
+    }
+} code_block_1;
+
+
+(a, b) = (1, 2)
+(a, b) = (3, 4)
+(b, c) = (5, 6)
+(d, c) = (7, 8)
+u = [1, 2]
+(i, j) = (0, 1)
+(u[i], u[j]) = (u[j], u[i])
+===
+V (a, b) = (1, 2)
+(a, b) = (3, 4)
+(b, V c) = (5, 6)
+(V d, c) = (7, 8)
+V u = [1, 2]
+V (i, j) = (0, 1)
+swap(&u[i], &u[j])
+===
+auto [a, b] = make_tuple(1, 2);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        assign_from_tuple(a, b, make_tuple(3, 4));
+        TUPLE_ELEMENT_T(1, make_tuple(5, 6)) c;
+        assign_from_tuple(b, c, make_tuple(5, 6));
+        TUPLE_ELEMENT_T(0, make_tuple(7, 8)) d;
+        assign_from_tuple(d, c, make_tuple(7, 8));
+    }
+} code_block_1;
+
+auto u = create_array({1, 2});
+auto [i, j] = make_tuple(0, 1);
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        swap(u[i], u[j]);
+    }
+} code_block_2;
+
+
+for x, y in [(1, 2), (3, 4)]:
+    print(str(x) + ', ' + str(y))
+
+for x, y, z in [(1, 2, 3), (4, 5, 6)]:
+    print(str(x) + ', ' + str(y) + ', ' + str(z))
+===
+L(x, y) [(1, 2), (3, 4)]
+   print(String(x)‘, ’String(y))
+
+L(x, y, z) [(1, 2, 3), (4, 5, 6)]
+   print(String(x)‘, ’String(y)‘, ’String(z))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&[x, y] : create_array({make_tuple(1, 2), make_tuple(3, 4)}))
+            print(String(x) & u", "_S & String(y));
+
+        for (auto &&[x, y, z] : create_array({make_tuple(1, 2, 3), make_tuple(4, 5, 6)}))
+            print(String(x) & u", "_S & String(y) & u", "_S & String(z));
+    }
+} code_block_1;
+
+
+class Rayo: # &
+    pass
+class Vector:
+    pass
+class Base:
+    def intersecta(self, r : Rayo, v : Vector) -> None:
+        raise NotImplementedError()
+class Derived(Base):
+    def intersecta(self, r : Rayo, v : Vector):
+        pass
+===
+T Rayo
+{
+}
+T Vector
+{
+}
+T Base
+   F.virtual.abstract intersecta(Rayo &r, Vector v) -> Void
+T Derived(Base)
+   F.virtual.assign intersecta(Rayo &r, Vector v) -> Void
+   {
+   }
+===
+class Rayo
+{
+};
+
+class Vector
+{
+};
+
+class Base
+{
+public:
+    virtual void intersecta(Rayo &r, const Vector &v) = 0;
+};
+class Derived : public Base
+{
+public:
+    virtual void intersecta(Rayo &r, const Vector &v) override
+    {
+    }
+};
+
+
+from typing import Optional
+
+class Rayo: # &
+    objInter : Optional['Cuerpo'] # &
+
+    def __init__(self):
+        self.objInter = None
+
+class Cuerpo:
+    tipo : str
+    material : int
+
+    def init(self, tipo, material):
+        self.tipo = tipo
+        self.material = material
+
+    def intersecta(self, r : Rayo) -> None:
+        raise NotImplementedError()
+
+class Esfera(Cuerpo):
+    def __init__(self, material):
+        self.init('esfera', material)
+
+    def intersecta(self, r : Rayo):
+        r.objInter = self
+
+class Plano(Cuerpo):
+    def __init__(self, material):
+        self.init('plano', material)
+
+    def intersecta(self, r : Rayo):
+        r.objInter = self
+
+class Scene:
+    def __init__(self):
+        self.lObjetos : List[Cuerpo] = []
+        sph = Esfera(1)
+        self.lObjetos.append(sph)
+        pl = Plano(2)
+        self.lObjetos.append(pl)
+
+scene = Scene()
+
+def calculaSombra(r : Rayo, objChoque):
+    for obj in scene.lObjetos:
+        r.objInter = None
+        obj.intersecta(r)
+        print(obj is not objChoque)
+
+def trazar(r : Rayo):
+    for obj in scene.lObjetos:    # Probamos con todos los objetos
+        obj.intersecta(r)
+
+    if r.objInter is not None:
+        matIndex = r.objInter.material
+        rayoLuz = Rayo()
+        calculaSombra(rayoLuz, r.objInter)
+
+r = Rayo()
+trazar(r)
+===
+T Rayo
+   Cuerpo& objInter
+
+   F ()
+      .objInter = N
+
+T Cuerpo
+   String tipo
+   Int material
+
+   F init(tipo, material)
+      .tipo = tipo
+      .material = material
+
+   F.virtual.abstract intersecta(Rayo &r) -> Void
+
+T Esfera(Cuerpo)
+   F (material)
+      .init(‘esfera’, material)
+
+   F.virtual.assign intersecta(Rayo &r) -> Void
+      r.objInter = (.)
+
+T Plano(Cuerpo)
+   F (material)
+      .init(‘plano’, material)
+
+   F.virtual.assign intersecta(Rayo &r) -> Void
+      r.objInter = (.)
+
+T Scene
+   [Cuerpo] lObjetos
+   F ()
+      V sph = Esfera(1)
+      .lObjetos.append(sph)
+      V pl = Plano(2)
+      .lObjetos.append(pl)
+
+V scene = Scene()
+
+F calculaSombra(Rayo &r; objChoque)
+   L(obj) :scene.lObjetos
+      r.objInter = N
+      obj.intersecta(r)
+      print(&obj != &objChoque)
+
+F trazar(Rayo &r)
+   L(obj) :scene.lObjetos
+      obj.intersecta(r)
+
+   I r.objInter != N
+      V matIndex = r.objInter.material
+      V rayoLuz = Rayo()
+      calculaSombra(&rayoLuz, r.objInter)
+
+V r = Rayo()
+trazar(&r)
+===
+class Cuerpo;
+
+class Rayo
+{
+public:
+    Cuerpo *objInter;
+
+    Rayo()
+    {
+        objInter = nullptr;
+    }
+};
+
+class Cuerpo
+{
+public:
+    String tipo;
+    int material;
+
+    template <typename T1, typename T2> auto init(const T1 &tipo, const T2 &material)
+    {
+        this->tipo = tipo;
+        this->material = material;
+    }
+
+    virtual void intersecta(Rayo &r) = 0;
+};
+
+class Esfera : public Cuerpo
+{
+public:
+    template <typename T1> Esfera(const T1 &material)
+    {
+        init(u"esfera"_S, material);
+    }
+
+    virtual void intersecta(Rayo &r) override
+    {
+        r.objInter = &*this;
+    }
+};
+
+class Plano : public Cuerpo
+{
+public:
+    template <typename T1> Plano(const T1 &material)
+    {
+        init(u"plano"_S, material);
+    }
+
+    virtual void intersecta(Rayo &r) override
+    {
+        r.objInter = &*this;
+    }
+};
+
+class Scene
+{
+public:
+    Array<std::unique_ptr<Cuerpo>> lObjetos;
+    Scene()
+    {
+        auto sph = std::make_unique<Esfera>(1);
+        lObjetos.append(std::move(sph));
+        auto pl = std::make_unique<Plano>(2);
+        lObjetos.append(std::move(pl));
+    }
+};
+
+auto scene = Scene();
+
+template <typename T2> auto calculaSombra(Rayo &r, const T2 &objChoque)
+{
+    for (auto &&obj : ::scene.lObjetos) {
+        r.objInter = nullptr;
+        obj->intersecta(r);
+        print(&*obj != objChoque);
+    }
+}
+
+auto trazar(Rayo &r)
+{
+    for (auto &&obj : ::scene.lObjetos)
+        obj->intersecta(r);
+
+    if (r.objInter != nullptr) {
+        auto matIndex = r.objInter->material;
+        auto rayoLuz = Rayo();
+        calculaSombra(rayoLuz, r.objInter);
+    }
+}
+
+auto r = Rayo();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        trazar(r);
+    }
+} code_block_1;
+
+
+def PIXEL00_0(rgb_out, pOut, BpL, c): rgb_out[pOut] = c[5]
+===
+F PIXEL00_0(rgb_out, pOut, BpL, c)
+   rgb_out[pOut] = c[5]
+===
+template <typename T1, typename T2, typename T3, typename T4> auto PIXEL00_0(const T1 &rgb_out, const T2 &pOut, const T3 &BpL, const T4 &c)
+{
+    rgb_out.set(pOut, _get<5>(c));
+}
+
+
+import random
+
+print(random.randrange(3))
+print(random.randrange(1, 3))
+print(random.randint(1, 3))
+===
+print(random:(3))
+print(random:(1 .< 3))
+print(random:(1 .. 3))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(randomns::_(3));
+        print(randomns::_(range_el(1, 3)));
+        print(randomns::_(range_ee(1, 3)));
+    }
+} code_block_1;
+
+
+print([i*i for i in [1, 2, 3] if i != 2])
+print([a+b for a, b in [(1, 2  ), (2, 3  ), (3, 4  )] if a != 2])
+print([a+b for a, b in [(1, 2.0), (2, 3.0), (3, 4.0)] if a != 2])
+print([a+b+c for a, b, c in [(1, 2  , 3), (2, 3  , 4), (3, 4  , 5)] if a != 2])
+print([a+b+c for a, b, c in [(1, 2.0, 3), (2, 3.0, 4), (3, 4.0, 5)] if a != 2])
+print(sum(i*i for i in [1, 2, 3]))
+print(sum(i*i for i in [1, 2, 3] if i != 2))
+print(sum(a*b for a, b in [(1, 2  ), (2, 3  ), (3, 4  )]))
+print(sum(a*b for a, b in [(1, 2.0), (2, 3.0), (3, 4.0)]))
+print(sum(a*b*c for a, b, c in [(1, 2  , 3), (2, 3  , 4), (3, 4  , 5)]))
+print(sum(a*b*c for a, b, c in [(1, 2.0, 3), (2, 3.0, 4), (3, 4.0, 5)]))
+===
+print([1, 2, 3].filter(i -> i != 2).map(i -> i * i))
+print([(1, 2), (2, 3), (3, 4)].filter((a, b) -> a != 2).map((a, b) -> a + b))
+print([(1, 2.0), (2, 3.0), (3, 4.0)].filter((a, b) -> a != 2).map((a, b) -> a + b))
+print([(1, 2, 3), (2, 3, 4), (3, 4, 5)].filter((a, b, c) -> a != 2).map((a, b, c) -> a + b + c))
+print([(1, 2.0, 3), (2, 3.0, 4), (3, 4.0, 5)].filter((a, b, c) -> a != 2).map((a, b, c) -> a + b + c))
+print(sum([1, 2, 3].map(i -> i * i)))
+print(sum([1, 2, 3].filter(i -> i != 2).map(i -> i * i)))
+print(sum([(1, 2), (2, 3), (3, 4)].map((a, b) -> a * b)))
+print(sum([(1, 2.0), (2, 3.0), (3, 4.0)].map((a, b) -> a * b)))
+print(sum([(1, 2, 3), (2, 3, 4), (3, 4, 5)].map((a, b, c) -> a * b * c)))
+print(sum([(1, 2.0, 3), (2, 3.0, 4), (3, 4.0, 5)].map((a, b, c) -> a * b * c)))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(create_array({1, 2, 3}).filter([](const auto &i){return i != 2;}).map([](const auto &i){return i * i;}));
+        print(create_array({make_tuple(1, 2), make_tuple(2, 3), make_tuple(3, 4)}).filter([](const auto &a, const auto &b){return a != 2;}).map([](const auto &a, const auto &b){return a + b;}));
+        print(create_array({make_tuple(1, 2.0), make_tuple(2, 3.0), make_tuple(3, 4.0)}).filter([](const auto &a, const auto &b){return a != 2;}).map([](const auto &a, const auto &b){return a + b;}));
+        print(create_array({make_tuple(1, 2, 3), make_tuple(2, 3, 4), make_tuple(3, 4, 5)}).filter([](const auto &a, const auto &b, const auto &c){return a != 2;}).map([](const auto &a, const auto &b, const auto &c){return a + b + c;}));
+        print(create_array({make_tuple(1, 2.0, 3), make_tuple(2, 3.0, 4), make_tuple(3, 4.0, 5)}).filter([](const auto &a, const auto &b, const auto &c){return a != 2;}).map([](const auto &a, const auto &b, const auto &c){return a + b + c;}));
+        print(sum_map(create_array({1, 2, 3}), [](const auto &i){return i * i;}));
+        print(sum_map(create_array({1, 2, 3}).filter([](const auto &i){return i != 2;}), [](const auto &i){return i * i;}));
+        print(sum_map(create_array({make_tuple(1, 2), make_tuple(2, 3), make_tuple(3, 4)}), [](const auto &a, const auto &b){return a * b;}));
+        print(sum_map(create_array({make_tuple(1, 2.0), make_tuple(2, 3.0), make_tuple(3, 4.0)}), [](const auto &a, const auto &b){return a * b;}));
+        print(sum_map(create_array({make_tuple(1, 2, 3), make_tuple(2, 3, 4), make_tuple(3, 4, 5)}), [](const auto &a, const auto &b, const auto &c){return a * b * c;}));
+        print(sum_map(create_array({make_tuple(1, 2.0, 3), make_tuple(2, 3.0, 4), make_tuple(3, 4.0, 5)}), [](const auto &a, const auto &b, const auto &c){return a * b * c;}));
+    }
+} code_block_1;
+
+
+print((0).bit_length())
+print((1).bit_length())
+print((2).bit_length())
+print((3).bit_length())
+print((4).bit_length())
+===
+print(bits:length((0)))
+print(bits:length((1)))
+print(bits:length((2)))
+print(bits:length((3)))
+print(bits:length((4)))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(bits::length((0)));
+        print(bits::length((1)));
+        print(bits::length((2)));
+        print(bits::length((3)));
+        print(bits::length((4)));
+    }
+} code_block_1;
+
+
+(a, b) = input().split()
+===
+V (a, b) = input().split_py()
+===
+auto [a, b] = bind_array<2>(input().split_py());
+
+
+(a, b) = map(int, input().split())
+===
+V (a, b) = input().split_py().map(Int)
+===
+auto [a, b] = bind_array<2>(input().split_py().map([](const auto &x){return to_int(x);}));
+
+
+import collections
+
+d = collections.deque() # int
+d.append(1)
+d.append(2)
+d.appendleft(3)
+d.extend([10, 20])
+d.extendleft([-10, -20])
+print(d.index(3))
+d.insert(3, 5)
+print(d)
+print(d.pop())
+print(d.popleft())
+d.remove(5)
+print(d)
+===
+V d = Deque[Int]()
+d.append(1)
+d.append(2)
+d.append_left(3)
+d.extend([10, 20])
+d.extend_left([-10, -20])
+print(d.index(3))
+d.insert(3, 5)
+print(d)
+print(d.pop())
+print(d.pop_left())
+d.remove(5)
+print(d)
+===
+auto d = Deque<int>();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        d.append(1);
+        d.append(2);
+        d.append_left(3);
+        d.extend(create_array({10, 20}));
+        d.extend_left(create_array({-10, -20}));
+        print(d.index(3));
+        d.insert(3, 5);
+        print(d);
+        print(d.pop());
+        print(d.pop_left());
+        d.remove(5);
+        print(d);
+    }
+} code_block_1;
+
+
+def ref(obj):
+    return obj
+
+def print_set(map : DefaultDict[int, Set[int]], key):
+    s = ref(map[key])
+    if len(s) == 0:
+        print(-1)
+        return
+    for value in s:
+        print(value, end = ' ')
+    print()
+
+import collections
+set_values : DefaultDict[int, Set[int]] = collections.defaultdict(set)
+set_values[1].add(2)
+print_set(set_values, 1)
+print_set(set_values, 2)
+s = {1}
+===
+F print_set(DefaultDict[Int, Set[Int]] &map; key)
+   V& s = map[key]
+   I s.empty
+      print(-1)
+      R
+   L(value) s
+      print(value, end' ‘ ’)
+   print()
+DefaultDict[Int, Set[Int]] set_values
+set_values[1].add(2)
+print_set(&set_values, 1)
+print_set(&set_values, 2)
+V s = Set([1])
+===
+template <typename T2> auto print_set(DefaultDict<int, Set<int>> &map, const T2 &key)
+{
+    auto& s = map[key];
+    if (s.empty()) {
+        print(-1);
+        return;
+    }
+    for (auto &&value : s)
+        print(value, u" "_S);
+    print();
+}
+DefaultDict<int, Set<int>> set_values;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        _get<1>(set_values).add(2);
+        print_set(set_values, 1);
+        print_set(set_values, 2);
+    }
+} code_block_1;
+
+auto s = create_set({1});
+
+
+d = {1: 2}
+try:
+    print(d[3])
+except KeyError:
+    print(d)
+===
+V d = [1 = 2]
+X.try
+   print(d[3])
+X.catch KeyError
+   print(d)
+===
+auto d = create_dict(dict_of(1, 2));
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        try
+        {
+            print(_get<3>(d));
+        }
+        catch (const KeyError&)
+        {
+            print(d);
+        }
+    }
+} code_block_1;
+
+
+import heapq
+a = [3, 1, 2]
+heapq.heapify(a)
+heapq.heappush(a, 5)
+heapq.heappush(a, 0)
+while len(a):
+    print(heapq.heappop(a))
+===
+V a = [3, 1, 2]
+minheap:heapify(&a)
+minheap:push(&a, 5)
+minheap:push(&a, 0)
+L !a.empty
+   print(minheap:pop(&a))
+===
+auto a = create_array({3, 1, 2});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        minheap::heapify(a);
+        minheap::push(a, 5);
+        minheap::push(a, 0);
+        while (!a.empty())
+            print(minheap::pop(a));
+    }
+} code_block_1;
+
+
+(sought, search) = ('a', 'b')
+sought.find('a')
+===
+V (sought, search) = (‘a’, ‘b’)
+sought.findi(‘a’)
+===
+auto [sought, search] = make_tuple(u"a"_S, u"b"_S);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        sought.findi(u"a"_S);
+    }
+} code_block_1;
+
+
+search = ''
+(sought, search) = ('a', 'b')
+sought.find('a')
+===
+V search = ‘’
+(V sought, search) = (‘a’, ‘b’)
+sought.findi(‘a’)
+===
+auto search = u""_S;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        TUPLE_ELEMENT_T(0, make_tuple(u"a"_S, u"b"_S)) sought;
+        assign_from_tuple(sought, search, make_tuple(u"a"_S, u"b"_S));
+        sought.findi(u"a"_S);
+    }
+} code_block_1;
+
+
+n = 0
+if n&1 != 0:
+    print(1)
+===
+V n = 0
+I n [&] 1 != 0
+   print(1)
+===
+auto n = 0;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        if ((n & 1) != 0)
+            print(1);
+    }
+} code_block_1;
+
+
+a = [1]
+def ref(obj):
+    return obj
+r = ref(a)
+print(r.index(1))
+===
+V a = [1]
+V& r = a
+print(r.index(1))
+===
+auto a = create_array({1});
+auto& r = a;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(r.index(1));
+    }
+} code_block_1;
+
+
+a : List[int] = []
+a.sort(reverse = True)
+===
+[Int] a
+a.sort(reverse' 1B)
+===
+Array<int> a;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        a.sort(nullptr, true);
+    }
+} code_block_1;
+
+
+a = list(map(int, input().split()))
+a.sort(reverse = True)
+===
+V a = input().split_py().map(Int)
+a.sort(reverse' 1B)
+===
+auto a = input().split_py().map([](const auto &x){return to_int(x);});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        a.sort(nullptr, true);
+    }
+} code_block_1;
+
+
+s : str
+print(s[-1].isdigit())
+===
+String s
+print(s.last.is_digit())
+===
+String s;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(s.last().is_digit());
+    }
+} code_block_1;
+
+
+# [algoprog.ru/.../757+.py]
+from typing import Optional
+
+class Node:
+    value : int
+    left  : Optional['Node'] = None
+    right : Optional['Node'] = None
+    def __init__(self, value):
+        self.value = value
+
+def insert(i, n : "Node"):
+    if i == n.value:
+        return
+    if i < n.value:
+        if n.left is None:
+            n.left = Node(i)
+        else:
+            insert(i, n.left)
+    else:
+        if n.right is None:
+            n.right = Node(i)
+        else:
+            insert(i, n.right)
+
+a = list(map(int, input().split()))[:-1]
+root = Node(a[0])
+for i in a[1:]:
+    insert(i, root)
+
+def get_height(n : "Node"):
+    if n is None:
+        return 0
+    return 1 + max(get_height(n.left), get_height(n.right))
+
+print(get_height(root))
+===
+T Node
+   Int value
+   Node? left
+   Node? right
+   F (value)
+      .value = value
+
+F insert(i, Node &n)
+   I i == n.value
+      R
+   I i < n.value
+      I n.left == N
+         n.left = Node(i)
+      E
+         insert(i, &n.left)
+   E
+      I n.right == N
+         n.right = Node(i)
+      E
+         insert(i, &n.right)
+
+V a = input().split_py().map(Int)[0 .< (len)-1]
+V root = Node(a[0])
+L(i) a[1..]
+   insert(i, &root)
+
+F get_height(Node &n)
+   I n == N
+      R 0
+   R 1 + max(get_height(&n.left), get_height(&n.right))
+
+print(get_height(&root))
+===
+class Node
+{
+public:
+    int value;
+    std::unique_ptr<Node> left;
+    std::unique_ptr<Node> right;
+    template <typename T1> Node(const T1 &value) :
+        value(value)
+    {
+    }
+};
+
+template <typename T1> auto insert(const T1 &i, std::unique_ptr<Node> &n)
+{
+    if (i == n->value)
+        return;
+    if (i < n->value) {
+        if (n->left == nullptr)
+            n->left = std::make_unique<Node>(i);
+        else
+            insert(i, n->left);
+    }
+    else
+        if (n->right == nullptr)
+            n->right = std::make_unique<Node>(i);
+        else
+            insert(i, n->right);
+}
+
+auto a = input().split_py().map([](const auto &x){return to_int(x);})[range_e_llen(0,  - 1)];
+auto root = std::make_unique<Node>(_get<0>(a));
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&i : a[range_ei(1)])
+            insert(i, root);
+    }
+} code_block_1;
+
+auto get_height(std::unique_ptr<Node> &n)
+{
+    if (n == nullptr)
+        return 0;
+    return 1 + max(get_height(n->left), get_height(n->right));
+}
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        print(get_height(std::move(root)));
+    }
+} code_block_2;
+
+
+print(max(['a' ,'bc'], key = lambda x: len(x)))
+===
+print(max([‘a’, ‘bc’], key' x -> x.len))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(max_with_key(create_array({u"a"_S, u"bc"_S}), [](const auto &x){return x.len();}));
+    }
+} code_block_1;
+
+
+print({i: i + 1 for i in [1, 2, 3]})
+print({v: j for j, v in enumerate([1, 2, 3])})
+===
+print(Dict([1, 2, 3], i -> (i, i + 1)))
+print(Dict(enumerate([1, 2, 3]), (j, v) -> (v, j)))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(create_dict(create_array({1, 2, 3}), [](const auto &i){return make_tuple(i, i + 1);}));
+        print(create_dict(enumerate(create_array({1, 2, 3})), [](const auto &j, const auto &v){return make_tuple(v, j);}));
+    }
+} code_block_1;
+
+
+for i, a in enumerate([1, 2, 3, 4, 5]):
+    if a % 2 == 0:
+        continue
+    print(i, a)
+===
+L(a) [1, 2, 3, 4, 5]
+   V i = L.index
+   I a % 2 == 0
+      L.continue
+   print(i‘ ’a)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        {int Lindex = 0;
+        for (auto &&a : create_array({1, 2, 3, 4, 5})) {{
+            auto i = Lindex;
+            if (mod(a, 2) == 0)
+                goto on_continue;
+            print(i & u" "_S & a);
+} on_continue:
+            Lindex++;
+        }}
+    }
+} code_block_1;
+
+
+def nysiis(name : str):
+    name = name.upper()
+    return str(name[0])
+===
+F nysiis(String =name)
+   name = name.uppercase()
+   R String(name[0])
+===
+auto nysiis(String name)
+{
+    name = name.uppercase();
+    return String(_get<0>(name));
+}
+
+
+f : Callable[[float, int], bool]
+b : Dict[str, Callable[[float, int], bool]] = {}
+===
+((Float, Int) -> Bool) f
+[String = ((Float, Int) -> Bool)] b
+===
+std::function<bool(const double, const int)> f;
+Dict<String, std::function<bool(const double, const int)>> b;
+
+
+# https://proglangs.ru/8
+def print_image(fname):
+    bytes = open(fname, 'rb').read()
+
+    w = int.from_bytes(bytes[18:22], 'little')
+    h = int.from_bytes(bytes[22:26], 'little')
+
+    for y in range(h-1, -1, -1):
+        for x in range(w):
+            #b = bytes[54 + (x + y*w)*3]
+            b = bytes[54::3][x + y*w]
+            if   b >= 204: print('  ', end = '')
+            elif b >= 153: print('░░', end = '')
+            elif b >= 102: print('▒▒', end = '')
+            elif b >=  51: print('▓▓', end = '')
+            else         : print('██', end = '')
+        print()
+
+print_image('1.bmp')
+print_image('2.bmp')
+print_image('3.bmp')
+===
+F print_image(fname)
+   V bytes = File(fname).read_bytes()
+
+   V w = Int(bytes' bytes[18.<22])
+   V h = Int(bytes' bytes[22.<26])
+
+   L(y) (h - 1 .< -1).step(-1)
+      L(x) 0 .< w
+         V b = bytes[(54..).step(3)][x + y * w]
+         I b >= 204
+            print(‘  ’, end' ‘’)
+         E I b >= 153
+            print(‘░░’, end' ‘’)
+         E I b >= 102
+            print(‘▒▒’, end' ‘’)
+         E I b >= 51
+            print(‘▓▓’, end' ‘’)
+         E
+            print(‘██’, end' ‘’)
+      print()
+
+print_image(‘1.bmp’)
+print_image(‘2.bmp’)
+print_image(‘3.bmp’)
+===
+template <typename T1> auto print_image(const T1 &fname)
+{
+    auto bytes = File(fname).read_bytes();
+
+    auto w = int_from_bytes(bytes, range_el(18, 22));
+    auto h = int_from_bytes(bytes, range_el(22, 26));
+
+    for (auto y : range_el(h - 1, -1).step(-1)) {
+        for (auto x : range_el(0, w)) {
+            auto b = bytes[range_ei(54).step(3)][x + y * w];
+            if (b >= 204)
+                print(u"  "_S, u""_S);
+            else if (b >= 153)
+                print(u"░░"_S, u""_S);
+            else if (b >= 102)
+                print(u"▒▒"_S, u""_S);
+            else if (b >= 51)
+                print(u"▓▓"_S, u""_S);
+            else
+                print(u"██"_S, u""_S);
+        }
+        print();
+    }
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print_image(u"1.bmp"_S);
+        print_image(u"2.bmp"_S);
+        print_image(u"3.bmp"_S);
+    }
+} code_block_1;
+
+
+def get_f(a):
+    def f(b):
+        nonlocal a # =
+        return a + b
+    return f
+
+f10 = get_f(10)
+f20 = get_f(20)
+print(f10(1))
+print(f10(2))
+print(f20(1))
+print(f20(2))
+===
+F get_f(a)
+   F f(b)
+      R @=a + b
+   R f
+
+V f10 = get_f(10)
+V f20 = get_f(20)
+print(f10(1))
+print(f10(2))
+print(f20(1))
+print(f20(2))
+===
+template <typename T1> auto get_f(const T1 &a)
+{
+    auto f = [a](const auto &b)
+    {
+        return a + b;
+    };
+    return f;
+}
+
+auto f10 = get_f(10);
+auto f20 = get_f(20);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(f10(1));
+        print(f10(2));
+        print(f20(1));
+        print(f20(2));
+    }
+} code_block_1;
+
+
+print(b"n")
+print(b"\n")
+print(b'SOBT')
+===
+print("n".code)
+print("\n".code)
+print(Bytes(‘SOBT’))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u'n'_C.code);
+        print(u'\n'_C.code);
+        print("SOBT"_B);
+    }
+} code_block_1;
+
+
+import struct
+
+print(struct.unpack('i', b"\xFF\xFF\xFF\xFF")[0])
+print(struct.unpack('I', b"\xFF\xFF\xFF\xFF")[0])
+print(struct.unpack('h', b"\xFF\xFF")[0])
+print(struct.unpack('H', b"\xFF\xFF")[0])
+print(struct.unpack('b', b"\xFF")[0])
+print(struct.unpack('B', b"\xFF")[0])
+===
+print(Int(Int32(bytes' Bytes("\xFF\xFF\xFF\xFF"))))
+print(Int(UInt32(bytes' Bytes("\xFF\xFF\xFF\xFF"))))
+print(Int(Int16(bytes' Bytes("\xFF\xFF"))))
+print(Int(UInt16(bytes' Bytes("\xFF\xFF"))))
+print(Int(Int8(bytes' Bytes("\xFF"))))
+print(Int(Byte(bytes' Bytes("\xFF"))))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(to_int(int_t_from_bytes<Int32>("\xFF\xFF\xFF\xFF"_B)));
+        print(to_int(int_t_from_bytes<UInt32>("\xFF\xFF\xFF\xFF"_B)));
+        print(to_int(int_t_from_bytes<Int16>("\xFF\xFF"_B)));
+        print(to_int(int_t_from_bytes<UInt16>("\xFF\xFF"_B)));
+        print(to_int(int_t_from_bytes<Int8>("\xFF"_B)));
+        print(to_int(int_t_from_bytes<Byte>("\xFF"_B)));
+    }
+} code_block_1;
+
+
+# [https://stackoverflow.com/a/47003923/2692494 <- https://stackoverflow.com/questions/47003833/how-to-read-bmp-file-header-in-python <- google:‘python bmp’]
+import struct
+
+bmp = open('1.bmp', 'rb')
+t = bmp.read(2)
+print('Type:', chr(t[0]) + chr(t[1]))
+print('Size: %s' % struct.unpack('I', bmp.read(4))[0])
+print('Size: %s' % struct.unpack_from('I', open('1.bmp', 'rb').read(), 2)[0])
+print('Size BE: %s' % struct.unpack_from('>I', open('1.bmp', 'rb').read(), 2)[0])
+print('Reserved 1: %s' % struct.unpack('H', bmp.read(2))[0])
+print('Reserved 2: %s' % struct.unpack('H', bmp.read(2))[0])
+print('Offset: %s' % struct.unpack('I', bmp.read(4))[0])
+
+print('DIB Header Size: %s' % struct.unpack('I', bmp.read(4))[0])
+print('Width: %s' % struct.unpack('I', bmp.read(4))[0])
+print('Height: %s' % struct.unpack('I', bmp.read(4))[0])
+print('Colour Planes: %s' % struct.unpack('H', bmp.read(2))[0])
+t = bmp.read(2)
+print('Bits per Pixel: %s' % struct.unpack('<H', t)[0])
+print('Bits per Pixel BE: %s' % struct.unpack('>H', t)[0])
+print('Compression Method: %s' % struct.unpack('I', bmp.read(4))[0])
+print('Raw Image Size: %s' % struct.unpack('I', bmp.read(4))[0])
+print('Horizontal Resolution: %s' % struct.unpack('I', bmp.read(4))[0])
+print('Vertical Resolution: %s' % struct.unpack('I', bmp.read(4))[0])
+print('Number of Colours: %s' % struct.unpack('I', bmp.read(4))[0])
+print('Important Colours: %s' % struct.unpack('I', bmp.read(4))[0])
+===
+V bmp = File(‘1.bmp’)
+V t = bmp.read_bytes(at_most' 2)
+print(‘Type: ’(Char(code' t[0])‘’Char(code' t[1])))
+print(‘Size: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+print(‘Size: #.’.format(Int(UInt32(bytes' File(‘1.bmp’).read_bytes()[2 .+ 4]))))
+print(‘Size BE: #.’.format(Int(UInt32(bytes_be' File(‘1.bmp’).read_bytes()[2 .+ 4]))))
+print(‘Reserved 1: #.’.format(Int(UInt16(bytes' bmp.read_bytes(at_most' 2)))))
+print(‘Reserved 2: #.’.format(Int(UInt16(bytes' bmp.read_bytes(at_most' 2)))))
+print(‘Offset: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+
+print(‘DIB Header Size: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+print(‘Width: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+print(‘Height: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+print(‘Colour Planes: #.’.format(Int(UInt16(bytes' bmp.read_bytes(at_most' 2)))))
+t = bmp.read_bytes(at_most' 2)
+print(‘Bits per Pixel: #.’.format(Int(UInt16(bytes' t))))
+print(‘Bits per Pixel BE: #.’.format(Int(UInt16(bytes_be' t))))
+print(‘Compression Method: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+print(‘Raw Image Size: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+print(‘Horizontal Resolution: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+print(‘Vertical Resolution: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+print(‘Number of Colours: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+print(‘Important Colours: #.’.format(Int(UInt32(bytes' bmp.read_bytes(at_most' 4)))))
+===
+auto bmp = File(u"1.bmp"_S);
+auto t = bmp.read_bytes_at_most(2);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"Type: "_S & (Char(_get<0>(t)) & Char(_get<1>(t))));
+        print(u"Size: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+        print(u"Size: #."_S.format(to_int(int_t_from_bytes<UInt32>(File(u"1.bmp"_S).read_bytes(), range_ep(2, 4)))));
+        print(u"Size BE: #."_S.format(to_int(int_t_from_bytes_be<UInt32>(File(u"1.bmp"_S).read_bytes(), range_ep(2, 4)))));
+        print(u"Reserved 1: #."_S.format(to_int(int_t_from_bytes<UInt16>(bmp.read_bytes_at_most(2)))));
+        print(u"Reserved 2: #."_S.format(to_int(int_t_from_bytes<UInt16>(bmp.read_bytes_at_most(2)))));
+        print(u"Offset: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+
+        print(u"DIB Header Size: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+        print(u"Width: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+        print(u"Height: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+        print(u"Colour Planes: #."_S.format(to_int(int_t_from_bytes<UInt16>(bmp.read_bytes_at_most(2)))));
+        t = bmp.read_bytes_at_most(2);
+        print(u"Bits per Pixel: #."_S.format(to_int(int_t_from_bytes<UInt16>(t))));
+        print(u"Bits per Pixel BE: #."_S.format(to_int(int_t_from_bytes_be<UInt16>(t))));
+        print(u"Compression Method: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+        print(u"Raw Image Size: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+        print(u"Horizontal Resolution: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+        print(u"Vertical Resolution: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+        print(u"Number of Colours: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+        print(u"Important Colours: #."_S.format(to_int(int_t_from_bytes<UInt32>(bmp.read_bytes_at_most(4)))));
+    }
+} code_block_1;
+
+
+import struct
+Byte = int
+
+print(hex(int.from_bytes([Byte(0), 0xab, 0xcd, 0xef], 'big')))
+print(hex(struct.unpack('>I', bytes([Byte(0), 0xab, 0xcd, 0xef]))[0]))
+
+print(hex(int.from_bytes([Byte(0), 0xab, 0xcd, 0xef], 'little')))
+print(hex(struct.unpack('I', bytes([Byte(0), 0xab, 0xcd, 0xef]))[0]))
+
+print(hex(int.from_bytes([Byte(0), 0xab], 'big')))
+print(hex(struct.unpack('>H', bytes([Byte(0), 0xab]))[0]))
+
+print(hex(int.from_bytes([Byte(0), 0xab], 'little')))
+print(hex(struct.unpack('H', bytes([Byte(0), 0xab]))[0]))
+===
+print((‘0x’hex(Int(bytes_be' [Byte(0), A'B, C'D, E'F])).lowercase()))
+print((‘0x’hex(Int(UInt32(bytes_be' [Byte(0), A'B, C'D, E'F]))).lowercase()))
+
+print((‘0x’hex(Int(bytes' [Byte(0), A'B, C'D, E'F])).lowercase()))
+print((‘0x’hex(Int(UInt32(bytes' [Byte(0), A'B, C'D, E'F]))).lowercase()))
+
+print((‘0x’hex(Int(bytes_be' [Byte(0), A'B])).lowercase()))
+print((‘0x’hex(Int(UInt16(bytes_be' [Byte(0), A'B]))).lowercase()))
+
+print((‘0x’hex(Int(bytes' [Byte(0), A'B])).lowercase()))
+print((‘0x’hex(Int(UInt16(bytes' [Byte(0), A'B]))).lowercase()))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print((u"0x"_S & hex(int_from_bytes_be(create_array<Byte>({Byte(0), 0xAB, 0xCD, 0xEF}))).lowercase()));
+        print((u"0x"_S & hex(to_int(int_t_from_bytes_be<UInt32>(create_array<Byte>({Byte(0), 0xAB, 0xCD, 0xEF})))).lowercase()));
+
+        print((u"0x"_S & hex(int_from_bytes(create_array<Byte>({Byte(0), 0xAB, 0xCD, 0xEF}))).lowercase()));
+        print((u"0x"_S & hex(to_int(int_t_from_bytes<UInt32>(create_array<Byte>({Byte(0), 0xAB, 0xCD, 0xEF})))).lowercase()));
+
+        print((u"0x"_S & hex(int_from_bytes_be(create_array<Byte>({Byte(0), 0xAB}))).lowercase()));
+        print((u"0x"_S & hex(to_int(int_t_from_bytes_be<UInt16>(create_array<Byte>({Byte(0), 0xAB})))).lowercase()));
+
+        print((u"0x"_S & hex(int_from_bytes(create_array<Byte>({Byte(0), 0xAB}))).lowercase()));
+        print((u"0x"_S & hex(to_int(int_t_from_bytes<UInt16>(create_array<Byte>({Byte(0), 0xAB})))).lowercase()));
+    }
+} code_block_1;
+
+
+def tokenize(source, comments : List[Tuple[int, int]] = None):
+    if comments is not None:
+        comments.append((10, 20))
+
+comments : List[Tuple[int, int]] = []
+tokenize('', comments = comments)
+tokenize('', comments)
+tokenize('', comments = None)
+tokenize('', None)
+===
+F tokenize(source, [(Int, Int)]? &comments = N)
+   I comments != N
+      comments.append((10, 20))
+
+[(Int, Int)] comments
+tokenize(‘’, comments' &comments)
+tokenize(‘’, &comments)
+tokenize(‘’, comments' N)
+tokenize(‘’, N)
+===
+template <typename T1> auto tokenize(const T1 &source, Array<ivec2>* const comments = nullptr)
+{
+    if (comments != nullptr)
+        comments->append(make_tuple(10, 20));
+}
+
+Array<ivec2> comments;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        tokenize(u""_S, &comments);
+        tokenize(u""_S, &comments);
+        tokenize(u""_S, nullptr);
+        tokenize(u""_S, nullptr);
+    }
+} code_block_1;
+
+
+from typing import Optional
+
+def f():
+    oneblock : Optional[int] = None
+    for choice in [1, 2]:
+        if oneblock is None:
+            oneblock = choice
+    choice = oneblock if oneblock is not None else 0
+    print(oneblock + 1)
+===
+F f()
+   Int? oneblock
+   L(choice) [1, 2]
+      I oneblock == N
+         oneblock = choice
+   V choice = oneblock ? 0
+   print(oneblock + 1)
+===
+auto f()
+{
+    Nullable<int> oneblock;
+    for (auto &&choice : create_array({1, 2}))
+        if (oneblock == nullptr)
+            oneblock = choice;
+    auto choice = [&]{auto R = oneblock; return R != nullptr ? *R : 0;}();
+    print(*oneblock + 1);
+}
+
+
+a : Optional[List[int]] = [1, 2, 3]
+===
+[Int]? a = [1, 2, 3]
+===
+Nullable<Array<int>> a = create_array({1, 2, 3});
+
+
+for i in range(3):
+    if i == 3:
+        break
+    print(i)
+else:
+    s = '-1'
+    print(s)
+===
+L(i) 3
+   I i == 3
+      L.break
+   print(i)
+L.was_no_break
+   V s = ‘-1’
+   print(s)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (int i = 0; i < 3; i++) {
+            if (i == 3)
+                goto break_;
+            print(i);
+        }
+        {
+        auto s = u"-1"_S;
+        print(s);
+        }
+        break_:;
+    }
+} code_block_1;
+
+
+class Bitmap:
+    def circle(self, x0, y0, radius):
+        f = 1 - radius
+
+bitmap = Bitmap()
+bitmap.circle(x0=12, y0=12, radius=12)
+===
+T Bitmap
+   F circle(x0, y0, radius)
+      V f = 1 - radius
+
+V bitmap = Bitmap()
+bitmap.circle(x0' 12, y0' 12, radius' 12)
+===
+class Bitmap
+{
+public:
+    template <typename T1, typename T2, typename T3> auto circle(const T1 &x0, const T2 &_y0_, const T3 &radius)
+    {
+        auto f = 1 - radius;
+    }
+};
+
+auto bitmap = Bitmap();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        bitmap.circle(12, 12, 12);
+    }
+} code_block_1;
+
+
+# [https://github.com/nayuki/Project-Euler-solutions/blob/master/python/p029.py?ts=4]
+BigInt = int
+
+seen = set(BigInt(a)**b for a in range(2, 101) for b in range(2, 101))
+print(len(seen))
+print([a+''+b for a in 'ab' for b in '12'])
+===
+V seen = Set(multiloop((2..100), (2..100), (a, b) -> BigInt(a) ^ b))
+print(seen.len)
+print(multiloop(‘ab’, ‘12’, (a, b) -> a‘’b))
+===
+auto seen = create_set(multiloop(range_ee(2, 100), range_ee(2, 100), [](const auto &a, const auto &b){return pow(BigInt(a), b);}));
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(seen.len());
+        print(multiloop(u"ab"_S, u"12"_S, [](const auto &a, const auto &b){return a & b;}));
+    }
+} code_block_1;
+
+
+# [https://www.rosettacode.org/wiki/Addition_chains#Python]
+n = 7
+best = [1, 2]
+print(f'L({n}) = {len(best)}')
+print(f'L({n}) = {len(best) - 1}')
+print(f'''L({n}) = {len(best) - 1}''')
+print(f'L({n}) = {len(best) - 1:2}')
+print(f"""L({n}) = {len(best) - 1:2}""")
+
+# [https://www.rosettacode.org/wiki/Bin_given_limits#Python]
+limits = [1]
+bins = [2]
+print(f"          < {limits[0]:3} := {bins[0]:3}")
+
+# [https://www.rosettacode.org/wiki/Bioinformatics/base_count#Python]
+(i, n, part) = (1, 2, 3)
+print(f"{i*n:>5}: {part}")
+print(f"{i*n:<5}: {part}")
+print(f"{i*n:>5}: {{part}}")
+print(f"{i*n:>5}: {{pa")
+print(f"{i*n:>5}: rt}}")
+print(f"{i*n:>5}: {{{part}}}")
+print(f"{i*n:>5}:\t{part}")
+print(f"{i*n}: {part}")
+print(f"{i*n}: {{part}}")
+print(f"{i*n}: {{pa")
+print(f"{i*n}: rt}}")
+print(f"{i*n}: {{{part}}}")
+print(f"{i*n}:\t{part}")
+print(f"{i*n}{str(part)}")
+
+# [https://www.rosettacode.org/wiki/Price_list_behind_API#Python]
+import random
+price_list_size = 100_000
+price_list = [random.randrange(100_000) for i in range(price_list_size)]
+def get_max_price():
+    return max(price_list)
+print(f"Using {price_list_size} random prices from 0 to {get_max_price()}")
+(mn, mx, count) = (1.1, 2.2, 3)
+print(f"  From {mn:8.1f} ... {mx:8.1f} with {count} items.")
+print("  From {:8.1f} ... {:8.1f} with {} items.".format(mn, mx, count))
+
+v = 0.5
+print(f'{v:16.14f}')
+#print(f'{v:16.14}')
+print('{:16.14f}'.format(v))
+print(f'{v:17.14f}')
+print('{:17.14f}'.format(v))
+print(f'{v:20.14f}')
+print('{:20.14f}'.format(v))
+print(f'{v:020.14f}')
+print(f'{v:16f}')
+print('{:16f}'.format(v))
+o = 1
+print(f'{o:03}')
+print('{:03}'.format(o))
+print(f'{f"{o:03}"}')
+print(f'{f"{o}":>3}')
+===
+V n = 7
+V best = [1, 2]
+print(‘L(’n‘) = ’best.len)
+print(‘L(’n‘) = ’(best.len - 1))
+print(‘L(’n‘) = ’(best.len - 1))
+print(f:‘L({n}) = {best.len - 1:2}’)
+print(f:‘L({n}) = {best.len - 1:2}’)
+
+V limits = [1]
+V bins = [2]
+print(f:‘          < {limits[0]:3} := {bins[0]:3}’)
+
+(V i, n, V part) = (1, 2, 3)
+print(f:‘{i * n:5}: {part}’)
+print(f:‘{i * n:<5}: {part}’)
+print(f:‘{i * n:5}: {{part}}’)
+print(f:‘{i * n:5}: {{pa’)
+print(f:‘{i * n:5}: rt}}’)
+print(f:‘{i * n:5}: {{{part}}}’)
+print(f:"{i * n:5}:\t{part}")
+print((i * n)‘: ’part)
+print((i * n)‘: {part}’)
+print((i * n)‘: {pa’)
+print((i * n)‘: rt}’)
+print((i * n)‘: {’part‘}’)
+print((i * n)":\t"part)
+print((i * n)‘’String(part))
+V price_list_size = 100'000
+V price_list = (0 .< price_list_size).map(i -> random:(100'000))
+F get_max_price()
+   R max(:price_list)
+print(‘Using ’price_list_size‘ random prices from 0 to ’get_max_price())
+V (mn, mx, count) = (1.1, 2.2, 3)
+print(f:‘  From {mn:8.1} ... {mx:8.1} with {count} items.’)
+print(‘  From #6.1 ... #6.1 with #. items.’.format(mn, mx, count))
+
+V v = 0.5
+print(f:‘{v:16.14}’)
+print(‘#.14’.format(v))
+print(f:‘{v:17.14}’)
+print(‘#2.14’.format(v))
+print(f:‘{v:20.14}’)
+print(‘#5.14’.format(v))
+print(f:‘{v:020.14}’)
+print(f:‘{v:16.6}’)
+print(‘#9.6’.format(v))
+V o = 1
+print(f:‘{o:03}’)
+print(‘#03’.format(o))
+print((f:‘{o:03}’))
+print(f:‘{o:3}’)
+===
+auto n = 7;
+auto best = create_array({1, 2});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"L("_S & n & u") = "_S & best.len());
+        print(u"L("_S & n & u") = "_S & (best.len() - 1));
+        print(u"L("_S & n & u") = "_S & (best.len() - 1));
+        print(u"L(#.) = #2"_S.format(n, best.len() - 1));
+        print(u"L(#.) = #2"_S.format(n, best.len() - 1));
+    }
+} code_block_1;
+
+auto limits = create_array({1});
+auto bins = create_array({2});
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        print(u"          < #3 := #3"_S.format(_get<0>(limits), _get<0>(bins)));
+
+        TUPLE_ELEMENT_T(0, make_tuple(1, 2, 3)) i;
+        TUPLE_ELEMENT_T(2, make_tuple(1, 2, 3)) part;
+        assign_from_tuple(i, n, part, make_tuple(1, 2, 3));
+        print(u"#5: #."_S.format(i * n, part));
+        print(u"#<5: #."_S.format(i * n, part));
+        print(u"#5: {part}"_S.format(i * n));
+        print(u"#5: {pa"_S.format(i * n));
+        print(u"#5: rt}"_S.format(i * n));
+        print(u"#5: {#.}"_S.format(i * n, part));
+        print(u"#5:\t#."_S.format(i * n, part));
+        print((i * n) & u": "_S & part);
+        print((i * n) & u": {part}"_S);
+        print((i * n) & u": {pa"_S);
+        print((i * n) & u": rt}"_S);
+        print((i * n) & u": {"_S & part & u"}"_S);
+        print((i * n) & u":\t"_S & part);
+        print((i * n) & String(part));
+    }
+} code_block_2;
+
+auto price_list_size = 100'000;
+auto price_list = range_el(0, price_list_size).map([](const auto &i){return randomns::_(100'000);});
+auto get_max_price()
+{
+    return max(::price_list);
+}
+
+struct CodeBlock3
+{
+    CodeBlock3()
+    {
+        print(u"Using "_S & price_list_size & u" random prices from 0 to "_S & get_max_price());
+    }
+} code_block_3;
+
+auto [mn, mx, count] = make_tuple(1.1, 2.2, 3);
+
+struct CodeBlock4
+{
+    CodeBlock4()
+    {
+        print(u"  From #6.1 ... #6.1 with #. items."_S.format(mn, mx, count));
+        print(u"  From #6.1 ... #6.1 with #. items."_S.format(mn, mx, count));
+    }
+} code_block_4;
+
+auto v = 0.5;
+
+struct CodeBlock5
+{
+    CodeBlock5()
+    {
+        print(u"#.14"_S.format(v));
+        print(u"#.14"_S.format(v));
+        print(u"#2.14"_S.format(v));
+        print(u"#2.14"_S.format(v));
+        print(u"#5.14"_S.format(v));
+        print(u"#5.14"_S.format(v));
+        print(u"#05.14"_S.format(v));
+        print(u"#9.6"_S.format(v));
+        print(u"#9.6"_S.format(v));
+    }
+} code_block_5;
+
+auto o = 1;
+
+struct CodeBlock6
+{
+    CodeBlock6()
+    {
+        print(u"#03"_S.format(o));
+        print(u"#03"_S.format(o));
+        print((u"#03"_S.format(o)));
+        print(u"#3"_S.format(o));
+    }
+} code_block_6;
+
+
+from typing import Optional
+source = 'a:1'
+colon_pos : Optional[int] = None
+colon_pos = 1
+print(source[:colon_pos if colon_pos is not None else len(source) - 1])
+print(source[colon_pos if colon_pos is not None else 0])
+===
+V source = ‘a:1’
+Int? colon_pos
+colon_pos = 1
+print(source[0 .< colon_pos ? source.len - 1])
+print(source[colon_pos ? 0])
+===
+auto source = u"a:1"_S;
+Nullable<int> colon_pos;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        colon_pos = 1;
+        print(source[range_el(0, [&]{auto R = colon_pos; return R != nullptr ? *R : source.len() - 1;}())]);
+        print(source[([&]{auto R = colon_pos; return R != nullptr ? *R : 0;}())]);
+    }
+} code_block_1;
+
+
+import random
+print(f'rnd10: {random.randrange(10)}, rnd100: {random.randrange(100):2}')
+print(f'rnd: {random.random():.3f}')
+===
+print(f:‘rnd10: {random:(10)}, rnd100: {random:(100):2}’)
+print(f:‘rnd: {random:():.3}’)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"rnd10: #., rnd100: #2"_S.format(randomns::_(10), randomns::_(100)));
+        print(u"rnd: #.3"_S.format(randomns::_()));
+    }
+} code_block_1;
+
+
+import sys
+
+if __name__ == '__main__':
+    if 2 <= len(sys.argv) <= 4:
+        v = 0
+
+        cmd = sys.argv[1].lower()
+        if cmd == 'add':
+            print('add')
+        elif cmd == 'all':
+            print('all')
+        else:
+            print('usage')
+
+        c = cmd[0]
+        if c == 'a':
+            print('a')
+        elif c == 'p':
+            print('p')
+        else:
+            print('e')
+===
+:start:
+I :argv.len C 2..4
+   V v = 0
+
+   V cmd = :argv[1].lowercase()
+   S cmd
+      ‘add’
+         print(‘add’)
+      ‘all’
+         print(‘all’)
+      E
+         print(‘usage’)
+
+   S cmd[0]
+      ‘a’
+         print(‘a’)
+      ‘p’
+         print(‘p’)
+      E
+         print(‘e’)
+===
+Array<String> argv;
+
+int MAIN_WITH_ARGV()
+{
+    INIT_ARGV();
+
+    if (in(::argv.len(), range_ee(2, 4))) {
+        auto v = 0;
+
+        auto cmd = _get<1>(::argv).lowercase();
+        if (cmd == u"add"_S)
+            print(u"add"_S);
+        else if (cmd == u"all"_S)
+            print(u"all"_S);
+        else
+            print(u"usage"_S);
+
+        switch (_get<0>(cmd))
+        {
+        case u'a':
+            print(u"a"_S);
+            break;
+        case u'p':
+            print(u"p"_S);
+            break;
+        default:
+            print(u"e"_S);
+            break;
+        }
+    }
+}
+
+
+# [https://github.com/nayuki/Project-Euler-solutions/blob/master/python/p047.py?ts=4]
+# parse.py:‘if type(n) == ASTLoopWasNoBreak:’
+import math, itertools
+
+def count_distinct_prime_factors(n):
+    count = 0
+    while n > 1:
+        count += 1
+        for i in range(2, int(math.sqrt(n)) + 1):
+            if n % i == 0:
+                while True:
+                    n //= i
+                    if n % i != 0:
+                        break
+                break
+        else:
+            break  # n is prime
+    return count
+
+cond = lambda i: all((count_distinct_prime_factors(i + j) == 4) for j in range(4))
+
+for i in itertools.count(0):
+    if cond(i):
+        print(i)
+        break
+===
+F count_distinct_prime_factors(=n)
+   V count = 0
+   L n > 1
+      count++
+      L(i) 2 .. Int(sqrt(n))
+         I n % i == 0
+            L
+               n I/= i
+               I n % i != 0
+                  L.break
+            L.break
+      L.was_no_break
+         L.break
+   R count
+
+V cond = i -> all((0.<4).map(j -> (count_distinct_prime_factors(@i + j) == 4)))
+
+L(i) 0..
+   I cond(i)
+      print(i)
+      L.break
+===
+template <typename T1> auto count_distinct_prime_factors(T1 n)
+{
+    auto count = 0;
+    while (n > 1) {
+        count++;
+        for (auto i : range_ee(2, to_int(sqrt(n))))
+            if (mod(n, i) == 0) {
+                while (true) {
+                    n = idiv(n, i);
+                    if (mod(n, i) != 0)
+                        break;
+                }
+                goto break_;
+            }
+        break;
+        break_:;
+    }
+    return count;
+}
+
+auto cond = [](const auto &i){return all_map(range_el(0, 4), [&i](const auto &j){return (count_distinct_prime_factors(i + j) == 4);});};
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto i : range_ei(0))
+            if (cond(i)) {
+                print(i);
+                break;
+            }
+    }
+} code_block_1;
+
+
+# [https://github.com/nayuki/Project-Euler-solutions/blob/master/python/p061.py?ts=4]
+import itertools
+from typing import Optional
+
+def figurate_number(sides, n):
+    return n * ((sides - 2) * n - (sides - 4)) // 2
+
+def compute():
+    # Build table of numbers
+    # numbers[i][j] is the set of figurate numbers of i sides (3 <= i <= 8), having 4 digits, beginning with the 2 digits equal to j
+    def create_set():
+        return set() # int
+    numbers = [[create_set() for j in range(100)] for i in range(9)]
+    for sides in range(3, 9):
+        for n in itertools.count(1):
+            num = figurate_number(sides, n)
+            if num >= 10000:
+                break
+            if num >= 1000:
+                numbers[sides][num // 100].add(num)
+
+    # Note: sidesused is a bit set
+    def find_solution_sum(begin : int, current : int, sidesused : int, sum : int) -> Optional[int]:
+        if sidesused == 0b111111000:
+            if current % 100 == begin // 100:
+                return sum
+        else:
+            for sides in range(4, 9):
+                if (sidesused >> sides) & 1 != 0:
+                    continue
+                for num in numbers[sides][current % 100]:
+                    temp = find_solution_sum(begin, num, sidesused | (1 << sides), sum + num)
+                    if temp is not None:
+                        return temp
+        return None
+
+    # Do search
+    for i in range(10, 100):
+        for num in numbers[3][i]:
+            temp : Optional[int] = find_solution_sum(num, num, 1 << 3, num)
+            if temp is not None:
+                return str(temp)
+    raise AssertionError("No solution")
+
+print(compute())
+===
+F figurate_number(sides, n)
+   R n * ((sides - 2) * n - (sides - 4)) I/ 2
+
+F compute()
+   F create_set()
+      R Set[Int]()
+   V numbers = (0.<9).map(i -> (0.<100).map(j -> @@create_set()))
+   L(sides) 3..8
+      L(n) 1..
+         V num = figurate_number(sides, n)
+         I num >= 10000
+            L.break
+         I num >= 1000
+            numbers[sides][num I/ 100].add(num)
+
+   F find_solution_sum(Int begin, Int current, Int sidesused, Int sum) -> Int?
+      I sidesused == 111111000b
+         I current % 100 == begin I/ 100
+            R sum
+      E
+         L(sides) 4..8
+            I (sidesused >> sides) [&] 1 != 0
+               L.continue
+            L(num) @numbers[sides][current % 100]
+               V temp = @find_solution_sum(begin, num, sidesused [|] (1 << sides), sum + num)
+               I temp != N
+                  R temp
+      R N
+
+   L(i) 10..99
+      L(num) numbers[3][i]
+         Int? temp = find_solution_sum(num, num, 1 << 3, num)
+         I temp != N
+            R String(temp)
+   X.throw AssertionError(‘No solution’)
+
+print(compute())
+===
+template <typename T1, typename T2> auto figurate_number(const T1 &sides, const T2 &n)
+{
+    return idiv(n * ((sides - 2) * n - (sides - 4)), 2);
+}
+
+auto compute()
+{
+    auto create_set = []()
+    {
+        return Set<int>();
+    };
+    auto numbers = range_el(0, 9).map([&create_set](const auto &i){return range_el(0, 100).map([&create_set](const auto &j){return create_set();});});
+    for (auto sides : range_ee(3, 8))
+        for (auto n : range_ei(1)) {
+            auto num = figurate_number(sides, n);
+            if (num >= 10000)
+                break;
+            if (num >= 1000)
+                numbers[sides][idiv(num, 100)].add(num);
+        }
+
+    std::function<Nullable<int>(int, int, int, int)> find_solution_sum = [&find_solution_sum, &numbers](const int begin, const int current, const int sidesused, const int sum) -> Nullable<int>
+    {
+        if (sidesused == 0b111111000) {
+            if (mod(current, 100) == idiv(begin, 100))
+                return sum;
+        }
+        else
+            for (auto sides : range_ee(4, 8)) {
+                if (((sidesused >> sides) & 1) != 0)
+                    continue;
+                for (auto &&num : numbers[sides][mod(current, 100)]) {
+                    auto temp = find_solution_sum(begin, num, sidesused | (1 << sides), sum + num);
+                    if (temp != nullptr)
+                        return temp;
+                }
+            }
+        return nullptr;
+    };
+
+    for (auto i : range_ee(10, 99))
+        for (auto &&num : _get<3>(numbers)[i]) {
+            Nullable<int> temp = find_solution_sum(num, num, 1 << 3, num);
+            if (temp != nullptr)
+                return String(*temp);
+        }
+    throw AssertionError(u"No solution"_S);
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(compute());
+    }
+} code_block_1;
+
+
+# [https://codeforces.com/contest/1633/submission/146570768]
+Char = str
+
+def solve(n):
+    ns = list(str(n))
+    for i in range(len(ns)):
+        for d in range(1 if i == 0 else 0, 10):
+            nn = ns[:]
+            nn[i] = Char(int(d))
+            if int(''.join(nn)) % 7 == 0:
+                return int(''.join(nn))
+    raise 0
+===
+F solve(n)
+   V ns = Array(String(n))
+   L(i) 0 .< ns.len
+      L(d) (I i == 0 {1} E 0) .< 10
+         V nn = copy(ns)
+         nn[i] = Char(digit' d)
+         I Int(nn.join(‘’)) % 7 == 0
+            R Int(nn.join(‘’))
+   X.throw 0
+===
+template <typename T1> auto solve(const T1 &n)
+{
+    auto ns = create_array(String(n));
+    for (auto i : range_el(0, ns.len()))
+        for (auto d : range_el((i == 0 ? 1 : 0), 10)) {
+            auto nn = copy(ns);
+            nn.set(i, char_from_digit(d));
+            if (mod(to_int(nn.join(u""_S)), 7) == 0)
+                return to_int(nn.join(u""_S));
+        }
+    throw 0;
+}
+
+
+# *[https://codeforces.com/contest/1617/submission/146468818]
+
+for _ in range(int(input())):
+    s = input();t = input();s = ''.join(sorted(s))
+    if t == 'abc' and 'a' in s and 'b' in s and 'c' in s:
+        s = s[:s.find('b')] + ('c'*s.count('c')) + ('b'*s.count('b')) + (s[s.rfind('c') + 1:])
+    print(s)
+===
+L(_) 0 .< Int(input())
+   V s = input()
+   V t = input()
+   s = sorted(s)
+   I t == ‘abc’ & ‘a’ C s & ‘b’ C s & ‘c’ C s
+      s = s[0 .< s.findi(‘b’)]‘’(‘c’ * s.count(‘c’))‘’(‘b’ * s.count(‘b’))‘’(s[s.rfindi(‘c’) + 1 ..])
+   print(s)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto _ : range_el(0, to_int(input()))) {
+            auto s = input();
+            auto t = input();
+            s = sorted(s);
+            if (t == u"abc" && in(u'a'_C, s) && in(u'b'_C, s) && in(u'c'_C, s))
+                s = s[range_el(0, s.findi(u"b"_S))] & (u"c"_S * s.count(u'c'_C)) & (u"b"_S * s.count(u'b'_C)) & (s[range_ei(s.rfindi(u"c"_S) + 1)]);
+            print(s);
+        }
+    }
+} code_block_1;
+
+
+# [https://codeforces.com/contest/1602/submission/146889996]
+for _ in range(int(input())):
+    s = input()
+
+    m = min(s)
+    i = s.index(m)
+    print(m, s[:i] + s[i+1:])
+===
+L(_) 0 .< Int(input())
+   V s = input()
+
+   V m = min(s)
+   V i = s.index(m)
+   print(m‘ ’(s[0 .< i]‘’s[i + 1 ..]))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto _ : range_el(0, to_int(input()))) {
+            auto s = input();
+
+            auto m = min(s);
+            auto i = s.index(m);
+            print(m & u" "_S & (s[range_el(0, i)] & s[range_ei(i + 1)]));
+        }
+    }
+} code_block_1;
+
+
+# [https://codeforces.com/contest/1598/submission/146900269]
+for _ in range(int(input())):
+    n = int(input())
+    l0 = input()
+    l1 = input()
+    assert(len(l0) == len(l1) == n)
+
+    for i in range(n):
+        if l0[i] == l1[i] == '1':
+            print('NO')
+            break
+    else:
+        print('YES')
+===
+L(_) 0 .< Int(input())
+   V n = Int(input())
+   V l0 = input()
+   V l1 = input()
+   assert(l0.len == l1.len == n)
+
+   L(i) 0 .< n
+      I l0[i] == l1[i] == ‘1’
+         print(‘NO’)
+         L.break
+   L.was_no_break
+      print(‘YES’)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto _ : range_el(0, to_int(input()))) {
+            auto n = to_int(input());
+            auto l0 = input();
+            auto l1 = input();
+            assert(equal(l0.len(), l1.len(), n));
+
+            for (auto i : range_el(0, n))
+                if (equal(l0[i], l1[i], u'1'_C)) {
+                    print(u"NO"_S);
+                    goto break_;
+                }
+            print(u"YES"_S);
+            break_:;
+        }
+    }
+} code_block_1;
+
+
+# *[https://codeforces.com/contest/1534/submission/119342023]
+
+def match(g, o):
+ return not any(a != '.' and a != b for a, b in zip(''.join(g), ''.join(o)))
+
+for _ in range(int(input())):
+ n, m = map(int, input().split())
+ g = [input() for _ in range(n)]
+ o1 = [''.join('WR'[(i+j)%2] for j in range(m)) for i in range(n)]
+ o2 = [''.join('WR'[(i+j+1)%2] for j in range(m)) for i in range(n)]
+ if match(g, o1):
+  print('YES')
+  for i in o1: print(i)
+ elif match(g, o2):
+  print('YES')
+  for i in o2: print(i)
+ else: print('NO')
+===
+F match(g, o)
+   R !any(zip(g.join(‘’), o.join(‘’)).map((a, b) -> a != ‘.’ & a != b))
+
+L(_) 0 .< Int(input())
+   V (n, m) = input().split_py().map(Int)
+   V g = (0 .< n).map(_ -> input())
+   V o1 = (0 .< n).map(i -> (0 .< @m).map(j -> ‘WR’[(@i + j) % 2]).join(‘’))
+   V o2 = (0 .< n).map(i -> (0 .< @m).map(j -> ‘WR’[(@i + j + 1) % 2]).join(‘’))
+   I match(g, o1)
+      print(‘YES’)
+      L(i) o1
+         print(i)
+   E I match(g, o2)
+      print(‘YES’)
+      L(i) o2
+         print(i)
+   E
+      print(‘NO’)
+===
+template <typename T1, typename T2> auto match(const T1 &g, const T2 &o)
+{
+    return !any_map(zip(g.join(u""_S), o.join(u""_S)), [](const auto &a, const auto &b){return a != u'.' && a != b;});
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto _ : range_el(0, to_int(input()))) {
+            auto [n, m] = bind_array<2>(input().split_py().map([](const auto &x){return to_int(x);}));
+            auto g = range_el(0, n).map([](const auto &_){return input();});
+            auto o1 = range_el(0, n).map([&m](const auto &i){return range_el(0, m).map([&i](const auto &j){return u"WR"_S[mod((i + j), 2)];}).join(u""_S);});
+            auto o2 = range_el(0, n).map([&m](const auto &i){return range_el(0, m).map([&i](const auto &j){return u"WR"_S[mod((i + j + 1), 2)];}).join(u""_S);});
+            if (match(g, o1)) {
+                print(u"YES"_S);
+                for (auto &&i : o1)
+                    print(i);
+            }
+            else if (match(g, o2)) {
+                print(u"YES"_S);
+                for (auto &&i : o2)
+                    print(i);
+            }
+            else
+                print(u"NO"_S);
+        }
+    }
+} code_block_1;
+
+
+# *[https://codeforces.com/contest/1538/submission/120037475]
+import bisect
+
+n = 5
+l = 5
+r = 8
+a = [5, 1, 2, 4, 3]
+a.sort()
+s = 0
+for i in range(n):
+    x = a.pop()
+    s += bisect.bisect_right(a, r - x) - bisect.bisect_left(a, l - x)
+print(s)
+===
+V n = 5
+V l = 5
+V r = 8
+V a = [5, 1, 2, 4, 3]
+a.sort()
+V s = 0
+L(i) 0 .< n
+   V x = a.pop()
+   s += bisect:right(a, r - x) - bisect:left(a, l - x)
+print(s)
+===
+auto n = 5;
+auto l = 5;
+auto r = 8;
+auto a = create_array({5, 1, 2, 4, 3});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        a.sort();
+    }
+} code_block_1;
+
+auto s = 0;
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        for (auto i : range_el(0, n)) {
+            auto x = a.pop();
+            s += bisect::right(a, r - x) - bisect::left(a, l - x);
+        }
+        print(s);
+    }
+} code_block_2;
+
+
+a = [1, 2]
+a.pop(-2)
+del a[-2]
+===
+V a = [1, 2]
+a.pop((len)-2)
+a.pop((len)-2)
+===
+auto a = create_array({1, 2});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        a.pop_plus_len( - 2);
+        a.pop_plus_len( - 2);
+    }
+} code_block_1;
+
+
+maxn = 3
+for i in reversed(range(maxn)):
+    print(i, end = '')
+print()
+for i in reversed(range(maxn + 1)):
+    print(i, end = '')
+print()
+for i in reversed(range(1, maxn)):
+    print(i, end = '')
+print()
+===
+V maxn = 3
+L(i) reversed(0 .< maxn)
+   print(i, end' ‘’)
+print()
+L(i) reversed(0 .. maxn)
+   print(i, end' ‘’)
+print()
+L(i) reversed(1 .< maxn)
+   print(i, end' ‘’)
+print()
+===
+auto maxn = 3;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&i : reversed(range_el(0, maxn)))
+            print(i, u""_S);
+        print();
+        for (auto &&i : reversed(range_ee(0, maxn)))
+            print(i, u""_S);
+        print();
+        for (auto &&i : reversed(range_el(1, maxn)))
+            print(i, u""_S);
+        print();
+    }
+} code_block_1;
+
+
+s = list(input())
+print(s.count('1'))
+===
+V s = Array(input())
+print(s.count(‘1’))
+===
+auto s = create_array(input());
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(s.count(u'1'_C));
+    }
+} code_block_1;
+
+
+c = '(' if True else ')'
+===
+V c = I 1B {‘(’} E ‘)’
+===
+auto c = true ? u'('_C : u')'_C;
+
+
+# *[https://codeforces.com/contest/1503/submission/116580381]
+for _ in range(int(input())):
+    n = int(input())
+    s = list(input())
+    a, b = ['0'] * n, ['0'] * n
+    one, zero = s.count('1'), s.count('0')
+    c1, c0 = 0, 0
+    if s[0] == '0' or s[n - 1] == '0' or s.count('0') % 2 != 0: print("NO")
+    else:
+        print('YES')
+        for i in range(n):
+            if s[i] == '1':
+                a[i] = ('(' if c1 < one // 2 else ')'); c1 += 1
+            else:
+                a[i] = (')' if c0 % 2 == 1 else '('); c0 += 1
+        for i in range(n):
+            b[i] = (a[i] if s[i] == '1' else ('(' if a[i] == ')' else ')'))
+        print(*a, sep = '')
+        print(*b, sep = '')
+===
+L(_) 0 .< Int(input())
+   V n = Int(input())
+   V s = Array(input())
+   V (a, b) = ([‘0’] * n, [‘0’] * n)
+   V (one, zero) = (s.count(‘1’), s.count(‘0’))
+   V (c1, c0) = (0, 0)
+   I s[0] == ‘0’ | s[n - 1] == ‘0’ | s.count(‘0’) % 2 != 0
+      print(‘NO’)
+   E
+      print(‘YES’)
+      L(i) 0 .< n
+         I s[i] == ‘1’
+            a[i] = (I c1 < one I/ 2 {‘(’} E ‘)’)
+            c1++
+         E
+            a[i] = (I c0 % 2 == 1 {‘)’} E ‘(’)
+            c0++
+      L(i) 0 .< n
+         b[i] = (I s[i] == ‘1’ {a[i]} E (I a[i] == ‘)’ {‘(’} E ‘)’))
+      print_elements(a, sep' ‘’)
+      print_elements(b, sep' ‘’)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto _ : range_el(0, to_int(input()))) {
+            auto n = to_int(input());
+            auto s = create_array(input());
+            auto [a, b] = make_tuple(create_array({u'0'_C}) * n, create_array({u'0'_C}) * n);
+            auto [one, zero] = make_tuple(s.count(u'1'_C), s.count(u'0'_C));
+            auto [c1, c0] = make_tuple(0, 0);
+            if (_get<0>(s) == u'0' || s[n - 1] == u'0' || mod(s.count(u'0'_C), 2) != 0)
+                print(u"NO"_S);
+            else {
+                print(u"YES"_S);
+                for (auto i : range_el(0, n))
+                    if (s[i] == u'1') {
+                        a.set(i, (c1 < idiv(one, 2) ? u'('_C : u')'_C));
+                        c1++;
+                    }
+                    else {
+                        a.set(i, (mod(c0, 2) == 1 ? u')'_C : u'('_C));
+                        c0++;
+                    }
+                for (auto i : range_el(0, n))
+                    b.set(i, (s[i] == u'1' ? a[i] : (a[i] == u')' ? u'('_C : u')'_C)));
+                print_elements(a, u""_S);
+                print_elements(b, u""_S);
+            }
+        }
+    }
+} code_block_1;
+
+
+M = max(1, 2)
+a, b = 3, 4
+if a == b == M:
+    print(1)
+if a == M:
+    print(2)
+===
+V M = max(1, 2)
+V (a, b) = (3, 4)
+I a == b == M
+   print(1)
+I a == M
+   print(2)
+===
+auto M = max(1, 2);
+auto [a, b] = make_tuple(3, 4);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        if (equal(a, b, M))
+            print(1);
+        if (a == M)
+            print(2);
+    }
+} code_block_1;
+
+
+s = 'bc'
+print(s[0] >= 'a')
+===
+V s = ‘bc’
+print(s[0] >= ‘a’)
+===
+auto s = u"bc"_S;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(_get<0>(s) >= u'a');
+    }
+} code_block_1;
+
+
+tmp = [(0,0)]*0
+tmp.sort(key=lambda x:x[0])
+===
+V tmp = [(0, 0)] * 0
+tmp.sort(key' x -> x[0])
+===
+auto tmp = create_array({make_tuple(0, 0)}) * 0;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        tmp.sort([](const auto &x){return _get<0>(x);});
+    }
+} code_block_1;
+
+
+for _ in " "*int(input()):
+    print(0)
+===
+L(_) ‘ ’ * Int(input())
+   print(0)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&_ : u" "_S * to_int(input()))
+            print(0);
+    }
+} code_block_1;
+
+
+DIGITS = 55
+save : List[Dict[int, int]] = [{} for d in range(DIGITS)]
+saves : List[Dict[int, str]] = [{} for d in range(DIGITS)]
+===
+V DIGITS = 55
+[[Int = Int]] save = (0 .< DIGITS).map(d -> [Int = Int]())
+[[Int = String]] saves = (0 .< DIGITS).map(d -> [Int = String]())
+===
+auto DIGITS = 55;
+Array<Dict<int, int>> save = range_el(0, DIGITS).map([](const auto &d){return Dict<int, int>();});
+Array<Dict<int, String>> saves = range_el(0, DIGITS).map([](const auto &d){return Dict<int, String>();});
+
+
+# *[https://codeforces.com/contest/1473/submission/104325447]
+t= int(input())
+for _ in range(t):
+    n,k = map(int, input().split())
+
+    a = [i for i in range(1, k+1)]
+    d = n - k + 1
+    if d:
+        a[-d:] = a[-d:][::-1]
+    print(*a)
+===
+V t = Int(input())
+L(_) 0 .< t
+   V (n, k) = input().split_py().map(Int)
+
+   V a = Array(1 .. k)
+   V d = n - k + 1
+   I d
+      a.reverse_range((len)-d ..)
+   print_elements(a)
+===
+auto t = to_int(input());
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto _ : range_el(0, t)) {
+            auto [n, k] = bind_array<2>(input().split_py().map([](const auto &x){return to_int(x);}));
+
+            auto a = create_array(range_ee(1, k));
+            auto d = n - k + 1;
+            if (d)
+                a.reverse_range(range_elen_i( - d));
+            print_elements(a);
+        }
+    }
+} code_block_1;
+
+
+# *[https://codeforces.com/contest/1457/submission/99992389]
+def xor_arr():
+    n = 5
+    arr = list(map(int, '1 2 4 6 20'.split()))
+    xor_arr = [0]
+    for x in arr:
+        xor_arr += [xor_arr[-1] ^ x]
+
+    for i in range(1, n - 1):
+        for j in range(n - i - 1):
+            for k in range(j + 1, j + i + 2):
+                if xor_arr[k] ^ xor_arr[j] > xor_arr[k] ^ xor_arr[j + i + 2]:
+                    return i
+    return -1
+
+print(xor_arr())
+===
+F xor_arr()
+   V n = 5
+   V arr = ‘1 2 4 6 20’.split_py().map(Int)
+   V xor_arr = [0]
+   L(x) arr
+      xor_arr [+]= xor_arr.last (+) x
+
+   L(i) 1 .< n - 1
+      L(j) 0 .< n - i - 1
+         L(k) j + 1 .< j + i + 2
+            I xor_arr[k] (+) xor_arr[j] > xor_arr[k] (+) xor_arr[j + i + 2]
+               R i
+   R -1
+
+print(xor_arr())
+===
+auto xor_arr()
+{
+    auto n = 5;
+    auto arr = u"1 2 4 6 20"_S.split_py().map([](const auto &x){return to_int(x);});
+    auto xor_arr = create_array({0});
+    for (auto &&x : arr)
+        xor_arr.append(xor_arr.last() ^ x);
+
+    for (auto i : range_el(1, n - 1))
+        for (auto j : range_el(0, n - i - 1))
+            for (auto k : range_el(j + 1, j + i + 2))
+                if ((xor_arr[k] ^ xor_arr[j]) > (xor_arr[k] ^ xor_arr[j + i + 2]))
+                    return i;
+    return -1;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(xor_arr());
+    }
+} code_block_1;
+
+
+class SegmentTree:
+    def BS1(self, pos):
+        print(pos)
+
+sg = SegmentTree()
+sg.BS1(1)
+===
+T SegmentTree
+   F BS1(pos)
+      print(pos)
+
+V sg = SegmentTree()
+sg.BS1(1)
+===
+class SegmentTree
+{
+public:
+    template <typename T1> auto BS1(const T1 &pos)
+    {
+        print(pos);
+    }
+};
+
+auto sg = SegmentTree();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        sg.BS1(1);
+    }
+} code_block_1;
+
+
+# *[https://codeforces.com/contest/1494/submission/109458430]
+Char = str
+
+def solve():
+    n, m = map(int, input().split());e : Dict[Tuple[int, int], Char] = dict();same = 0;diff = 0;res = ['']*0
+    for i in range(m):
+        a = input().split();c = Char(str(a[0]))
+        if c == '+':
+            u = int(a[1]);v = int(a[2]);c = Char(str(a[3]));z = e.get((v,u),Char("\0"))
+            if z == c:              same += 1
+            elif z != "\0":             diff += 1
+            e[(u,v)] = c
+        elif c == '-':
+            u = int(a[1]);v = int(a[2]);c = e[(u,v)];del e[(u,v)];z = e.get((v,u),Char("\0"))
+            if z == c:              same -= 1
+            elif z != "\0":             diff -= 1
+        else:
+            ci = int(a[1])
+            if ci % 2 == 1:              res.append('YES' if diff + same > 0 else 'NO')
+            else:               res.append('YES' if same > 0 else 'NO')
+    print('\n'.join(res))
+solve()
+===
+F solve()
+   V (n, m) = input().split_py().map(Int)
+   [(Int, Int) = Char] e
+   V same = 0
+   V diff = 0
+   V res = [‘’] * 0
+   L(i) 0 .< m
+      V a = input().split_py()
+      V c = Char(string' a[0])
+      S c
+         ‘+’
+            V u = Int(a[1])
+            V v = Int(a[2])
+            c = Char(string' a[3])
+            V z = e.get((v, u), Char("\0"))
+            I z == c
+               same++
+            E I z != "\0"
+               diff++
+            e[(u, v)] = c
+         ‘-’
+            V u = Int(a[1])
+            V v = Int(a[2])
+            c = e[(u, v)]
+            e.pop((u, v))
+            V z = e.get((v, u), Char("\0"))
+            I z == c
+               same--
+            E I z != "\0"
+               diff--
+         E
+            V ci = Int(a[1])
+            I ci % 2 == 1
+               res.append(I diff + same > 0 {‘YES’} E ‘NO’)
+            E
+               res.append(I same > 0 {‘YES’} E ‘NO’)
+   print(res.join("\n"))
+solve()
+===
+auto solve()
+{
+    auto [n, m] = bind_array<2>(input().split_py().map([](const auto &x){return to_int(x);}));
+    Dict<ivec2, Char> e;
+    auto same = 0;
+    auto diff = 0;
+    auto res = create_array({u""_S}) * 0;
+    for (auto i : range_el(0, m)) {
+        auto a = input().split_py();
+        auto c = Char(_get<0>(a));
+        switch (c)
+        {
+        case u'+': {
+            auto u = to_int(_get<1>(a));
+            auto v = to_int(_get<2>(a));
+            c = Char(_get<3>(a));
+            auto z = e.get(make_tuple(v, u), u'\0'_C);
+            if (z == c)
+                same++;
+            else if (z != u'\0')
+                diff++;
+            e.set(make_tuple(u, v), c);
+            break; }
+        case u'-': {
+            auto u = to_int(_get<1>(a));
+            auto v = to_int(_get<2>(a));
+            c = e[make_tuple(u, v)];
+            e.pop(make_tuple(u, v));
+            auto z = e.get(make_tuple(v, u), u'\0'_C);
+            if (z == c)
+                same--;
+            else if (z != u'\0')
+                diff--;
+            break; }
+        default:
+            auto ci = to_int(_get<1>(a));
+            if (mod(ci, 2) == 1)
+                res.append(diff + same > 0 ? u"YES"_S : u"NO"_S);
+            else
+                res.append(same > 0 ? u"YES"_S : u"NO"_S);
+            break;
+        }
+    }
+    print(res.join(u"\n"_S));
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        solve();
+    }
+} code_block_1;
+
+
+w : dict[tuple[tuple[int, int], tuple[int, int]], int] = {}
+===
+[((Int, Int), (Int, Int)) = Int] w
+===
+Dict<Tuple<ivec2, ivec2>, int> w;
+
+
+instant = [(1, 2), (3, 4)]
+print(min(x+y for x,y in instant))
+print(max(x+y for x,y in instant))
+===
+V instant = [(1, 2), (3, 4)]
+print(min(instant.map((x, y) -> x + y)))
+print(max(instant.map((x, y) -> x + y)))
+===
+auto instant = create_array({make_tuple(1, 2), make_tuple(3, 4)});
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(min_map(instant, [](const auto &x, const auto &y){return x + y;}));
+        print(max_map(instant, [](const auto &x, const auto &y){return x + y;}));
+    }
+} code_block_1;
+
+
+f = [0] * 0
+f.sort(reverse=True)
+===
+V f = [Int]()
+f.sort(reverse' 1B)
+===
+auto f = Array<int>();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        f.sort(nullptr, true);
+    }
+} code_block_1;
+
+
+# *[https://codeforces.com/contest/1388/submission/92104144]
+import collections
+
+n = int(input())
+a = list(map(int, input().split()))
+b = list(map(int, input().split()))
+
+e, par = [[0]*0 for _ in range(n)], [-1]*n
+for u, v in enumerate(b):
+    if v == -1: continue
+    e[v-1].append(u)
+    par[u] = v-1
+
+q = collections.deque([i for i in range(n) if len(e[i])==0])
+sa, sb, incc = collections.deque([0]*0), collections.deque([0]*0), [0]*n
+while len(q):
+    u = q.popleft()
+    cc = a[u]
+    for v in e[u]:
+        cc += max(a[v], 0)
+    a[u] = cc
+
+    if cc >= 0: sa.append(u)
+    else: sb.appendleft(u)
+
+    p = par[u]
+    if p != -1:
+        incc[p] += 1
+        if incc[p] == len(e[p]): q.append(p)
+
+print(sum(a))
+print(*[u+1 for u in sa+sb])
+===
+V n = Int(input())
+V a = input().split_py().map(Int)
+V b = input().split_py().map(Int)
+
+V (e, par) = ([[Int]()] * n, [-1] * n)
+L(v) b
+   V u = L.index
+   I v == -1
+      L.continue
+   e[v - 1].append(u)
+   par[u] = v - 1
+
+V q = Deque((0 .< n).filter(i -> :e[i].empty))
+V (sa, sb, incc) = (Deque([Int]()), Deque([Int]()), [0] * n)
+L !q.empty
+   V u = q.pop_left()
+   V cc = a[u]
+   L(v) e[u]
+      cc += max(a[v], 0)
+   a[u] = cc
+
+   I cc >= 0
+      sa.append(u)
+   E
+      sb.append_left(u)
+
+   V p = par[u]
+   I p != -1
+      incc[p]++
+      I incc[p] == e[p].len
+         q.append(p)
+
+print(sum(a))
+print_elements((sa + sb).map(u -> u + 1))
+===
+auto n = to_int(input());
+auto a = input().split_py().map([](const auto &x){return to_int(x);});
+auto b = input().split_py().map([](const auto &x){return to_int(x);});
+
+auto [e, par] = make_tuple(create_array({Array<int>()}) * n, create_array({-1}) * n);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        {int Lindex = 0;
+        for (auto &&v : b) {{
+            auto u = Lindex;
+            if (v == -1)
+                goto on_continue;
+            e[v - 1].append(u);
+            par.set(u, v - 1);
+} on_continue:
+            Lindex++;
+        }}
+    }
+} code_block_1;
+
+auto q = create_deque(range_el(0, n).filter([](const auto &i){return ::e[i].empty();}));
+auto [sa, sb, incc] = make_tuple(create_deque(Array<int>()), create_deque(Array<int>()), create_array({0}) * n);
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        while (!q.empty()) {
+            auto u = q.pop_left();
+            auto cc = a[u];
+            for (auto &&v : e[u])
+                cc += max(a[v], 0);
+            a.set(u, cc);
+
+            if (cc >= 0)
+                sa.append(u);
+            else
+                sb.append_left(u);
+
+            auto p = par[u];
+            if (p != -1) {
+                incc[p]++;
+                if (incc[p] == e[p].len())
+                    q.append(p);
+            }
+        }
+
+        print(sum(a));
+        print_elements((sa + sb).map([](const auto &u){return u + 1;}));
+    }
+} code_block_2;
+
+
+# [https://codeforces.com/contest/1358/submission/83732060]
+def LI(): return list(map(int, input().split()))
+bb = LI()
+bb.reverse()
+===
+F LI()
+   R input().split_py().map(Int)
+V bb = LI()
+bb.reverse()
+===
+auto LI()
+{
+    return input().split_py().map([](const auto &x){return to_int(x);});
+}
+auto bb = LI();
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        bb.reverse();
+    }
+} code_block_1;
+
+
+---
+# [https://rosettacode.org/wiki/Colorful_numbers#Python]
+print(f'{1 + 2: 5,}')
+===
+print(f:‘{commatize(1 + 2): 5}’)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"#5"_S.format(commatize(1 + 2)));
+    }
+} code_block_1;
+
+
+# [https://rosettacode.org/wiki/Count_the_coins/0-1]
+from typing import List
+
+class Solver:
+    def count(self, rindices: List[int]) -> None:
+        self.count(rindices)
+
+solver = Solver()
+rindices = list(range(10))
+solver.count(rindices)
+===
+T Solver
+   F count([Int] &rindices) -> Void
+      .count(&rindices)
+
+V solver = Solver()
+V rindices = Array(0.<10)
+solver.count(&rindices)
+===
+class Solver
+{
+public:
+    void count(Array<int> &rindices)
+    {
+        count(rindices);
+    }
+};
+
+auto solver = Solver();
+auto rindices = create_array(range_el(0, 10));
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        solver.count(rindices);
+    }
+} code_block_1;
+
+
+Char = str
+
+direction: str
+v = 1
+if v in (1, 5, 13):
+    direction = 'N'
+elif v in (2, 3, 7):
+    direction = 'E'
+elif v == 6:
+    direction = 'W'
+else:
+    raise RuntimeError('Illegal state.')
+
+dir = Char('E')
+if dir in ('N', 'W'):
+    v = 1
+elif dir == 'E':
+    v = 2
+
+dir2 = Char('E')
+if dir2 in ('NE', 'W'):
+    v = 1
+elif dir2 == 'E':
+    v = 2
+===
+String direction
+V v = 1
+S v
+   1, 5, 13
+      direction = ‘N’
+   2, 3, 7
+      direction = ‘E’
+   6
+      direction = ‘W’
+   E
+      X.throw RuntimeError(‘Illegal state.’)
+
+S Char(‘E’)
+   ‘N’, ‘W’
+      v = 1
+   ‘E’
+      v = 2
+
+S Char(‘E’)
+   ‘NE’, ‘W’
+      v = 1
+   ‘E’
+      v = 2
+===
+String direction;
+auto v = 1;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        switch (v)
+        {
+        case 1:
+        case 5:
+        case 13:
+            direction = u'N'_C;
+            break;
+        case 2:
+        case 3:
+        case 7:
+            direction = u'E'_C;
+            break;
+        case 6:
+            direction = u'W'_C;
+            break;
+        default:
+            throw RuntimeError(u"Illegal state."_S);
+            break;
+        }
+
+        switch (u'E'_C)
+        {
+        case u'N':
+        case u'W':
+            v = 1;
+            break;
+        case u'E':
+            v = 2;
+            break;
+        }
+
+        auto u_E__C = u'E'_C;
+        if (in(u_E__C, make_tuple(u"NE"_S, u'W')))
+            v = 1;
+        else if (u_E__C == u'E')
+            v = 2;
+    }
+} code_block_1;
+
+
+print(b'\xf0\xf1\xf2'.hex())
+===
+print(Bytes("\xf0\xf1\xf2").hex().lowercase())
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print("\xf0\xf1\xf2"_B.hex().lowercase());
+    }
+} code_block_1;
+
+
+if (l := input()) != '':
+    print(l)
+
+code = ''
+while (line := input()) != '':
+    code += line + "\n"
+
+print('Your code:')
+print(code)
+===
+I (V l = input()) != ‘’
+   print(l)
+
+V code = ‘’
+L (V line = input()) != ‘’
+   code ‘’= line"\n"
+
+print(‘Your code:’)
+print(code)
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        if (auto l = input(); l != u"")
+            print(l);
+    }
+} code_block_1;
+
+auto code = u""_S;
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        for (auto line = input(); line != u""; line = input())
+            code &= line & u"\n"_S;
+
+        print(u"Your code:"_S);
+        print(code);
+    }
+} code_block_2;
+
+
+print("start address: 0x{:04X}".format(256))
+print("start address: 0x{:X}".format(256))
+===
+print(‘start address: 0x#04’.format(hex(256)))
+print(‘start address: 0x#.’.format(hex(256)))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"start address: 0x#04"_S.format(hex(256)));
+        print(u"start address: 0x#."_S.format(hex(256)));
+    }
+} code_block_1;
+
+
+import csv
+
+for row in csv.reader(open('test.csv', encoding = 'utf-8')):
+    print(row[1] + ': ' + row[2])
+for row in csv.reader(open('test.csv', encoding = 'utf-8'), delimiter = ','):
+    print(row[1] + ': ' + row[2])
+===
+L(row) csv:read(File(‘test.csv’, encoding' ‘utf-8’), skip_first_row' 0B)
+   print(row[1]‘: ’row[2])
+L(row) csv:read(File(‘test.csv’, encoding' ‘utf-8’), delimiter' ‘,’, skip_first_row' 0B)
+   print(row[1]‘: ’row[2])
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&row : csv::read(File(u"test.csv"_S, u"utf-8"_S), u"utf-8"_S, u","_S, nullptr, false))
+            print(_get<1>(row) & u": "_S & _get<2>(row));
+        for (auto &&row : csv::read(File(u"test.csv"_S, u"utf-8"_S), u"utf-8"_S, u","_S, nullptr, false))
+            print(_get<1>(row) & u": "_S & _get<2>(row));
+    }
+} code_block_1;
+
+
+import csv
+
+writer = csv.writer(open('t.csv', 'w', newline = '', encoding = 'utf-8'), delimiter = ';')
+writer.writerow([1, 2, 3])
+writer.writerow(['d"b', 'c'])
+===
+V writer = csv:Writer(File(‘t.csv’, WRITE, encoding' ‘utf-8’), delimiter' ‘;’)
+writer.write_row([1, 2, 3])
+writer.write_row([‘d"b’, ‘c’])
+===
+auto writer = csv::Writer(FileWr(u"t.csv"_S, u"utf-8"_S), u"utf-8"_S, u";"_S);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        writer.write_row(create_array({1, 2, 3}));
+        writer.write_row(create_array({u"d\"b"_S, u"c"_S}));
+    }
+} code_block_1;
+
+
+import csv
+
+reader = csv.reader(open('test.csv', encoding = 'utf-8'))
+hdr = next(reader)
+НаименованиеIndex = hdr.index('Наименование')
+КоличествоIndex   = hdr.index('Количество')
+for row in reader:
+    print(row[НаименованиеIndex] + ': ' + row[КоличествоIndex])
+===
+[String] hdr
+V reader = csv:read(File(‘test.csv’, encoding' ‘utf-8’), header' &hdr)
+V НаименованиеIndex = hdr.index(‘Наименование’)
+V КоличествоIndex = hdr.index(‘Количество’)
+L(row) reader
+   print(row[НаименованиеIndex]‘: ’row[КоличествоIndex])
+===
+Array<String> hdr;
+auto reader = csv::read(File(u"test.csv"_S, u"utf-8"_S), u"utf-8"_S, u","_S, &hdr);
+auto НаименованиеIndex = hdr.index(u"Наименование"_S);
+auto КоличествоIndex = hdr.index(u"Количество"_S);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&row : reader)
+            print(row[НаименованиеIndex] & u": "_S & row[КоличествоIndex]);
+    }
+} code_block_1;
+
+
+import csv
+
+for row in csv.DictReader(open('test.csv', encoding = 'utf-8')):
+    print(row['Наименование'] + ': ' + row['Количество'])
+===
+L(row) csv:read(File(‘test.csv’, encoding' ‘utf-8’))
+   print(row[‘Наименование’]‘: ’row[‘Количество’])
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        {
+        auto reader = csv::read(File(u"test.csv"_S, u"utf-8"_S), u"utf-8"_S, u","_S, nullptr, false);
+        auto header = reader.read_current_row_as_str_array();
+        int НаименованиеIndex = header.index(u"Наименование"_S);
+        int КоличествоIndex = header.index(u"Количество"_S);
+        for (auto &&row : reader)
+            print(row[НаименованиеIndex] & u": "_S & row[КоличествоIndex]);
+        }
+    }
+} code_block_1;
+
+
+open('out.txt', 'wb').write(b"123")
+f1 = open('out.txt', 'r')
+f2 = open('out.txt', 'r', encoding = 'utf-8')
+fb = open('out.txt', 'rb')
+of1 = open('out1.txt', 'w')
+of2 = open('out2.txt', 'w', encoding = 'utf-8-sig')
+ofb = open('outb.txt', 'wb')
+af1 = open('ap1.txt', 'a')
+af2 = open('ap2.txt', 'a', encoding = 'utf-8-sig')
+afb = open('apb.txt', 'ab')
+print(f1.read())
+print(f2.read())
+print(fb.read(2))
+of1.write('a')
+of2.write('a')
+ofb.write(b'aa')
+af1.write('a')
+af2.write('a')
+afb.write(b'aa')
+===
+File(‘out.txt’, WRITE).write_bytes(Bytes(‘123’))
+V f1 = File(‘out.txt’)
+V f2 = File(‘out.txt’, encoding' ‘utf-8’)
+V fb = File(‘out.txt’)
+V of1 = File(‘out1.txt’, WRITE)
+V of2 = File(‘out2.txt’, WRITE, encoding' ‘utf-8-sig’)
+V ofb = File(‘outb.txt’, WRITE)
+V af1 = File(‘ap1.txt’, APPEND)
+V af2 = File(‘ap2.txt’, APPEND, encoding' ‘utf-8-sig’)
+V afb = File(‘apb.txt’, APPEND)
+print(f1.read())
+print(f2.read())
+print(fb.read_bytes(at_most' 2))
+of1.write(‘a’)
+of2.write(‘a’)
+ofb.write_bytes(Bytes(‘aa’))
+af1.write(‘a’)
+af2.write(‘a’)
+afb.write_bytes(Bytes(‘aa’))
+===
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        FileWr(u"out.txt"_S).write_bytes("123"_B);
+    }
+} code_block_1;
+
+auto f1 = File(u"out.txt"_S);
+auto f2 = File(u"out.txt"_S, u"utf-8"_S);
+auto fb = File(u"out.txt"_S);
+auto of1 = FileWr(u"out1.txt"_S);
+auto of2 = FileWr(u"out2.txt"_S, u"utf-8-sig"_S);
+auto ofb = FileWr(u"outb.txt"_S);
+auto af1 = FileWr(u"ap1.txt"_S, u"utf-8"_S, true);
+auto af2 = FileWr(u"ap2.txt"_S, u"utf-8-sig"_S, true);
+auto afb = FileWr(u"apb.txt"_S, u"utf-8"_S, true);
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        print(f1.read());
+        print(f2.read());
+        print(fb.read_bytes_at_most(2));
+        of1.write(u"a"_S);
+        of2.write(u"a"_S);
+        ofb.write_bytes("aa"_B);
+        af1.write(u"a"_S);
+        af2.write(u"a"_S);
+        afb.write_bytes("aa"_B);
+    }
+} code_block_2;
+
+
+class Token:
+    pass
+indent_f: Callable[[List[Token]], str]
+===
+T Token
+{
+}
+([Token] -> String) indent_f
+===
+class Token
+{
+};
+
+std::function<String(const Array<Token>&)> indent_f;
+
+
+longest_src_line_len = max([1, 2], default = 0)
+===
+V longest_src_line_len = max([1, 2], default' 0)
+===
+auto longest_src_line_len = max_with_default(create_array({1, 2}), 0);
+
+
+options_list = ['mode', 'indent']
+new_config = ''
+for option in options_list:
+    new_config += option + "\n"
+    if option is not options_list[-1]:
+        new_config += "\n"
+===
+V options_list = [‘mode’, ‘indent’]
+V new_config = ‘’
+L(option) options_list
+   new_config ‘’= option"\n"
+   I &option != &options_list.last
+      new_config ‘’= "\n"
+===
+auto options_list = create_array({u"mode"_S, u"indent"_S});
+auto new_config = u""_S;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&option : options_list) {
+            new_config &= option & u"\n"_S;
+            if (&option != &options_list.last())
+                new_config &= u"\n"_S;
+        }
+    }
+} code_block_1;
+
+
+if __name__ == '__main__':
+    def get_comment(src_line) -> str:
+        return ' '
+
+    comment = get_comment(0)
+    if True:
+        comment += get_comment(0)
+===
+:start:
+F get_comment(src_line) -> String
+   R ‘ ’
+
+V comment = get_comment(0)
+I 1B
+   comment ‘’= get_comment(0)
+===
+int main()
+{
+    auto get_comment = [](const auto &src_line) -> String
+    {
+        return u" "_S;
+    };
+
+    auto comment = get_comment(0);
+    if (true)
+        comment &= get_comment(0);
+}
+
+
+class Pt(NamedTuple):
+    x : float
+    y : float
+    def __str__(self):
+        return 'Pt(x=%s, y=%s)' % (self.x, self.y)
+
+print(Pt(1, 2))
+print(Pt(x=1, y=2))
+===
+T Pt((Float x, Float y))
+   F String()
+      R ‘Pt(x=#., y=#.)’.format(.x, .y)
+
+print(Pt(1, 2))
+print(Pt(x' 1, y' 2))
+===
+class Pt
+{
+public:
+    double x;
+    double y;
+
+    Pt(const double &x, const double &y) :
+        x(x), y(y) {}
+
+    operator String() const
+    {
+        return u"Pt(x=#., y=#.)"_S.format(x, y);
+    }
+};
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(Pt(1, 2));
+        print(Pt(1, 2));
+    }
+} code_block_1;
+
+
+import symasm
+
+errors: List[symasm.Error] = []
+===
+[symasm:Error] errors
+===
+namespace symasm {
+#include "symasm.hpp"
+}
+
+Array<symasm::Error> errors;
+
+
+class Error:
+    message: str
+
+    def __init__(self, message):
+        self.message = message
+
+def error_at_token(errors: list, message):
+    errors.append(Error(message))
+
+def coc(errors: List[Error] = None): # check operand count
+    errors.append(Error(f'instruction must have 2 operand(s)'))
+
+def translate_masm_to_symasm(errors: List[Error] = None):
+    def eoc(n): # expected operand count
+        if errors is not None:
+            error_at_token(errors, f'instruction must have 2 operand(s)')
+    def eoc2(n): # expected operand count
+        return coc(errors)
+
+    #eoc(2)
+    eoc2(2)
+
+errors: List[Error] = []
+translate_masm_to_symasm(errors)
+===
+T Error
+   String message
+
+   F (message)
+      .message = message
+
+F error_at_token(&errors, message)
+   errors.append(Error(message))
+
+F coc([Error]? &errors = N)
+   errors.append(Error(‘instruction must have 2 operand(s)’))
+
+F translate_masm_to_symasm([Error]? &errors = N)
+   F eoc(n)
+      I @errors != N
+         error_at_token(&@errors, ‘instruction must have 2 operand(s)’)
+   F eoc2(n)
+      R coc(&@errors)
+
+   eoc2(2)
+
+[Error] errors
+translate_masm_to_symasm(&errors)
+===
+class Error
+{
+public:
+    String message;
+
+    template <typename T1> Error(const T1 &message) :
+        message(message)
+    {
+    }
+};
+
+template <typename T1, typename T2> auto error_at_token(T1 &errors, const T2 &message)
+{
+    errors.append(Error(message));
+}
+
+auto coc(Array<Error>* const errors = nullptr)
+{
+    errors->append(Error(u"instruction must have 2 operand(s)"_S));
+}
+
+auto translate_masm_to_symasm(Array<Error>* const errors = nullptr)
+{
+    auto eoc = [&errors](const auto &n)
+    {
+        if (errors != nullptr)
+            error_at_token(errors, u"instruction must have 2 operand(s)"_S);
+    };
+    auto eoc2 = [&errors](const auto &n)
+    {
+        return coc(errors);
+    };
+
+    eoc2(2);
+}
+
+Array<Error> errors;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        translate_masm_to_symasm(&errors);
+    }
+} code_block_1;

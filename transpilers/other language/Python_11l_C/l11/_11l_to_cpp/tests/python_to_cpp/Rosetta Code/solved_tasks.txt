@@ -1,0 +1,18 @@
+https://www.rosettacode.org/wiki/Concatenate_two_primes_is_also_prime
+https://www.rosettacode.org/wiki/Cubic_Special_Primes
+https://www.rosettacode.org/wiki/Erd%C5%91s-primes
+https://www.rosettacode.org/wiki/Find_prime_n_such_that_reversed_n_is_also_prime
+https://www.rosettacode.org/wiki/Next_special_primes
+https://www.rosettacode.org/wiki/Nice_primes
+https://www.rosettacode.org/wiki/Numbers_whose_count_of_divisors_is_prime
+https://www.rosettacode.org/wiki/Numbers_with_prime_digits_whose_sum_is_13
+https://www.rosettacode.org/wiki/Odd_squarefree_semiprimes
+https://www.rosettacode.org/wiki/Palindromic_primes_in_base_16
+https://www.rosettacode.org/wiki/Piprimes
+https://www.rosettacode.org/wiki/Prime_triplets
+https://www.rosettacode.org/wiki/Primes_which_contain_only_one_odd_digit (`RangeWithStep::filter()`)
+https://www.rosettacode.org/wiki/Primes_whose_first_and_last_number_is_3
+https://www.rosettacode.org/wiki/Quadrat_Special_Primes [`^L.break`]
+https://www.rosettacode.org/wiki/Special_neighbor_primes
+https://www.rosettacode.org/wiki/Substring_primes
+https://www.rosettacode.org/wiki/Sum_of_primes_in_odd_positions_is_prime

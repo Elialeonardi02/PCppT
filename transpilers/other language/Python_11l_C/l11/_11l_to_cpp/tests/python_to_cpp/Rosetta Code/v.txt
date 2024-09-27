@@ -1,0 +1,1187 @@
+# https://www.rosettacode.org/wiki/Van_der_Corput_sequence#Python
+def vdc(n, base=2):
+    (vdc, denom) = (0.0, 1)
+    while n != 0:
+        denom *= base
+        (n, remainder) = divmod(n, base)
+        vdc += float(remainder) / denom
+    return vdc
+
+print([vdc(i) for i in range(10)])
+print([vdc(i, 3) for i in range(10)])
+===
+F vdc(=n, base = 2)
+   V (vdc, denom) = (0.0, 1)
+   L n != 0
+      denom *= base
+      (n, V remainder) = divmod(n, base)
+      vdc += Float(remainder) / denom
+   R vdc
+
+print((0.<10).map(i -> vdc(i)))
+print((0.<10).map(i -> vdc(i, 3)))
+===
+template <typename T1, typename T2 = decltype(2)> auto vdc(T1 n, const T2 &base = 2)
+{
+    auto [vdc, denom] = make_tuple(0.0, 1);
+    while (n != 0) {
+        denom *= base;
+        TUPLE_ELEMENT_T(1, divmod(n, base)) remainder;
+        assign_from_tuple(n, remainder, divmod(n, base));
+        vdc += to_float(remainder) / denom;
+    }
+    return vdc;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(range_el(0, 10).map([](const auto &i){return vdc(i);}));
+        print(range_el(0, 10).map([](const auto &i){return vdc(i, 3);}));
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Van_Eck_sequence#Python:_List_based
+def van_eck(c):
+    r : List[int] = []
+    n = 0
+    seen = [0]
+    val = 0
+    while True:
+        r.append(val)
+        if len(r) == c:
+            return r
+        if val in seen[1:]:
+            val = seen.index(val, 1)
+        else:
+            val = 0
+        seen.insert(0, val)
+        n += 1
+
+print("Van Eck: first 10 terms:  ", van_eck(10))
+print("Van Eck: terms 991 - 1000:", van_eck(1000)[-10:])
+===
+F van_eck(c)
+   [Int] r
+   V n = 0
+   V seen = [0]
+   V val = 0
+   L
+      r.append(val)
+      I r.len == c
+         R r
+      I val C seen[1..]
+         val = seen.index(val, 1)
+      E
+         val = 0
+      seen.insert(0, val)
+      n++
+
+print(‘Van Eck: first 10 terms:   ’van_eck(10))
+print(‘Van Eck: terms 991 - 1000: ’van_eck(1000)[(len)-10 ..])
+===
+template <typename T1> auto van_eck(const T1 &c)
+{
+    Array<int> r;
+    auto n = 0;
+    auto seen = create_array({0});
+    auto val = 0;
+    while (true) {
+        r.append(val);
+        if (r.len() == c)
+            return r;
+        if (in(val, seen[range_ei(1)]))
+            val = seen.index(val, 1);
+        else
+            val = 0;
+        seen.insert(0, val);
+        n++;
+    }
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"Van Eck: first 10 terms:   "_S & van_eck(10));
+        print(u"Van Eck: terms 991 - 1000: "_S & van_eck(1000)[range_elen_i( - 10)]);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Vigen%C3%A8re_cipher#C.2B.2B
+def encrypt(key, text):
+    out = ''
+    j = 0
+    for c in text:
+        if not c.isalpha():
+            continue
+        out += chr((ord(c.upper()) + ord(key[j]) - 2 * ord('A')) % 26 + ord('A'))
+        j = (j + 1) % len(key)
+    return out
+
+def decrypt(key, text):
+    out = ''
+    j = 0
+    for c in text:
+        if not c.isalpha():
+            continue
+        out += chr((ord(c) - ord(key[j]) + 26) % 26 + ord('A'))
+        j = (j + 1) % len(key)
+    return out
+
+key = 'VIGENERECIPHER'
+original = "Beware the Jabberwock, my son! The jaws that bite, the claws that catch!"
+encrypted = encrypt(key, original)
+decrypted = decrypt(key, encrypted)
+
+print(original)
+print("Encrypted: " + encrypted)
+print("Decrypted: " + decrypted)
+===
+F encrypt(key, text)
+   V out = ‘’
+   V j = 0
+   L(c) text
+      I !c.is_alpha()
+         L.continue
+      out ‘’= Char(code' (c.uppercase().code + key[j].code - 2 * ‘A’.code) % 26 + ‘A’.code)
+      j = (j + 1) % key.len
+   R out
+
+F decrypt(key, text)
+   V out = ‘’
+   V j = 0
+   L(c) text
+      I !c.is_alpha()
+         L.continue
+      out ‘’= Char(code' (c.code - key[j].code + 26) % 26 + ‘A’.code)
+      j = (j + 1) % key.len
+   R out
+
+V key = ‘VIGENERECIPHER’
+V original = ‘Beware the Jabberwock, my son! The jaws that bite, the claws that catch!’
+V encrypted = encrypt(key, original)
+V decrypted = decrypt(key, encrypted)
+
+print(original)
+print(‘Encrypted: ’encrypted)
+print(‘Decrypted: ’decrypted)
+===
+template <typename T1, typename T2> auto encrypt(const T1 &key, const T2 &text)
+{
+    auto out = u""_S;
+    auto j = 0;
+    for (auto &&c : text) {
+        if (!c.is_alpha())
+            continue;
+        out &= Char(mod((c.uppercase().code + key[j].code - 2 * u'A'_C.code), 26) + u'A'_C.code);
+        j = mod((j + 1), key.len());
+    }
+    return out;
+}
+
+template <typename T1, typename T2> auto decrypt(const T1 &key, const T2 &text)
+{
+    auto out = u""_S;
+    auto j = 0;
+    for (auto &&c : text) {
+        if (!c.is_alpha())
+            continue;
+        out &= Char(mod((c.code - key[j].code + 26), 26) + u'A'_C.code);
+        j = mod((j + 1), key.len());
+    }
+    return out;
+}
+
+auto key = u"VIGENERECIPHER"_S;
+auto original = u"Beware the Jabberwock, my son! The jaws that bite, the claws that catch!"_S;
+auto encrypted = encrypt(key, original);
+auto decrypted = decrypt(key, encrypted);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(original);
+        print(u"Encrypted: "_S & encrypted);
+        print(u"Decrypted: "_S & decrypted);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Vigen%C3%A8re_cipher/Cryptanalysis#Python
+#from string import ascii_uppercase
+ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # Array(‘A’..‘Z’)
+
+def vigenere_decrypt(target_freqs, input):
+    nchars = len(ascii_uppercase)
+    ordA = ord('A')
+    sorted_targets = sorted(target_freqs)
+
+    def frequency(input):
+        result = [(c, 0.0) for c in ascii_uppercase]
+        for c in input:
+            #result[c - ordA][1] += 1
+            result[c - ordA] = (result[c - ordA][0], result[c - ordA][1] + 1)
+        return result
+
+    def correlation(input):
+        result = 0.0
+        freq = sorted(frequency(input), key=lambda a: a[1])
+
+        for i, f in enumerate(freq):
+            result += f[1] * sorted_targets[i]
+        return result
+
+    cleaned = [ord(c) for c in input.upper() if c.isupper()]
+    best_len = 0
+    best_corr = -100.0
+
+    # Assume that if there are less than 20 characters
+    # per column, the key's too long to guess
+    for i in range(2, len(cleaned) // 20):
+        pieces = [[0]*0 for _ in range(i)]
+        for j, c in enumerate(cleaned):
+            pieces[j % i].append(c)
+
+        # The correlation seems to increase for smaller
+        # pieces/longer keys, so weigh against them a little
+        corr = -0.5 * i + sum(correlation(p) for p in pieces)
+
+        if corr > best_corr:
+            best_len = i
+            best_corr = corr
+
+    if best_len == 0:
+        return ("Text is too short to analyze", "")
+
+    pieces = [[0]*0 for _ in range(best_len)]
+    for i, c in enumerate(cleaned):
+        pieces[i % best_len].append(c)
+
+    freqs = [frequency(p) for p in pieces]
+
+    key = ""
+    for fr_ in freqs:
+        fr = sorted(fr_, key=lambda a: a[1], reverse=True)
+
+        m = 0
+        max_corr = 0.0
+        for j in range(nchars):
+            corr = 0.0
+            c = ordA + j
+            for frc in fr:
+                d = (ord(frc[0]) - c + nchars) % nchars
+                corr += frc[1] * target_freqs[d]
+
+            if corr > max_corr:
+                m = j
+                max_corr = corr
+
+        key += chr(m + ordA)
+
+    r = (chr((c - ord(key[i % best_len]) + nchars) % nchars + ordA)
+         for i, c in enumerate(cleaned))
+    return (key, "".join(r))
+
+encoded = """
+    MOMUD EKAPV TQEFM OEVHP AJMII CDCTI FGYAG JSPXY ALUYM NSMYH
+    VUXJE LEPXJ FXGCM JHKDZ RYICU HYPUS PGIGM OIYHF WHTCQ KMLRD
+    ITLXZ LJFVQ GHOLW CUHLO MDSOE KTALU VYLNZ RFGBX PHVGA LWQIS
+    FGRPH JOOFW GUBYI LAPLA LCAFA AMKLG CETDW VOELJ IKGJB XPHVG
+    ALWQC SNWBU BYHCU HKOCE XJEYK BQKVY KIIEH GRLGH XEOLW AWFOJ
+    ILOVV RHPKD WIHKN ATUHN VRYAQ DIVHX FHRZV QWMWV LGSHN NLVZS
+    JLAKI FHXUF XJLXM TBLQV RXXHR FZXGV LRAJI EXPRV OSMNP KEPDT
+    LPRWM JAZPK LQUZA ALGZX GVLKL GJTUI ITDSU REZXJ ERXZS HMPST
+    MTEOE PAPJH SMFNB YVQUZ AALGA YDNMP AQOWT UHDBV TSMUE UIMVH
+    QGVRW AEFSP EMPVE PKXZY WLKJA GWALT VYYOB YIXOK IHPDS EVLEV
+    RVSGB JOGYW FHKBL GLXYA MVKIS KIEHY IMAPX UOISK PVAGN MZHPW
+    TTZPV XFCCD TUHJH WLAPF YULTB UXJLN SIJVV YOVDJ SOLXG TGRVO
+    SFRII CTMKO JFCQF KTINQ BWVHG TENLH HOGCS PSFPV GJOKM SIFPR
+    ZPAAS ATPTZ FTPPD PORRF TAXZP KALQA WMIUD BWNCT LEFKO ZQDLX
+    BUXJL ASIMR PNMBF ZCYLV WAPVF QRHZV ZGZEF KBYIO OFXYE VOWGB
+    BXVCB XBAWG LQKCM ICRRX MACUO IKHQU AJEGL OIJHH XPVZW JEWBA
+    FWAML ZZRXJ EKAHV FASMU LVVUT TGK"""
+
+english_frequences = [
+    0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015,
+    0.06094, 0.06966, 0.00153, 0.00772, 0.04025, 0.02406, 0.06749,
+    0.07507, 0.01929, 0.00095, 0.05987, 0.06327, 0.09056, 0.02758,
+    0.00978, 0.02360, 0.00150, 0.01974, 0.00074]
+
+(key, decoded) = vigenere_decrypt(english_frequences, encoded)
+print("Key:", key)
+print("\nText:", decoded)
+===
+V ascii_uppercase = ‘ABCDEFGHIJKLMNOPQRSTUVWXYZ’
+
+F vigenere_decrypt(target_freqs, input)
+   V nchars = :ascii_uppercase.len
+   V ordA = ‘A’.code
+   V sorted_targets = sorted(target_freqs)
+
+   F frequency(input)
+      V result = :ascii_uppercase.map(c -> (c, 0.0))
+      L(c) input
+         result[c - @ordA] = (result[c - @ordA][0], result[c - @ordA][1] + 1)
+      R result
+
+   F correlation(input)
+      V result = 0.0
+      V freq = sorted(@frequency(input), key' a -> a[1])
+
+      L(f) freq
+         V i = L.index
+         result += f[1] * @sorted_targets[i]
+      R result
+
+   V cleaned = input.uppercase().filter(c -> c.is_uppercase()).map(c -> c.code)
+   V best_len = 0
+   V best_corr = -100.0
+
+   L(i) 2 .< cleaned.len I/ 20
+      V pieces = [[Int]()] * i
+      L(c) cleaned
+         V j = L.index
+         pieces[j % i].append(c)
+
+      V corr = -0.5 * i + sum(pieces.map(p -> @correlation(p)))
+
+      I corr > best_corr
+         best_len = i
+         best_corr = corr
+
+   I best_len == 0
+      R (‘Text is too short to analyze’, ‘’)
+
+   V pieces = [[Int]()] * best_len
+   L(c) cleaned
+      V i = L.index
+      pieces[i % best_len].append(c)
+
+   V freqs = pieces.map(p -> @frequency(p))
+
+   V key = ‘’
+   L(fr_) freqs
+      V fr = sorted(fr_, key' a -> a[1], reverse' 1B)
+
+      V m = 0
+      V max_corr = 0.0
+      L(j) 0 .< nchars
+         V corr = 0.0
+         V c = ordA + j
+         L(frc) fr
+            V d = (frc[0].code - c + nchars) % nchars
+            corr += frc[1] * target_freqs[d]
+
+         I corr > max_corr
+            m = j
+            max_corr = corr
+
+      key ‘’= Char(code' m + ordA)
+
+   V r = (enumerate(cleaned).map((i, c) -> Char(code' (c - @key[i % @best_len].code + @nchars) % @nchars + @ordA)))
+   R (key, r.join(‘’))
+
+V encoded = ‘
+    MOMUD EKAPV TQEFM OEVHP AJMII CDCTI FGYAG JSPXY ALUYM NSMYH
+    VUXJE LEPXJ FXGCM JHKDZ RYICU HYPUS PGIGM OIYHF WHTCQ KMLRD
+    ITLXZ LJFVQ GHOLW CUHLO MDSOE KTALU VYLNZ RFGBX PHVGA LWQIS
+    FGRPH JOOFW GUBYI LAPLA LCAFA AMKLG CETDW VOELJ IKGJB XPHVG
+    ALWQC SNWBU BYHCU HKOCE XJEYK BQKVY KIIEH GRLGH XEOLW AWFOJ
+    ILOVV RHPKD WIHKN ATUHN VRYAQ DIVHX FHRZV QWMWV LGSHN NLVZS
+    JLAKI FHXUF XJLXM TBLQV RXXHR FZXGV LRAJI EXPRV OSMNP KEPDT
+    LPRWM JAZPK LQUZA ALGZX GVLKL GJTUI ITDSU REZXJ ERXZS HMPST
+    MTEOE PAPJH SMFNB YVQUZ AALGA YDNMP AQOWT UHDBV TSMUE UIMVH
+    QGVRW AEFSP EMPVE PKXZY WLKJA GWALT VYYOB YIXOK IHPDS EVLEV
+    RVSGB JOGYW FHKBL GLXYA MVKIS KIEHY IMAPX UOISK PVAGN MZHPW
+    TTZPV XFCCD TUHJH WLAPF YULTB UXJLN SIJVV YOVDJ SOLXG TGRVO
+    SFRII CTMKO JFCQF KTINQ BWVHG TENLH HOGCS PSFPV GJOKM SIFPR
+    ZPAAS ATPTZ FTPPD PORRF TAXZP KALQA WMIUD BWNCT LEFKO ZQDLX
+    BUXJL ASIMR PNMBF ZCYLV WAPVF QRHZV ZGZEF KBYIO OFXYE VOWGB
+    BXVCB XBAWG LQKCM ICRRX MACUO IKHQU AJEGL OIJHH XPVZW JEWBA
+    FWAML ZZRXJ EKAHV FASMU LVVUT TGK’
+
+V english_frequences = [0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015, 0.06094, 0.06966, 0.00153, 0.00772, 0.04025, 0.02406, 0.06749, 0.07507, 0.01929, 0.00095, 0.05987, 0.06327, 0.09056, 0.02758, 0.00978, 0.02360, 0.00150, 0.01974, 0.00074]
+
+V (key, decoded) = vigenere_decrypt(english_frequences, encoded)
+print(‘Key: ’key)
+print("\nText: "decoded)
+===
+auto ascii_uppercase = u"ABCDEFGHIJKLMNOPQRSTUVWXYZ"_S;
+
+template <typename T1, typename T2> auto vigenere_decrypt(const T1 &target_freqs, const T2 &input)
+{
+    auto nchars = ::ascii_uppercase.len();
+    auto ordA = u'A'_C.code;
+    auto sorted_targets = sorted(target_freqs);
+
+    auto frequency = [&ordA](const auto &input)
+    {
+        auto result = ::ascii_uppercase.map([](const auto &c){return make_tuple(c, 0.0);});
+        for (auto &&c : input)
+            result.set(c - ordA, make_tuple(_get<0>(result[c - ordA]), _get<1>(result[c - ordA]) + 1));
+        return result;
+    };
+
+    auto correlation = [&frequency, &sorted_targets](const auto &input)
+    {
+        auto result = 0.0;
+        auto freq = sorted(frequency(input), [](const auto &a){return _get<1>(a);});
+        {int Lindex = 0;
+
+        for (auto &&f : freq) {
+            auto i = Lindex;
+            result += _get<1>(f) * sorted_targets[i];
+            Lindex++;
+        }}
+        return result;
+    };
+
+    auto cleaned = input.uppercase().filter([](const auto &c){return c.is_uppercase();}).map([](const auto &c){return c.code;});
+    auto best_len = 0;
+    auto best_corr = -100.0;
+
+    for (auto i : range_el(2, idiv(cleaned.len(), 20))) {
+        auto pieces = create_array({Array<int>()}) * i;
+        {int Lindex = 0;
+        for (auto &&c : cleaned) {
+            auto j = Lindex;
+            pieces[mod(j, i)].append(c);
+            Lindex++;
+        }}
+
+        auto corr = -0.5 * i + sum_map(pieces, [&correlation](const auto &p){return correlation(p);});
+
+        if (corr > best_corr) {
+            best_len = i;
+            best_corr = corr;
+        }
+    }
+
+    if (best_len == 0)
+        return make_tuple(u"Text is too short to analyze"_S, u""_S);
+
+    auto pieces = create_array({Array<int>()}) * best_len;
+    {int Lindex = 0;
+    for (auto &&c : cleaned) {
+        auto i = Lindex;
+        pieces[mod(i, best_len)].append(c);
+        Lindex++;
+    }}
+
+    auto freqs = pieces.map([&frequency](const auto &p){return frequency(p);});
+
+    auto key = u""_S;
+    for (auto &&fr_ : freqs) {
+        auto fr = sorted(fr_, [](const auto &a){return _get<1>(a);}, true);
+
+        auto m = 0;
+        auto max_corr = 0.0;
+        for (auto j : range_el(0, nchars)) {
+            auto corr = 0.0;
+            auto c = ordA + j;
+            for (auto &&frc : fr) {
+                auto d = mod((_get<0>(frc).code - c + nchars), nchars);
+                corr += _get<1>(frc) * target_freqs[d];
+            }
+
+            if (corr > max_corr) {
+                m = j;
+                max_corr = corr;
+            }
+        }
+
+        key &= Char(m + ordA);
+    }
+
+    auto r = (enumerate(cleaned).map([&best_len, &key, &nchars, &ordA](const auto &i, const auto &c){return Char(mod((c - key[mod(i, best_len)].code + nchars), nchars) + ordA);}));
+    return make_tuple(key, r.join(u""_S));
+}
+
+auto encoded = uR"(
+    MOMUD EKAPV TQEFM OEVHP AJMII CDCTI FGYAG JSPXY ALUYM NSMYH
+    VUXJE LEPXJ FXGCM JHKDZ RYICU HYPUS PGIGM OIYHF WHTCQ KMLRD
+    ITLXZ LJFVQ GHOLW CUHLO MDSOE KTALU VYLNZ RFGBX PHVGA LWQIS
+    FGRPH JOOFW GUBYI LAPLA LCAFA AMKLG CETDW VOELJ IKGJB XPHVG
+    ALWQC SNWBU BYHCU HKOCE XJEYK BQKVY KIIEH GRLGH XEOLW AWFOJ
+    ILOVV RHPKD WIHKN ATUHN VRYAQ DIVHX FHRZV QWMWV LGSHN NLVZS
+    JLAKI FHXUF XJLXM TBLQV RXXHR FZXGV LRAJI EXPRV OSMNP KEPDT
+    LPRWM JAZPK LQUZA ALGZX GVLKL GJTUI ITDSU REZXJ ERXZS HMPST
+    MTEOE PAPJH SMFNB YVQUZ AALGA YDNMP AQOWT UHDBV TSMUE UIMVH
+    QGVRW AEFSP EMPVE PKXZY WLKJA GWALT VYYOB YIXOK IHPDS EVLEV
+    RVSGB JOGYW FHKBL GLXYA MVKIS KIEHY IMAPX UOISK PVAGN MZHPW
+    TTZPV XFCCD TUHJH WLAPF YULTB UXJLN SIJVV YOVDJ SOLXG TGRVO
+    SFRII CTMKO JFCQF KTINQ BWVHG TENLH HOGCS PSFPV GJOKM SIFPR
+    ZPAAS ATPTZ FTPPD PORRF TAXZP KALQA WMIUD BWNCT LEFKO ZQDLX
+    BUXJL ASIMR PNMBF ZCYLV WAPVF QRHZV ZGZEF KBYIO OFXYE VOWGB
+    BXVCB XBAWG LQKCM ICRRX MACUO IKHQU AJEGL OIJHH XPVZW JEWBA
+    FWAML ZZRXJ EKAHV FASMU LVVUT TGK)"_S;
+
+auto english_frequences = create_array({0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015, 0.06094, 0.06966, 0.00153, 0.00772, 0.04025, 0.02406, 0.06749, 0.07507, 0.01929, 0.00095, 0.05987, 0.06327, 0.09056, 0.02758, 0.00978, 0.02360, 0.00150, 0.01974, 0.00074});
+
+auto [key, decoded] = vigenere_decrypt(english_frequences, encoded);
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"Key: "_S & key);
+        print(u"\nText: "_S & decoded);
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Vampire_number#Nim
+Int64 = int
+
+Pow10 = [Int64(10) ** n for n in range(19)]
+
+def isOdd(n):
+    return (n & 1) != 0
+
+def fangs(n):
+    r : List[Tuple[Int64, Int64]] = []
+
+    nDigits = sorted(str(n))
+    if isOdd(len(nDigits)):
+        return r
+
+    fangLen = len(nDigits) // 2
+    inf = Pow10[fangLen - 1]
+    for d in range(inf, inf * 10):
+        if n % d != 0: continue
+        q = n // d
+        if q < d: return r
+        dDigits = str(d)
+        qDigits = str(q)
+        if len(qDigits) > fangLen: continue
+        if len(qDigits) < fangLen: return r
+        if nDigits != sorted(dDigits + qDigits): continue
+        if dDigits[-1] != '0' or qDigits[-1] != '0':
+            r.append((d, q))
+
+    return r
+
+print('First 25 vampire numbers with their fangs:')
+count = 0
+n = 10
+limit = 100
+while count != 25:
+    fangList = fangs(n)
+    if len(fangList) != 0:
+        count += 1
+        print('%2d: %6d =' % (count, n), ' = '.join('%3d x %3d' % (it[0], it[1]) for it in fangList))
+    n += 1
+    if n == limit:
+        n *= 10
+        limit *= 10
+
+print()
+for n in [16_758_243_290_880, 24_959_017_348_650, 14_593_825_548_650]:
+    fangList = fangs(n)
+    if len(fangList) == 0:
+        print(n, 'is not vampiric.')
+    else:
+        print(n, '=', ' = '.join('%d x %d' % (it[0], it[1]) for it in fangList))
+===
+V Pow10 = (0.<19).map(n -> Int64(10) ^ n)
+
+F isOdd(n)
+   R (n [&] 1) != 0
+
+F fangs(n)
+   [(Int64, Int64)] r
+
+   V nDigits = sorted(String(n))
+   I isOdd(nDigits.len)
+      R r
+
+   V fangLen = nDigits.len I/ 2
+   V inf = Pow10[fangLen - 1]
+   L(d) inf .< inf * 10
+      I n % d != 0
+         L.continue
+      V q = n I/ d
+      I q < d
+         R r
+      V dDigits = String(d)
+      V qDigits = String(q)
+      I qDigits.len > fangLen
+         L.continue
+      I qDigits.len < fangLen
+         R r
+      I nDigits != sorted(dDigits‘’qDigits)
+         L.continue
+      I dDigits.last != ‘0’ | qDigits.last != ‘0’
+         r.append((d, q))
+
+   R r
+
+print(‘First 25 vampire numbers with their fangs:’)
+V count = 0
+V n = 10
+V limit = 100
+L count != 25
+   V fangList = fangs(n)
+   I !fangList.empty
+      count++
+      print((‘#2: #6 =’.format(count, n))‘ ’fangList.map(it -> ‘#3 x #3’.format(it[0], it[1])).join(‘ = ’))
+   n++
+   I n == limit
+      n *= 10
+      limit *= 10
+
+print()
+L(n) [16'758'243'290'880, 24'959'017'348'650, 14'593'825'548'650]
+   V fangList = fangs(n)
+   I fangList.empty
+      print(n‘ is not vampiric.’)
+   E
+      print(n‘ = ’fangList.map(it -> ‘#. x #.’.format(it[0], it[1])).join(‘ = ’))
+===
+auto Pow10 = range_el(0, 19).map([](const auto &n){return pow(to_int64(10), n);});
+
+template <typename T1> auto isOdd(const T1 &n)
+{
+    return (n & 1) != 0;
+}
+
+template <typename T1> auto fangs(const T1 &n)
+{
+    Array<llvec2> r;
+
+    auto nDigits = sorted(String(n));
+    if (isOdd(nDigits.len()))
+        return r;
+
+    auto fangLen = idiv(nDigits.len(), 2);
+    auto inf = Pow10[fangLen - 1];
+    for (auto d : range_el(inf, inf * 10)) {
+        if (mod(n, d) != 0)
+            continue;
+        auto q = idiv(n, d);
+        if (q < d)
+            return r;
+        auto dDigits = String(d);
+        auto qDigits = String(q);
+        if (qDigits.len() > fangLen)
+            continue;
+        if (qDigits.len() < fangLen)
+            return r;
+        if (nDigits != sorted(dDigits & qDigits))
+            continue;
+        if (dDigits.last() != u'0' || qDigits.last() != u'0')
+            r.append(make_tuple(d, q));
+    }
+
+    return r;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        print(u"First 25 vampire numbers with their fangs:"_S);
+    }
+} code_block_1;
+
+auto count = 0;
+auto n = 10;
+auto limit = 100;
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        while (count != 25) {
+            auto fangList = fangs(n);
+            if (!fangList.empty()) {
+                count++;
+                print((u"#2: #6 ="_S.format(count, n)) & u" "_S & fangList.map([](const auto &it){return u"#3 x #3"_S.format(_get<0>(it), _get<1>(it));}).join(u" = "_S));
+            }
+            n++;
+            if (n == limit) {
+                n *= 10;
+                limit *= 10;
+            }
+        }
+
+        print();
+        for (auto &&n : create_array({16'758'243'290'880, 24'959'017'348'650, 14'593'825'548'650})) {
+            auto fangList = fangs(n);
+            if (fangList.empty())
+                print(n & u" is not vampiric."_S);
+            else
+                print(n & u" = "_S & fangList.map([](const auto &it){return u"#. x #."_S.format(_get<0>(it), _get<1>(it));}).join(u" = "_S));
+        }
+    }
+} code_block_2;
+
+
+# https://www.rosettacode.org/wiki/Variable-length_quantity#C.2B.2B
+from _11l import *
+
+def to_str(v):
+    return '[ ' + ' '.join(hexu(n).lower().zfill(2) for n in v) + ' ]'
+
+def to_seq(x : UInt64):
+    i = 0
+    for ii in range(9, 0, -1):
+        if x & (UInt64(127) << ii * 7) != 0:
+            i = ii
+            break
+
+    out : List[Byte] = []
+    for j in range(i + 1):
+        out += [((x >> ((i - j) * 7)) & 127) | 128]
+
+    out[i] ^= 128
+    return out
+
+def from_seq(seq):
+    r : UInt64 = 0
+
+    for b in seq:
+        r = (r << 7) | (b & 127)
+
+    return r
+
+for x in [UInt64(0x7f), 0x4000, 0, 0x3ffffe, 0x1fffff, 0x200000, 0x3311a1234df31413]:
+    s = to_seq(x)
+    print('seq from', hexu(x).lower(), to_str(s), 'back:', hexu(from_seq(s)).lower())
+===
+F to_str(v)
+   R ‘[ ’v.map(n -> hex(n).lowercase().zfill(2)).join(‘ ’)‘ ]’
+
+F to_seq(UInt64 x)
+   V i = 0
+   L(ii) (9.<0).step(-1)
+      I x [&] (UInt64(127) << ii * 7) != 0
+         i = ii
+         L.break
+
+   [Byte] out
+   L(j) 0 .. i
+      out [+]= ((x >> ((i - j) * 7)) [&] 127) [|] 128
+
+   out[i] (+)= 128
+   R out
+
+F from_seq(seq)
+   UInt64 r = 0
+
+   L(b) seq
+      r = (r << 7) [|] (b [&] 127)
+
+   R r
+
+L(x) [UInt64(7'F), 40'00, 0, 003F'FFFE, 001F'FFFF, 0020'0000, 3311'A123'4DF3'1413]
+   V s = to_seq(x)
+   print(‘seq from ’hex(x).lowercase()‘ ’to_str(s)‘ back: ’hex(from_seq(s)).lowercase())
+===
+template <typename T1> auto to_str(const T1 &v)
+{
+    return u"[ "_S & v.map([](const auto &n){return hex(n).lowercase().zfill(2);}).join(u" "_S) & u" ]"_S;
+}
+
+auto to_seq(const UInt64 &x)
+{
+    auto i = 0;
+    for (auto ii : range_el(9, 0).step(-1))
+        if ((x & (to_uint64(127) << ii * 7)) != 0) {
+            i = ii;
+            break;
+        }
+
+    Array<Byte> out;
+    for (auto j : range_ee(0, i))
+        out.append(((x >> ((i - j) * 7)) & 127) | 128);
+
+    out[i] ^= 128;
+    return out;
+}
+
+template <typename T1> auto from_seq(const T1 &seq)
+{
+    UInt64 r = 0;
+
+    for (auto &&b : seq)
+        r = (r << 7) | (b & 127);
+
+    return r;
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&x : create_array<UInt64>({to_uint64(0x7F), 0x40'00, 0, 0x003F'FFFE, 0x001F'FFFF, 0x0020'0000, 0x3311'A123'4DF3'1413})) {
+            auto s = to_seq(x);
+            print(u"seq from "_S & hex(x).lowercase() & u" "_S & to_str(s) & u" back: "_S & hex(from_seq(s)).lowercase());
+        }
+    }
+} code_block_1;
+
+
+# https://www.rosettacode.org/wiki/Verify_distribution_uniformity/Chi-squared_test#Python
+from typing import List
+import math
+import random
+
+a = 12
+k1_factrl = 1.0
+c : List[float] = []
+c.append(math.sqrt(2.0*math.pi))
+for k in range(1,a):
+    c.append( math.exp(a-k) * (a-k)**(k-0.5) / k1_factrl )
+    k1_factrl *= -k
+
+def gamma_spounge( z):
+    global c
+    accm = c[0]
+    for k in range(1,a):
+        accm += c[k] / (z+k)
+    accm *= math.exp( -(z+a)) * (z+a)**(z+0.5)
+    return accm/z;
+
+def GammaInc_Q( a, x):
+    a1 = a-1
+    a2 = a-2
+    def f0( t ):
+        return t**a1*math.exp(-t)
+
+    def df0(t):
+        return (a1-t)*t**a2*math.exp(-t)
+
+    y = a1
+    while f0(y)*(x-y) >2.0e-8 and y < x: y += 0.3
+    if y > x: y = x
+
+    h = 3.0e-4
+    n = int(y/h)
+    h = y/n
+    hh = 0.5*h
+    gamax = h * sum( f0(t)+hh*df0(t) for t in ( h*j for j in range(n-1, -1, -1)))
+
+    return gamax/gamma_spounge(a)
+
+def chi2UniformDistance( dataSet ):
+    expected = sum(dataSet)*1.0/len(dataSet)
+    cntrd = (d-expected for d in dataSet)
+    return sum(x*x for x in cntrd)/expected
+
+def chi2Probability(dof, distance):
+    return 1.0 - GammaInc_Q( 0.5*dof, 0.5*distance)
+
+def chi2IsUniform(dataSet, significance):
+    dof = len(dataSet)-1
+    dist = chi2UniformDistance(dataSet)
+    return chi2Probability( dof, dist ) > significance
+
+dset1 = [ 199809, 200665, 199607, 200270, 199649 ]
+dset2 = [ 522573, 244456, 139979,  71531,  21461 ]
+
+for ds in (dset1, dset2):
+    print("Data set:", ds)
+    dof = len(ds)-1
+    distance =chi2UniformDistance(ds)
+    print("dof: %d distance: %.4f" % (dof, distance), end=' ')
+    prob = chi2Probability( dof, distance)
+    print("probability: %.4f"%prob, end=' ')
+    print("uniform? ", "Yes"if chi2IsUniform(ds,0.05) else "No")
+===
+V a = 12
+V k1_factrl = 1.0
+[Float] c
+c.append(sqrt(2.0 * math:pi))
+L(k) 1 .< a
+   c.append(exp(a - k) * (a - k) ^ (k - 0.5) / k1_factrl)
+   k1_factrl *= -k
+
+F gamma_spounge(z)
+   V accm = :c[0]
+   L(k) 1 .< :a
+      accm += :c[k] / (z + k)
+   accm *= exp(-(z + :a)) * (z + :a) ^ (z + 0.5)
+   R accm / z
+
+F GammaInc_Q(a, x)
+   V a1 = a - 1
+   V a2 = a - 2
+   F f0(t)
+      R t ^ @a1 * exp(-t)
+
+   F df0(t)
+      R (@a1 - t) * t ^ @a2 * exp(-t)
+
+   V y = a1
+   L f0(y) * (x - y) > 2.0e-8 & y < x
+      y += 0.3
+   I y > x
+      y = x
+
+   V h = 3.0e-4
+   V n = Int(y / h)
+   h = y / n
+   V hh = 0.5 * h
+   V gamax = h * sum(((n - 1 .< -1).step(-1).map(j -> @h * j)).map(t -> @f0(t) + @hh * @df0(t)))
+
+   R gamax / gamma_spounge(a)
+
+F chi2UniformDistance(dataSet)
+   V expected = sum(dataSet) * 1.0 / dataSet.len
+   V cntrd = (dataSet.map(d -> d - @expected))
+   R sum(cntrd.map(x -> x * x)) / expected
+
+F chi2Probability(dof, distance)
+   R 1.0 - GammaInc_Q(0.5 * dof, 0.5 * distance)
+
+F chi2IsUniform(dataSet, significance)
+   V dof = dataSet.len - 1
+   V dist = chi2UniformDistance(dataSet)
+   R chi2Probability(dof, dist) > significance
+
+V dset1 = [199809, 200665, 199607, 200270, 199649]
+V dset2 = [522573, 244456, 139979, 71531, 21461]
+
+L(ds) (dset1, dset2)
+   print(‘Data set: ’ds)
+   V dof = ds.len - 1
+   V distance = chi2UniformDistance(ds)
+   print(‘dof: #. distance: #.4’.format(dof, distance), end' ‘ ’)
+   V prob = chi2Probability(dof, distance)
+   print(‘probability: #.4’.format(prob), end' ‘ ’)
+   print(‘uniform?  ’(I chi2IsUniform(ds, 0.05) {‘Yes’} E ‘No’))
+===
+auto a = 12;
+auto k1_factrl = 1.0;
+Array<double> c;
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        c.append(sqrt(2.0 * math::pi));
+        for (auto k : range_el(1, a)) {
+            c.append(exp(a - k) * pow((a - k), (k - 0.5)) / k1_factrl);
+            k1_factrl *= -k;
+        }
+    }
+} code_block_1;
+
+template <typename T1> auto gamma_spounge(const T1 &z)
+{
+    auto accm = _get<0>(::c);
+    for (auto k : range_el(1, ::a))
+        accm += ::c[k] / (z + k);
+    accm *= exp(-(z + ::a)) * pow((z + ::a), (z + 0.5));
+    return accm / z;
+}
+
+template <typename T1, typename T2> auto GammaInc_Q(const T1 &a, const T2 &x)
+{
+    auto a1 = a - 1;
+    auto a2 = a - 2;
+    auto f0 = [&a1](const auto &t)
+    {
+        return pow(t, a1) * exp(-t);
+    };
+
+    auto df0 = [&a1, &a2](const auto &t)
+    {
+        return (a1 - t) * pow(t, a2) * exp(-t);
+    };
+
+    auto y = a1;
+    while (f0(y) * (x - y) > 2.0e-8 && y < x)
+        y += 0.3;
+    if (y > x)
+        y = x;
+
+    auto h = 3.0e-4;
+    auto n = to_int(y / h);
+    h = y / n;
+    auto hh = 0.5 * h;
+    auto gamax = h * sum_map((range_el(n - 1, -1).step(-1).map([&h](const auto &j){return h * j;})), [&df0, &f0, &hh](const auto &t){return f0(t) + hh * df0(t);});
+
+    return gamax / gamma_spounge(a);
+}
+
+template <typename T1> auto chi2UniformDistance(const T1 &dataSet)
+{
+    auto expected = sum(dataSet) * 1.0 / dataSet.len();
+    auto cntrd = (dataSet.map([&expected](const auto &d){return d - expected;}));
+    return sum_map(cntrd, [](const auto &x){return x * x;}) / expected;
+}
+
+template <typename T1, typename T2> auto chi2Probability(const T1 &dof, const T2 &distance)
+{
+    return 1.0 - GammaInc_Q(0.5 * dof, 0.5 * distance);
+}
+
+template <typename T1, typename T2> auto chi2IsUniform(const T1 &dataSet, const T2 &significance)
+{
+    auto dof = dataSet.len() - 1;
+    auto dist = chi2UniformDistance(dataSet);
+    return chi2Probability(dof, dist) > significance;
+}
+
+auto dset1 = create_array({199809, 200665, 199607, 200270, 199649});
+auto dset2 = create_array({522573, 244456, 139979, 71531, 21461});
+
+struct CodeBlock2
+{
+    CodeBlock2()
+    {
+        for (auto &&ds : make_tuple(dset1, dset2)) {
+            print(u"Data set: "_S & ds);
+            auto dof = ds.len() - 1;
+            auto distance = chi2UniformDistance(ds);
+            print(u"dof: #. distance: #.4"_S.format(dof, distance), u" "_S);
+            auto prob = chi2Probability(dof, distance);
+            print(u"probability: #.4"_S.format(prob), u" "_S);
+            print(u"uniform?  "_S & (chi2IsUniform(ds, 0.05) ? u"Yes"_S : u"No"_S));
+        }
+    }
+} code_block_2;
+
+
+# https://www.rosettacode.org/wiki/Verhoeff_algorithm#Python
+Int64 = int
+
+MULTIPLICATION_TABLE = [
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
+    [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+    [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
+    [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
+    [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+    [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
+    [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
+    [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+    [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+]
+
+INV = [0, 4, 3, 2, 1, 5, 6, 7, 8, 9]
+
+PERMUTATION_TABLE = [
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
+    [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+    [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
+    [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
+    [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+    [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
+    [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
+]
+
+def verhoeffchecksum(n, validate=True, terse=True, verbose=False):
+    """
+    Calculate the Verhoeff checksum over `n`.
+    Terse mode or with single argument: return True if valid (last digit is a correct check digit).
+    If checksum mode, return the expected correct checksum digit.
+    If validation mode, return True if last digit checks correctly.
+    """
+    if verbose:
+        print(f"\n{'Validation' if validate else 'Check digit'}",\
+            f"calculations for {n}:\n\n i  ni  p[i,ni] c\n------------------")
+    # transform number list
+    (c, dig) = (0, list(str(n if validate else 10 * n)))
+    for i, ni in enumerate(dig[::-1]):
+        p = PERMUTATION_TABLE[i % 8][int(ni)]
+        c = MULTIPLICATION_TABLE[c][p]
+        if verbose:
+            print(f"{i:2}  {ni}      {p}    {c}")
+
+    if verbose and not validate:
+        print(f"\ninv({c}) = {INV[c]}")
+    if not terse:
+        print(f"\nThe validation for '{n}' is {'correct' if c == 0 else 'incorrect'}."\
+              if validate else f"\nThe check digit for '{n}' is {INV[c]}.")
+    return c == 0 if validate else INV[c]
+
+for n, va, t, ve in [
+    (Int64(236), False, False, True), (Int64(2363), True, False, True), (Int64(2369), True, False, True),
+    (Int64(12345), False, False, True), (Int64(123451), True, False, True), (Int64(123459), True, False, True),
+    (Int64(123456789012), False, False, False), (Int64(1234567890120), True, False, False),
+    (Int64(1234567890129), True, False, False)]:
+    verhoeffchecksum(n, va, t, ve)
+===
+V MULTIPLICATION_TABLE = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 0, 6, 7, 8, 9, 5], [2, 3, 4, 0, 1, 7, 8, 9, 5, 6], [3, 4, 0, 1, 2, 8, 9, 5, 6, 7], [4, 0, 1, 2, 3, 9, 5, 6, 7, 8], [5, 9, 8, 7, 6, 0, 4, 3, 2, 1], [6, 5, 9, 8, 7, 1, 0, 4, 3, 2], [7, 6, 5, 9, 8, 2, 1, 0, 4, 3], [8, 7, 6, 5, 9, 3, 2, 1, 0, 4], [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]]
+
+V INV = [0, 4, 3, 2, 1, 5, 6, 7, 8, 9]
+
+V PERMUTATION_TABLE = [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 5, 7, 6, 2, 8, 3, 0, 9, 4], [5, 8, 0, 3, 7, 9, 6, 1, 4, 2], [8, 9, 1, 6, 0, 4, 3, 5, 2, 7], [9, 4, 5, 3, 1, 2, 6, 8, 7, 0], [4, 2, 8, 6, 5, 7, 3, 9, 0, 1], [2, 7, 9, 3, 8, 0, 6, 4, 1, 5], [7, 0, 4, 6, 9, 1, 3, 2, 5, 8]]
+
+F verhoeffchecksum(n, validate = 1B, terse = 1B, verbose = 0B)
+   ‘
+    Calculate the Verhoeff checksum over `n`.
+    Terse mode or with single argument: return True if valid (last digit is a correct check digit).
+    If checksum mode, return the expected correct checksum digit.
+    If validation mode, return True if last digit checks correctly.
+    ’
+   I verbose
+      print(("\n"(I validate {‘Validation’} E ‘Check digit’))‘ ’(‘calculations for ’n":\n\n i  ni  p[i,ni] c\n------------------"))
+   V (c, dig) = (0, Array(String(I validate {n} E 10 * n)))
+   L(ni) reversed(dig)
+      V i = L.index
+      V p = :PERMUTATION_TABLE[i % 8][Int(ni)]
+      c = :MULTIPLICATION_TABLE[c][p]
+      I verbose
+         print(f:‘{i:2}  {ni}      {p}    {c}’)
+
+   I verbose & !validate
+      print("\ninv("c‘) = ’:INV[c])
+   I !terse
+      print(I validate {"\nThe validation for '"n‘' is ’(I c == 0 {‘correct’} E ‘incorrect’)‘.’} E "\nThe check digit for '"n‘' is ’:INV[c]‘.’)
+   R I validate {c == 0} E :INV[c]
+
+L(n, va, t, ve) [(Int64(236), 0B, 0B, 1B), (Int64(2363), 1B, 0B, 1B), (Int64(2369), 1B, 0B, 1B), (Int64(12345), 0B, 0B, 1B), (Int64(123451), 1B, 0B, 1B), (Int64(123459), 1B, 0B, 1B), (Int64(123456789012), 0B, 0B, 0B), (Int64(1234567890120), 1B, 0B, 0B), (Int64(1234567890129), 1B, 0B, 0B)]
+   verhoeffchecksum(n, va, t, ve)
+===
+auto MULTIPLICATION_TABLE = create_array({create_array({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}), create_array({1, 2, 3, 4, 0, 6, 7, 8, 9, 5}), create_array({2, 3, 4, 0, 1, 7, 8, 9, 5, 6}), create_array({3, 4, 0, 1, 2, 8, 9, 5, 6, 7}), create_array({4, 0, 1, 2, 3, 9, 5, 6, 7, 8}), create_array({5, 9, 8, 7, 6, 0, 4, 3, 2, 1}), create_array({6, 5, 9, 8, 7, 1, 0, 4, 3, 2}), create_array({7, 6, 5, 9, 8, 2, 1, 0, 4, 3}), create_array({8, 7, 6, 5, 9, 3, 2, 1, 0, 4}), create_array({9, 8, 7, 6, 5, 4, 3, 2, 1, 0})});
+
+auto INV = create_array({0, 4, 3, 2, 1, 5, 6, 7, 8, 9});
+
+auto PERMUTATION_TABLE = create_array({create_array({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}), create_array({1, 5, 7, 6, 2, 8, 3, 0, 9, 4}), create_array({5, 8, 0, 3, 7, 9, 6, 1, 4, 2}), create_array({8, 9, 1, 6, 0, 4, 3, 5, 2, 7}), create_array({9, 4, 5, 3, 1, 2, 6, 8, 7, 0}), create_array({4, 2, 8, 6, 5, 7, 3, 9, 0, 1}), create_array({2, 7, 9, 3, 8, 0, 6, 4, 1, 5}), create_array({7, 0, 4, 6, 9, 1, 3, 2, 5, 8})});
+
+template <typename T1, typename T2 = decltype(true), typename T3 = decltype(true), typename T4 = decltype(false)> auto verhoeffchecksum(const T1 &n, const T2 &validate = true, const T3 &terse = true, const T4 &verbose = false)
+{
+    uR"(
+    Calculate the Verhoeff checksum over `n`.
+    Terse mode or with single argument: return True if valid (last digit is a correct check digit).
+    If checksum mode, return the expected correct checksum digit.
+    If validation mode, return True if last digit checks correctly.
+    )"_S;
+    if (verbose)
+        print((u"\n"_S & (validate ? u"Validation"_S : u"Check digit"_S)) & u" "_S & (u"calculations for "_S & n & u":\n\n i  ni  p[i,ni] c\n------------------"_S));
+    auto [c, dig] = make_tuple(0, create_array(String(validate ? n : 10 * n)));
+    {int Lindex = 0;
+    for (auto &&ni : reversed(dig)) {
+        auto i = Lindex;
+        auto p = ::PERMUTATION_TABLE[mod(i, 8)][to_int(ni)];
+        c = ::MULTIPLICATION_TABLE[c][p];
+        if (verbose)
+            print(u"#2  #.      #.    #."_S.format(i, ni, p, c));
+        Lindex++;
+    }}
+
+    if (verbose && !validate)
+        print(u"\ninv("_S & c & u") = "_S & ::INV[c]);
+    if (!terse)
+        print(validate ? u"\nThe validation for '"_S & n & u"' is "_S & (c == 0 ? u"correct"_S : u"incorrect"_S) & u"."_S : u"\nThe check digit for '"_S & n & u"' is "_S & ::INV[c] & u"."_S);
+    return validate ? c == 0 : ::INV[c];
+}
+
+struct CodeBlock1
+{
+    CodeBlock1()
+    {
+        for (auto &&[n, va, t, ve] : create_array({make_tuple(to_int64(236), false, false, true), make_tuple(to_int64(2363), true, false, true), make_tuple(to_int64(2369), true, false, true), make_tuple(to_int64(12345), false, false, true), make_tuple(to_int64(123451), true, false, true), make_tuple(to_int64(123459), true, false, true), make_tuple(to_int64(123456789012), false, false, false), make_tuple(to_int64(1234567890120), true, false, false), make_tuple(to_int64(1234567890129), true, false, false)}))
+            verhoeffchecksum(n, va, t, ve);
+    }
+} code_block_1;

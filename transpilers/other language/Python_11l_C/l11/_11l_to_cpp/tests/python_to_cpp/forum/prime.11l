@@ -1,0 +1,19 @@
+F prime()
+   V k = 1000000
+   V n = k * 17
+   V primes = [1B] * n
+   primes[0] = primes[1] = 0B
+
+   L(i) 2 .. Int(sqrt(n))
+      I !primes[i]
+         L.continue
+      L(j) (i * i .< n).step(i)
+         primes[j] = 0B
+
+   L(i) 0 .< n
+      I primes[i]
+         I k == 1
+            R i
+         k--
+
+print(prime())

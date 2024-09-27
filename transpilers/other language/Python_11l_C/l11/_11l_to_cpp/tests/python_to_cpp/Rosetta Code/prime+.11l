@@ -1,0 +1,25 @@
+V k = 1000000
+V n = k * 17
+V primes = [1B] * n
+primes[0] = primes[1] = 0B
+
+V i = 2
+V ii = Int(sqrt(n)) + 1
+L i < ii
+   I !primes[i]
+      i++
+      L.continue
+   V j = i * i
+   L j < n
+      primes[j] = 0B
+      j += i
+   i++
+
+i = 0
+L i < n
+   I primes[i]
+      I k == 1
+         print(i)
+         L.break
+      k--
+   i++

@@ -1,0 +1,77 @@
+for tok in tokenize(s):
+print(tok.to_str(s) + ", ", end="")
+^Error: expected an indented block
+
+
+if 1:
+    i = 0
+   j = 1
+   ^Error: unindent does not match any outer indentation level
+
+
+# {{
+fn f() {
+}}
+ ^Error: there is no corresponding opening parenthesis/bracket/brace for `}`
+
+
+# [[(
+r = (a + b]
+          ^Error: there is no corresponding opening parenthesis/bracket/brace for `]`
+
+
+r = [a + b)
+          ^Error: there is no corresponding opening parenthesis/bracket/brace for `)`
+# ]
+
+
+r = (a +
+    ^Error: there is no corresponding closing parenthesis/bracket/brace for `(`
+# ))
+
+
+str = "unclosed string
+      ^Error: unclosed string literal
+
+
+str = r'''\'''
+      ^Error: unclosed string literal
+
+
+str = ‘unclosed string
+      ^Error: unexpected character ‘
+# ’’
+
+
+print(1)
+    print(2)
+    ^Error: unexpected indent
+
+
+---
+a = 0b + 1
+      ^Error: expected digit
+
+
+123_45
+^Error: digit separator in this number is located in the wrong place (should be: 12_345)
+
+
+a = \1
+     ^Error: only new line character allowed after backslash
+
+
+# {{
+print(f'a } b')
+          ^Error: f-string: single '}' is not allowed
+
+
+class ASTIf:
+    pass
+if self.parent is None and isinstance(self.ast_parent, ASTIf) or (self.parent is not None and self.parent.symbol.id == 'if'):
+                                                                                                                              ^Error: expected an indented block
+
+
+print(f"{text(:10)}")
+             ^Error: there is no corresponding closing parenthesis/bracket/brace for `(`
+# )
