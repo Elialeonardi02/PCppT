@@ -1,0 +1,154 @@
+name: "Install build dependencies"
+description: "Installs all dependencies on all platforms that are generally required to compile Pylir"
+
+inputs:
+  c-compiler:
+    description: 'C compiler to use'
+    required: true
+  cpp-compiler:
+    description: 'C++ compiler to use'
+    required: true
+  sanitizers:
+    description: 'Sanitizers to use, comma separated'
+    required: false
+    default: ''
+  runtime_lib:
+    description: 'Runtime lib to use. MSVC environment only. Uses cmake name'
+    required: false
+  shared_libs:
+    description: 'Whether to build shared libraries. Probably only works on Linux'
+    required: false
+    default: 'OFF'
+  llvm-build-only:
+    description: 'Whether only dependencies for build LLVM must be installed'
+    required: false
+    default: 'OFF'
+  cmake-version:
+    description: 'CMake version to install'
+    required: false
+    default: '3.20.6'
+  ccache-size:
+    description: 'custom ccache size or calculate if empty'
+    required: false
+    default: ''
+  ccache-key-append:
+    description: 'text to append to the ccache key'
+    required: false
+    default: ''
+
+outputs:
+  key:
+    value: ${{steps.compiler-hash.outputs.key}}
+    description: "ccache-key concatenated with a hash specific to the cpp-compilers version"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.9
+
+    - name: Install minimum required cmake and ninja
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: ${{inputs.cmake-version}}
+
+    - name: Install Ubuntu dependencies
+      if: ${{ runner.os == 'Linux' }}
+      shell: bash
+      run: |
+        sudo apt update
+        sudo apt install libunwind-dev lld clang g++-10
+
+    - name: Use MSVC developer command prompt
+      if: ${{ inputs.cpp-compiler == 'clang-cl' }}
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Install clang from MSYS2
+      uses: msys2/setup-msys2@v2
+      if: ${{ inputs.cpp-compiler == 'clang++' && runner.os == 'Windows' }}
+      with:
+        msystem: clang64
+        update: true
+        pacboy: >-
+          toolchain:p
+        location: D:\
+
+    - name: Prepend Msys2 to path
+      shell: pwsh
+      if: ${{ inputs.cpp-compiler == 'clang++' && runner.os == 'Windows' }}
+      run: echo "D:\msys64\clang64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8
+
+    - if: ${{ runner.os == 'Windows' }}
+      name: Use GNU tar for caching
+      shell: cmd
+      run: |
+        echo "Adding GNU tar to PATH"
+        echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
+    - if: ${{ runner.os == 'Linux' && inputs.sanitizers != ''}}
+      name: Workaround ASLR interfering with sanitizers
+      shell: bash
+      # See https://github.com/actions/runner-images/issues/9491.
+      run: sudo sysctl vm.mmap_rnd_bits=28
+
+    - name: Calculate ccache key
+      id: ccache-key
+      shell: pwsh
+      run: |
+        $key = '${{runner.os}}'
+
+        if ('${{inputs.sanitizers}}') {
+          $key += '-${{inputs.sanitizers}}'.Replace(',', '_and_')
+        }
+
+        if ('${{inputs.runtime_lib}}') {
+          $key += '${{inputs.runtime_lib}}'
+        }
+        
+        if ('${{inputs.shared_libs}}' -eq 'ON') {
+          $key += '-shared'
+        }
+        if ('${{inputs.ccache-key-append}}') {
+          $key += '-${{inputs.ccache-key-append}}'
+        }
+
+        "key=$key" >> $Env:GITHUB_OUTPUT
+
+
+    - name: Generate compiler hash
+      id: compiler-hash
+      shell: pwsh
+      run: |
+        $compiler_version = ${{inputs.cpp-compiler}} -v 2>&1 | Out-String
+        $stream = [IO.MemoryStream]::new([byte[]][char[]]$compiler_version)
+        $hash = (Get-FileHash -InputStream $stream -Algorithm SHA256).Hash
+        "key=${{steps.ccache-key.outputs.key}}-$hash" >> $Env:GITHUB_OUTPUT
+
+    - name: Calculate ccache size
+      if: ${{ inputs.llvm-build-only != 'ON' }}
+      shell: pwsh
+      id: calculate-cache-size
+      run: |
+        if ('${{inputs.ccache-size}}') {
+          "size=${{inputs.ccache-size}}" >> $Env:GITHUB_OUTPUT
+        } elseif ('${{inputs.sanitizers}}') {
+          if ($IsWindows) {
+            "size=120M" >> $Env:GITHUB_OUTPUT
+          } else {
+            "size=100M" >> $Env:GITHUB_OUTPUT
+          }
+        } else {
+          "size=50M" >> $Env:GITHUB_OUTPUT
+        }
+
+    - name: Install CCache
+      if: ${{ inputs.llvm-build-only != 'ON' }}
+      uses: Chocobo1/setup-ccache-action@v1
+      with:
+        ccache_options: |
+          max_size=${{steps.calculate-cache-size.outputs.size}}
+          compiler_check=none
+        override_cache_key: ${{steps.compiler-hash.outputs.key}}
+        windows_compile_environment: msvc
