@@ -1,4 +1,13 @@
 import ast
+
+class comment:
+    def __init__(self, text, start, end):
+        self.comment_text=text
+        self.start_position=start
+        self.end_position=end
+    comment_text =''
+    start_position=[int, int] #line and position start
+    end_position=[int, int] #line and position end
 def extract_comments_with_positions(source_code):
     comments = []
     for i, line in enumerate(source_code.splitlines()):
@@ -7,9 +16,9 @@ def extract_comments_with_positions(source_code):
             comment_start = line.index('#')
             comment_text = line[comment_start:].strip()
             # Posizione iniziale e finale del commento
-            start_position = (i + 1, comment_start + 1)  # (linea, colonna)
-            end_position = (i + 1, len(line))  # Fine della riga
-            comments.append((comment_text, start_position, end_position))
+            start_position = [i, comment_start]  # (linea, colonna)
+            end_position = [i , len(line)]  # Fine della riga
+            comments.append(comment(comment_text, start_position, end_position))
     return comments #['comment'(line_start,position_start),(line_end,position_end)]
 
 
