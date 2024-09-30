@@ -15,6 +15,7 @@ print("Commented AST:")
 print(ast.dump(fast, indent=4))
 
 code=generateC.generate_cpp_code_from_ast(fast)
+#add comments
 for ic in range(0, len(comment)):
     comment_line=comment[ic].start_position[0]
     comment_pos=comment[ic].start_position[1]
@@ -28,7 +29,7 @@ for ic in range(0, len(comment)):
         if c=='\n':
             line_counter+=1
             position_on_counter=0
-    cleft=code[:program_position-1]
+    cleft=code[:program_position]
     cright=code[program_position-1:]
     if comment[ic].comment_text[:7]!='#pragma':
         code=cleft+" "+"//"+comment[ic].comment_text[1:]+f"{'\n'if line_counter==0 and position_on_counter==0 else ' '}"+cright

@@ -1,6 +1,9 @@
 def f(a:int):
-    for i in range(0,1):
-        b=b
-    return b
+    #pragma
+    if a%2==0:
+         a+a
+    a=a%2
+    return a
+    #aaa
 
 
