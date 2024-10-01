@@ -21,7 +21,7 @@ def extractComments(source_code):
             #find the position where the comment ends
             end_position = [i , len(line)]
 
-            comment_text = line[comment_start:].strip()
+            comment_text = line[comment_start:].strip()+'\n'
             comments.append(comment(comment_text, start_position, end_position))
     return comments                                     #['comment'(line_start,position_start),(line_end,position_end)]
 

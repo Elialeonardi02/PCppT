@@ -1,6 +1,7 @@
 import ast
 
-class UnsupportedCommandError(Exception):
+#exceptionClasses
+class UnsupportedCommandError(Exception):   #exception for unsupported command
     def __init__(self, command):
         super().__init__(f"Unsupported command: {command}")
 
@@ -8,6 +9,7 @@ class RecursiveFunctionError(Exception):    #exception for recursive functions
     def __init__(self, function_name):
         super().__init__(f"Recursive function not supported: {function_name}")
         
+#parser
 class astToCppParser(ast.NodeVisitor):
     def __init__(self):
         self.indent_level = 0  #indent level
@@ -69,7 +71,7 @@ class astToCppParser(ast.NodeVisitor):
 
         return func_code
 
-    def visit_Call(self, node):  # visit and translate to C++ Call node(function call)
+    def visit_Call(self, node):  #visit and translate to C++ Call node(function call)
         #recursive function check
         function_name = self.visit(node.func)  # Get the name of the function being called
         if function_name==self.current_function_name:
@@ -82,6 +84,30 @@ class astToCppParser(ast.NodeVisitor):
         # Handle function arguments
         args = [self.visit(arg) for arg in node.args]
         return f"{function_name}({', '.join(args)})"
+
+    def visit_For(self, node):  #visit and translate to C++ For node
+        target = self.visit(node.target)    #counter
+        iter_value = self.visit(node.iter)  #range
+        loop_code = ""
+        if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name) and node.iter.func.id == 'range':   #range cicle
+            if len(node.iter.args) == 1:  # range(stop)
+                loop_code += f"{self.indent()}for (int {target} = 0; {target} < {self.visit(node.iter.args[0])}; ++{target}) {{\n"
+            elif len(node.iter.args) == 2:  # range(start, stop)
+                loop_code += f"{self.indent()}for (int {target} = {self.visit(node.iter.args[0])}; {target} < {self.visit(node.iter.args[1])}; ++{target}) {{\n"
+            elif len(node.iter.args) == 3:  # range(start, stop, step)
+                loop_code += f"{self.indent()}for (int {target} = {self.visit(node.iter.args[0])}; {target} < {self.visit(node.iter.args[1])}; {target} += {self.visit(node.iter.args[2])}) {{\n"
+        else: #FIXME i have to handle the others type of for?
+            raise UnsupportedCommandError(f"Unsupported iteration: {iter_value}")
+
+        #corpo del ciclo
+        self.indent_level += 1
+        for astNode in node.body:
+            loop_code += self.visit(astNode)
+
+        self.indent_level -= 1
+        loop_code += self.indent() + "}\n"
+
+        return loop_code
 
     def visit_If(self, node):   #visit and translate to C++ If node
         #if condition
@@ -118,6 +144,13 @@ class astToCppParser(ast.NodeVisitor):
         value = self.visit(node.value)                  #operation
 
         return f"{self.indent()}{' = '.join(targets)} = {value};\n"
+
+    def visit_AnnAssign(self, node): #visit and translate to C++ AnnAssign node(es. c:int=0)
+        var_name = self.visit(node.target)      #name of the variable
+        var_type = self.visit(node.annotation)  #type of the variable
+        value = self.visit(node.value)          #value assign
+
+        return f"{self.indent()}{var_type} {var_name} = {value};\n"
 
     def visit_AugAssign(self, node):    #visit and translate to C++ AugAssign node(es: i+=<value)
         target = self.visit(node.target)    #variable
@@ -195,8 +228,8 @@ class astToCppParser(ast.NodeVisitor):
         return ">="
 
 def generateAstToCppCode(python_ast):
-    #try:
+    try:
         translator = astToCppParser()
         return translator.visit(python_ast)
-    #except (UnsupportedCommandError, RecursiveFunctionError) as e:
-        #print(e)
+    except (UnsupportedCommandError, RecursiveFunctionError) as e:
+        print(e)
