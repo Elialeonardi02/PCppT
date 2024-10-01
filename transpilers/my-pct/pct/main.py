@@ -40,7 +40,7 @@ for ic in range(0, len(comment)):
     cleft=codeCpp[:program_position]
     cright=codeCpp[program_position:]
     if comment[ic].comment_text[:7]!='#pragma':
-        codeCpp=cleft+" "+"//"+comment[ic].comment_text[1:]+cright      #FIXME '\n' in f string can be unsupported in some version of python
+        codeCpp=cleft+" "+"//"+comment[ic].comment_text[1:]+cright
     else:
        codeCpp = cleft + " " + comment[ic].comment_text + f"{endline if line_counter ==0 and position_on_counter ==0 else ' '}" + cright  #FIXME '\n' in f string can be unsupported in some version of python
 
