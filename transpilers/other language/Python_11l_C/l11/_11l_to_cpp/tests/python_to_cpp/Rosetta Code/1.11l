@@ -1,4 +1,0 @@
-T SierpinskiCurve
-   Float x
-   F line(out)
-      out.write(f:‘ L{.x:h}’)

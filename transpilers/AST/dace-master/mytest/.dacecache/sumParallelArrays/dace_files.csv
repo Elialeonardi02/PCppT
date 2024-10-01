@@ -1,4 +1,0 @@
-cpu,,sumParallelArrays.cpp
-xilinx,host,sumParallelArrays.cpp
-xilinx,device,sumParallelArrays_0_0.cpp
-xilinx,device,link.cfg

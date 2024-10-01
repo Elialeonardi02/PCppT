@@ -1,2 +1,0 @@
-[String] empty_list_of_str
-[Set[String]] binary_operators = [move(Set(empty_list_of_str))]
