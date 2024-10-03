@@ -1,7 +1,8 @@
-#counts even numbers between two integers
+a:int
+class test:
+    b:int
+    def __init__(self):
+        self.b=1
 def fun(a:int, b:int)->int:
-    c:int=0
-    for i in range(a,b):
-        if i%2==0:
-            c+=1
-    return c
+    a=2
+    return a+b
