@@ -1,4 +1,8 @@
 import ast
+from operator import truediv
+
+from docutils.frontend import validate_encoding
+
 
 #exceptionClasses
 class UnsupportedCommandError(Exception):   #exception for unsupported command
@@ -8,19 +12,30 @@ class UnsupportedCommandError(Exception):   #exception for unsupported command
 class RecursiveFunctionError(Exception):    #exception for recursive functions
     def __init__(self, function_name):
         super().__init__(f"Recursive function not supported: {function_name}")
-        
+
+"""
+class function():
+    def __init__(self):
+        self.signature=''
+        self.body=''
+"""
+class code():
+    def __init__(self):
+        self.declarations=''
+        self.functions={}   #functions {signature: body}
 #parser
+codeCpp = code()
 class astToCppParser(ast.NodeVisitor):
+
     def __init__(self):
         self.indent_level = 0  #indent level
         self.current_function_name = None
+        self.current_structure_name=None
 
     def visit_Module(self, node):   #visit the root of ast
-        code = ''                       #c code
         for astNode in node.body:       #visit all node of ast
-            code += self.visit(astNode) #function from the ast import
-
-        return code
+            self.visit(astNode) #function from the ast import
+        #return cppCode
 
     def indent(self):   #generate an indentation string based on the current level of indentation
 
@@ -35,41 +50,80 @@ class astToCppParser(ast.NodeVisitor):
         return node.id
 
     def visit_Num(self, node):  #visit and translate to C++ Num node
-
         return str(node.n)
 
-    def visit_Expr(self, node): # visita e traduce in C++ Expr node
-        return self.indent()+self.visit(node.value) + ";\n"  # visitiamo il valore dell'espressione e aggiungiamo il punto e virgola
+    def visit_Expr(self, node): # visit e translate in C++ Expr node
+        return self.indent()+self.visit(node.value) + ";\n"
+
+    def visit_ClassDef(self, node):  # visit e translate in C++ ClassDef node
+        class_name = node.name
+        self.current_structure_name = class_name
+        class_code = f"class {class_name} {{\n"
+        self.indent_level += 1
+
+        constructor_code = f"{self.indent()}{class_name}() \n"  #class constructor
+
+        # Handle attributes and methods
+        for body_node in node.body:
+            if isinstance(body_node, ast.FunctionDef): #body of constructor
+                if body_node.name == '__init__':
+                    constructor_code += self.visit(body_node)
+                else:
+                    method_code = self.visit(body_node)
+                    class_code += method_code
+            else:  # Gestisci le assegnazioni annotate
+                class_code += self.visit(body_node)
+
+        class_code += constructor_code
+
+        self.indent_level -= 1
+        class_code += "};\n"
+        codeCpp.declarations += class_code
+        self.current_structure_name=None
 
     def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
         self.current_function_name=node.name #save name for check of recursive functions
-
         #type and nameof the function
         if node.returns is not None:
             function_type = node.returns.id #the type of the function is specified in the python source
         else:
             function_type = 'void'          #the type of the function is not specified in the python source #TODO use the template based on the type of parameters
-        func_code = f"{self.indent()}{function_type} {node.name}("
+        signature = f"{self.indent()}{function_type} {node.name}("
 
         #parameters and types of the function
         for i in range(len(node.args.args)):
-            param_type = 'auto' if node.args.args[i].annotation is None else node.args.args[i].annotation.id
+            param_type = 'auto' if node.args.args[i].annotation is None else node.args.args[i].annotation.id #FIXME if the type is not specified raise an exception or type inference
             param_name = node.args.args[i].arg
-            func_code += f"{param_type} {param_name}"
+            signature += f"{param_type} {param_name}"
             if i < len(node.args.args) - 1:
-                func_code += ', '
-        func_code += ') {\n'
-        self.indent_level += 1
+                signature += ', '
+        signature += ')'
 
+        self.indent_level += 1
+        func_code='{\n'
         #body of the function
         for astNode in node.body:
-            func_code += self.visit(astNode)
+            if not isinstance(astNode, ast.FunctionDef):    #the node is not a def of a function
+                iBodyCode=self.visit(astNode)
+                func_code += iBodyCode
+            else:                                          #there is a function declaration in the body, add another signature and body in
+                temp_indent_level=self.indent_level
+                self.indent_level=0
+                self.visit(astNode)
+                self.indent_level=temp_indent_level
+
         self.indent_level -= 1
         func_code += self.indent() + "}\n"
-
-        self.current_function_name=None
-
-        return func_code
+        if self.current_structure_name is None:
+            if signature not in codeCpp.functions:
+                codeCpp.functions[signature] = ''
+            else:
+                raise UnsupportedCommandError(
+                    f"{signature} is already defined")  # FIXME implements overloading operators
+            codeCpp.functions[signature]=func_code
+        else:
+            return func_code
+        self.current_function_name = None
 
     def visit_Call(self, node):  #visit and translate to C++ Call node(function call)
         #recursive function check
@@ -139,25 +193,47 @@ class astToCppParser(ast.NodeVisitor):
 
         return f"{self.indent()}return {self.visit(node.value)};\n"
 
+    def visit_Attribute(self, node):  # Visit and translate to C++ Attribute node
+        if self.current_structure_name is None:
+            value = self.visit(node.value)
+        else:
+            value='this'
+        attr_name = node.attr
+
+        return f"{value}->{attr_name}"
+
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
         targets = [self.visit(t) for t in node.targets] #left variable or variables
         value = self.visit(node.value)                  #operation
 
-        return f"{self.indent()}{' = '.join(targets)} = {value};\n"
+        assign_code=f"{self.indent()}{' = '.join(targets)} = {value};\n"
+
+        if self.current_function_name is None:  #assign is outside a function
+            codeCpp.declarations+=assign_code
+        else:                                   #assing is inside a function
+            return assign_code
 
     def visit_AnnAssign(self, node): #visit and translate to C++ AnnAssign node(es. c:int=0)
         var_name = self.visit(node.target)      #name of the variable
         var_type = self.visit(node.annotation)  #type of the variable
         value = self.visit(node.value)          #value assign
-
-        return f"{self.indent()}{var_type} {var_name} = {value};\n"
+        print(value=='')
+        annAssign_code = f"{self.indent()}{var_type} {var_name}" + (f" = {value}" if value!='' else "") + ";\n" #assign with value and no value
+        if self.current_function_name is None and self.current_structure_name is None:  #annAssign is outside a function or class
+            codeCpp.declarations+=annAssign_code
+        else:                                   #annAssign is inside a function or class
+            return annAssign_code
 
     def visit_AugAssign(self, node):    #visit and translate to C++ AugAssign node(es: i+=<value)
         target = self.visit(node.target)    #variable
         op = self.visit(node.op)            #operator
         value = self.visit(node.value)      #value
 
-        return f"{self.indent()}{target} {op}= {value};\n"
+        augAssign_code=f"{self.indent()}{target} {op}= {value};\n"
+        if self.current_function_name is None:  #augAssign is outside a function
+            codeCpp.declarations+=augAssign_code
+        else:
+            return augAssign_code               #augAssign is inside a function
 
     def visit_BinOp(self, node):    #visit and translate to C++ BinOp node
         left = self.visit(node.left)    #left member
@@ -229,7 +305,7 @@ class astToCppParser(ast.NodeVisitor):
 
 def generateAstToCppCode(python_ast):
     try:
-        translator = astToCppParser()
-        return translator.visit(python_ast)
+        astToCppParser().visit(python_ast)
+        return codeCpp
     except (UnsupportedCommandError, RecursiveFunctionError) as e:
-        print(e)
+        raise

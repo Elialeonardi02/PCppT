@@ -1,3 +1,5 @@
+from logging import exception
+
 import astToCpp
 import pythonToAST
 import sys
@@ -6,7 +8,7 @@ import subprocess
 endline= '\n'
 
 if len(sys.argv) != 3:
-    print("Usage: python your_script.py <path_to_python_file>")
+    print("Usage: <path_python_script>.py  <path_cpp_destination_file>.cpp")
     sys.exit(1)
 
 file_path_source = sys.argv[1] #source python
@@ -14,16 +16,21 @@ file_path_destination= sys.argv[2]  #destination c++
 
 astG, comment = pythonToAST.generateAstComments(file_path_source)
 
-#import ast                      #TODO remove, use for debugging
-#print("Commented AST:")         #TODO remove, use for debugging
-#print(ast.dump(astG, indent=4)) #TODO remove, use for debugging
+import ast                      #TODO remove, use for debugging
+print("Commented AST:")         #TODO remove, use for debugging
+print(ast.dump(astG, indent=4)) #TODO remove, use for debugging
 
-
-codeCpp=astToCpp.generateAstToCppCode(astG)
+codeCppObject=astToCpp.generateAstToCppCode(astG)
+#print(codeCppObject)  #TODO remove, use for debugging
+codeCpp=codeCppObject.declarations
+for sign in codeCppObject.functions:
+    codeCpp+=sign+';\n\n'
+for sign_fun in codeCppObject.functions:
+    codeCpp+=sign_fun+'\n'+codeCppObject.functions[sign_fun]+'\n'
 
 print(codeCpp)  #TODO remove, use for debugging
-
 #add comments
+"""
 for ic in range(0, len(comment)):
     comment_line=comment[ic].start_position[0]  #line start comment
     comment_pos=comment[ic].start_position[1]   #position on the line \start comment
@@ -43,11 +50,10 @@ for ic in range(0, len(comment)):
         codeCpp=cleft+" "+"//"+comment[ic].comment_text[1:]+cright
     else:
        codeCpp = cleft + " " + comment[ic].comment_text + f"{endline if line_counter ==0 and position_on_counter ==0 else ' '}" + cright  #FIXME '\n' in f string can be unsupported in some version of python
-
+"""
 #save on cpp file
 with open(file_path_destination, "w") as file:
     file.write(codeCpp)
 
 # compile to check sintax of the c++ code
 subprocess.run(["g++", "-c", file_path_destination])
-
