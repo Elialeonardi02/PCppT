@@ -1,8 +1,4 @@
 import ast
-from operator import truediv
-
-from docutils.frontend import validate_encoding
-
 
 #exceptionClasses
 class UnsupportedCommandError(Exception):   #exception for unsupported command
@@ -31,6 +27,7 @@ class astToCppParser(ast.NodeVisitor):
         self.indent_level = 0  #indent level
         self.current_function_name = None
         self.current_structure_name=None
+        self.list_defined=[]
 
     def visit_Module(self, node):   #visit the root of ast
         for astNode in node.body:       #visit all node of ast
@@ -60,7 +57,6 @@ class astToCppParser(ast.NodeVisitor):
         self.current_structure_name = class_name
         class_code = f"class {class_name} {{\n"
         self.indent_level += 1
-
         constructor_code = f"{self.indent()}{class_name}() \n"  #class constructor
 
         # Handle attributes and methods
@@ -217,7 +213,6 @@ class astToCppParser(ast.NodeVisitor):
         var_name = self.visit(node.target)      #name of the variable
         var_type = self.visit(node.annotation)  #type of the variable
         value = self.visit(node.value)          #value assign
-        print(value=='')
         annAssign_code = f"{self.indent()}{var_type} {var_name}" + (f" = {value}" if value!='' else "") + ";\n" #assign with value and no value
         if self.current_function_name is None and self.current_structure_name is None:  #annAssign is outside a function or class
             codeCpp.declarations+=annAssign_code
