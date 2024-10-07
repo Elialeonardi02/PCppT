@@ -18,16 +18,18 @@ class function():
 class code():
     def __init__(self):
         self.declarations=''
+        self.classes={}     #{name classe[attributes, functions]
         self.functions={}   #functions {signature: body}
 #parser
 codeCpp = code()
+
 class astToCppParser(ast.NodeVisitor):
 
     def __init__(self):
         self.indent_level = 0  #indent level
         self.current_function_name = None
         self.current_structure_name=None
-        self.list_defined=[]
+        self.array_multitype_names=[]
 
     def visit_Module(self, node):   #visit the root of ast
         for astNode in node.body:       #visit all node of ast
@@ -55,26 +57,31 @@ class astToCppParser(ast.NodeVisitor):
     def visit_ClassDef(self, node):  # visit e translate in C++ ClassDef node
         class_name = node.name
         self.current_structure_name = class_name
-        class_code = f"class {class_name} {{\n"
+        if class_name not in codeCpp.classes:
+            codeCpp.classes[class_name]=[]
+        else:
+            raise
+        #class_code = f"class {class_name} {{\n"
         self.indent_level += 1
-        constructor_code = f"{self.indent()}{class_name}() \n"  #class constructor
-
         # Handle attributes and methods
         for body_node in node.body:
-            if isinstance(body_node, ast.FunctionDef): #body of constructor
-                if body_node.name == '__init__':
-                    constructor_code += self.visit(body_node)
+            class_code = self.visit(body_node)
+            if isinstance(body_node, ast.AnnAssign):
+                function_attribute_name=body_node.target.id
+            elif isinstance(body_node, ast.FunctionDef):
+                function_attribute_name = body_node.name
+            else:           #FIXME handle the exception or others cases
+                raise
+            class_code+=' '*self.indent_level
+            if isinstance(body_node, ast.AnnAssign) or isinstance(body_node, ast.FunctionDef):
+                if len(function_attribute_name)>=2 and function_attribute_name[0]=='_' and function_attribute_name[1]!='_':
+                    class_code += 'protected:'
+                elif len(function_attribute_name)>=3 and function_attribute_name[0]=='_' and function_attribute_name[1]=='_':
+                    class_code += 'private:'
                 else:
-                    method_code = self.visit(body_node)
-                    class_code += method_code
-            else:  # Gestisci le assegnazioni annotate
-                class_code += self.visit(body_node)
-
-        class_code += constructor_code
-
+                    class_code += 'public:'
+            codeCpp.classes[class_name].append(class_code)
         self.indent_level -= 1
-        class_code += "};\n"
-        codeCpp.declarations += class_code
         self.current_structure_name=None
 
     def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
@@ -84,10 +91,13 @@ class astToCppParser(ast.NodeVisitor):
             function_type = node.returns.id #the type of the function is specified in the python source
         else:
             function_type = 'void'          #the type of the function is not specified in the python source #TODO use the template based on the type of parameters
-        signature = f"{self.indent()}{function_type} {node.name}("
+        if self.current_structure_name is not None and (node.name=='__init__' or node.name==self.current_structure_name):   #is a constructor of a class
+            signature = f"{self.indent()}{self.current_structure_name}("
+        else:                                                                   #is a normal function
+            signature = f"{self.indent()}{function_type} {node.name}("
 
         #parameters and types of the function
-        for i in range(len(node.args.args)):
+        for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)): #the i start from 1 when the fuction is declare in a class so as to remove the self keyword
             param_type = 'auto' if node.args.args[i].annotation is None else node.args.args[i].annotation.id #FIXME if the type is not specified raise an exception or type inference
             param_name = node.args.args[i].arg
             signature += f"{param_type} {param_name}"
@@ -118,7 +128,7 @@ class astToCppParser(ast.NodeVisitor):
                     f"{signature} is already defined")  # FIXME implements overloading operators
             codeCpp.functions[signature]=func_code
         else:
-            return func_code
+            return signature+func_code
         self.current_function_name = None
 
     def visit_Call(self, node):  #visit and translate to C++ Call node(function call)
@@ -189,6 +199,32 @@ class astToCppParser(ast.NodeVisitor):
 
         return f"{self.indent()}return {self.visit(node.value)};\n"
 
+    #TODO list multitype is not working
+    """
+    def visit_List(self, node):
+        #visit list with different types
+        declaration='{'                 #TODO ad casting to the type of the union
+        for index, elem in enumerate(node.elts):
+            if type(elem.value)==int:
+                value=elem.value
+            elif type(elem.value)==str:
+                value=f'"{elem.value}"'
+            declaration+='{'+str(value)+'}'
+            if index < len(node.elts) - 1:
+                declaration += ', '
+        declaration+='}'
+
+        return declaration
+
+    def visit_Subscript(self, node):    #visit and translate to C++ Subscript node (accessing elements) #FIXME add sintax for code outside of a function
+        obj = self.visit(node.value)          #the object being indexed
+        index = self.visit(node.slice)    #the index to access
+        if obj in self.array_multitype_names:
+            return f"(({obj}[{index}].getString()!=nullptr)? {obj}[{index}].getString() : {obj}[{index}].getInt())"
+        else:
+            return f"{obj}[{index}]"
+    """
+
     def visit_Attribute(self, node):  # Visit and translate to C++ Attribute node
         if self.current_structure_name is None:
             value = self.visit(node.value)
@@ -196,13 +232,21 @@ class astToCppParser(ast.NodeVisitor):
             value='this'
         attr_name = node.attr
 
-        return f"{value}->{attr_name}"
+        return f"{value}{'->' if self.current_structure_name is not None else '.'}{attr_name}"
+
+    def visit_targets(self, node):  # Visit and traslate to C++ targets elements. It is not a fuction of AST library
+        targets = [self.visit(t) for t in node]
+        return ', '.join(targets)
 
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
-        targets = [self.visit(t) for t in node.targets] #left variable or variables
-        value = self.visit(node.value)                  #operation
-
-        assign_code=f"{self.indent()}{' = '.join(targets)} = {value};\n"
+        targets = self.visit_targets(node.targets) #left variable or variables
+        if isinstance(node.value,ast.List):         #FIXME list multitype not work
+            value=self.visit_List(node.value)
+            assign_code = f"{self.indent()}{'typesArray '+targets[0]+'['+str(len(node.value.elts))+']'} = {value};\n"
+            self.array_multitype_names.append(targets[0])
+        else:
+            value = self.visit(node.value)                  #operation
+            assign_code=f"{self.indent()}{targets} = {value};\n"
 
         if self.current_function_name is None:  #assign is outside a function
             codeCpp.declarations+=assign_code
@@ -213,7 +257,8 @@ class astToCppParser(ast.NodeVisitor):
         var_name = self.visit(node.target)      #name of the variable
         var_type = self.visit(node.annotation)  #type of the variable
         value = self.visit(node.value)          #value assign
-        annAssign_code = f"{self.indent()}{var_type} {var_name}" + (f" = {value}" if value!='' else "") + ";\n" #assign with value and no value
+        annAssign_code = f"{self.indent()}{var_type} {var_name}" + (f" = {'' if var_type in codeCpp.classes else ''} {value}" if value!='' else "") + ";\n" #assign with value and no value
+
         if self.current_function_name is None and self.current_structure_name is None:  #annAssign is outside a function or class
             codeCpp.declarations+=annAssign_code
         else:                                   #annAssign is inside a function or class
