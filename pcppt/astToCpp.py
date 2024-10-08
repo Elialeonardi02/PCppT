@@ -1,27 +1,14 @@
 import ast
+import typesMapping as tm
+import exceptions as ex
 
-#exceptionClasses
-class UnsupportedCommandError(Exception):   #exception for unsupported command
-    def __init__(self, command):
-        super().__init__(f"Unsupported command: {command}")
-
-class RecursiveFunctionError(Exception):    #exception for recursive functions
-    def __init__(self, function_name):
-        super().__init__(f"Recursive function not supported: {function_name}")
-
-"""
-class function():
-    def __init__(self):
-        self.signature=''
-        self.body=''
-"""
 class code():
     def __init__(self):
         self.declarations=''
         self.classes={}     #{name classe[attributes, functions]
         self.functions={}   #functions {signature: body}
-#parser
 codeCpp = code()
+
 
 class astToCppParser(ast.NodeVisitor):
 
@@ -65,22 +52,23 @@ class astToCppParser(ast.NodeVisitor):
         self.indent_level += 1
         # Handle attributes and methods
         for body_node in node.body:
-            class_code = self.visit(body_node)
+            function_attribute_name=None
             if isinstance(body_node, ast.AnnAssign):
                 function_attribute_name=body_node.target.id
             elif isinstance(body_node, ast.FunctionDef):
                 function_attribute_name = body_node.name
             else:           #FIXME handle the exception or others cases
                 raise
-            class_code+=' '*self.indent_level
+            body_node_code=self.indent()
             if isinstance(body_node, ast.AnnAssign) or isinstance(body_node, ast.FunctionDef):
                 if len(function_attribute_name)>=2 and function_attribute_name[0]=='_' and function_attribute_name[1]!='_':
-                    class_code += 'protected:'
+                    body_node_code += 'protected:'
                 elif len(function_attribute_name)>=3 and function_attribute_name[0]=='_' and function_attribute_name[1]=='_':
-                    class_code += 'private:'
-                else:
-                    class_code += 'public:'
-            codeCpp.classes[class_name].append(class_code)
+                    body_node_code += 'private:'
+                elif function_attribute_name is not None:
+                    body_node_code += 'public:'
+                body_node_code+=self.visit(body_node)
+            codeCpp.classes[class_name].append(body_node_code)
         self.indent_level -= 1
         self.current_structure_name=None
 
@@ -88,7 +76,7 @@ class astToCppParser(ast.NodeVisitor):
         self.current_function_name=node.name #save name for check of recursive functions
         #type and nameof the function
         if node.returns is not None:
-            function_type = node.returns.id #the type of the function is specified in the python source
+            function_type = tm.pythonTypes_CppTypes.get(str(node.returns.id)) #the type of the function is specified in the python source
         else:
             function_type = 'void'          #the type of the function is not specified in the python source #TODO use the template based on the type of parameters
         if self.current_structure_name is not None and (node.name=='__init__' or node.name==self.current_structure_name):   #is a constructor of a class
@@ -98,7 +86,7 @@ class astToCppParser(ast.NodeVisitor):
 
         #parameters and types of the function
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)): #the i start from 1 when the fuction is declare in a class so as to remove the self keyword
-            param_type = 'auto' if node.args.args[i].annotation is None else node.args.args[i].annotation.id #FIXME if the type is not specified raise an exception or type inference
+            param_type = 'auto' if node.args.args[i].annotation is None else tm.pythonTypes_CppTypes.get(str(node.args.args[i].annotation.id)) #FIXME if the type is not specified raise an exception or type inference
             param_name = node.args.args[i].arg
             signature += f"{param_type} {param_name}"
             if i < len(node.args.args) - 1:
@@ -124,7 +112,7 @@ class astToCppParser(ast.NodeVisitor):
             if signature not in codeCpp.functions:
                 codeCpp.functions[signature] = ''
             else:
-                raise UnsupportedCommandError(
+                raise ex.UnsupportedCommandError(
                     f"{signature} is already defined")  # FIXME implements overloading operators
             codeCpp.functions[signature]=func_code
         else:
@@ -135,11 +123,10 @@ class astToCppParser(ast.NodeVisitor):
         #recursive function check
         function_name = self.visit(node.func)  # Get the name of the function being called
         if function_name==self.current_function_name:
-            raise RecursiveFunctionError(function_name)
-        # Check if the function is supported (you can customize this list)
-        unsupported_functions = {'print', 'input', 'len'}  # Example of unsupported functions
-        if function_name in unsupported_functions:
-            raise RuntimeError(f"Function '{function_name}' is not supported.")
+            raise ex.RecursiveFunctionError(function_name)
+        # Check if the function is supported
+        if function_name not in codeCpp.classes and function_name not in codeCpp.functions and function_name not in tm.pythonFunction_toParse:
+            raise RuntimeError(f"Function or class' {function_name}' is not supported.")
 
         # Handle function arguments
         args = [self.visit(arg) for arg in node.args]
@@ -150,20 +137,19 @@ class astToCppParser(ast.NodeVisitor):
         iter_value = self.visit(node.iter)  #range
         loop_code = ""
         if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name) and node.iter.func.id == 'range':   #range cicle
-            if len(node.iter.args) == 1:  # range(stop)
+            if len(node.iter.args) == 1:  # range(stop) #FIXME add type inference for the target
                 loop_code += f"{self.indent()}for (int {target} = 0; {target} < {self.visit(node.iter.args[0])}; ++{target}) {{\n"
             elif len(node.iter.args) == 2:  # range(start, stop)
                 loop_code += f"{self.indent()}for (int {target} = {self.visit(node.iter.args[0])}; {target} < {self.visit(node.iter.args[1])}; ++{target}) {{\n"
             elif len(node.iter.args) == 3:  # range(start, stop, step)
                 loop_code += f"{self.indent()}for (int {target} = {self.visit(node.iter.args[0])}; {target} < {self.visit(node.iter.args[1])}; {target} += {self.visit(node.iter.args[2])}) {{\n"
         else: #FIXME i have to handle the others type of for?
-            raise UnsupportedCommandError(f"Unsupported iteration: {iter_value}")
+            raise ex.UnsupportedCommandError(f"Unsupported iteration: {iter_value}")
 
-        #corpo del ciclo
+        #cicle body
         self.indent_level += 1
         for astNode in node.body:
             loop_code += self.visit(astNode)
-
         self.indent_level -= 1
         loop_code += self.indent() + "}\n"
 
@@ -199,7 +185,7 @@ class astToCppParser(ast.NodeVisitor):
 
         return f"{self.indent()}return {self.visit(node.value)};\n"
 
-    #TODO list multitype is not working
+    #FIXME list multitype is NOTWORK
     """
     def visit_List(self, node):
         #visit list with different types
@@ -240,13 +226,14 @@ class astToCppParser(ast.NodeVisitor):
 
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
         targets = self.visit_targets(node.targets) #left variable or variables
-        if isinstance(node.value,ast.List):         #FIXME list multitype not work
+        """
+        if isinstance(node.value,ast.List):         #FIXME list multitype NOT WORK
             value=self.visit_List(node.value)
             assign_code = f"{self.indent()}{'typesArray '+targets[0]+'['+str(len(node.value.elts))+']'} = {value};\n"
             self.array_multitype_names.append(targets[0])
-        else:
-            value = self.visit(node.value)                  #operation
-            assign_code=f"{self.indent()}{targets} = {value};\n"
+        else: """
+        value = self.visit(node.value)                  #operation
+        assign_code=f"{self.indent()}{targets} = {value};\n"
 
         if self.current_function_name is None:  #assign is outside a function
             codeCpp.declarations+=assign_code
@@ -255,7 +242,7 @@ class astToCppParser(ast.NodeVisitor):
 
     def visit_AnnAssign(self, node): #visit and translate to C++ AnnAssign node(es. c:int=0)
         var_name = self.visit(node.target)      #name of the variable
-        var_type = self.visit(node.annotation)  #type of the variable
+        var_type = tm.pythonTypes_CppTypes.get(self.visit(node.annotation))  #type of the variable
         value = self.visit(node.value)          #value assign
         annAssign_code = f"{self.indent()}{var_type} {var_name}" + (f" = {'' if var_type in codeCpp.classes else ''} {value}" if value!='' else "") + ";\n" #assign with value and no value
 
@@ -347,5 +334,5 @@ def generateAstToCppCode(python_ast):
     try:
         astToCppParser().visit(python_ast)
         return codeCpp
-    except (UnsupportedCommandError, RecursiveFunctionError) as e:
+    except (ex.UnsupportedCommandError, ex.RecursiveFunctionError) as e:
         raise

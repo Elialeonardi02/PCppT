@@ -23,12 +23,12 @@ print(ast.dump(astG, indent=4)) #TODO remove, use for debugging
 codeCppObject=astToCpp.generateAstToCppCode(astG)
 #print(codeCppObject)  #TODO remove, use for debugging
 codeCpp=codeCppObject.declarations
-
-for cls in codeCppObject.classes:
-    codeCpp+='class '+cls+'{\n'
-for cli in codeCppObject.classes[cls]:
-    codeCpp+=cli
-codeCpp+='};\n'
+if codeCppObject.classes!={}:
+    for cls in codeCppObject.classes:
+        codeCpp+='class '+cls+'{\n'
+    for cli in codeCppObject.classes[cls]:
+        codeCpp+=cli
+    codeCpp+='};\n'
 for sign in codeCppObject.functions:
     codeCpp+=sign+';\n\n'
 for sign_fun in codeCppObject.functions:
