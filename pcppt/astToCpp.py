@@ -78,7 +78,7 @@ class astToCppParser(ast.NodeVisitor):
         if node.returns is not None:
             function_type = tm.pythonTypes_CppTypes.get(str(node.returns.id)) #the type of the function is specified in the python source
         else:
-            function_type = 'void'          #the type of the function is not specified in the python source #TODO use the template based on the type of parameters
+            function_type = 'template <typename T> \n T'          #the type of the function is not specified in the python source, use template
         if self.current_structure_name is not None and (node.name=='__init__' or node.name==self.current_structure_name):   #is a constructor of a class
             signature = f"{self.indent()}{self.current_structure_name}("
         else:                                                                   #is a normal function
@@ -86,7 +86,7 @@ class astToCppParser(ast.NodeVisitor):
 
         #parameters and types of the function
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)): #the i start from 1 when the fuction is declare in a class so as to remove the self keyword
-            param_type = 'auto' if node.args.args[i].annotation is None else tm.pythonTypes_CppTypes.get(str(node.args.args[i].annotation.id)) #FIXME if the type is not specified raise an exception or type inference
+            param_type = 'auto' if node.args.args[i].annotation is None else tm.pythonTypes_CppTypes.get(str(node.args.args[i].annotation.id)) #TODO if the type is not specified raise an exception, type inference or use auto with vitis
             param_name = node.args.args[i].arg
             signature += f"{param_type} {param_name}"
             if i < len(node.args.args) - 1:
@@ -185,7 +185,7 @@ class astToCppParser(ast.NodeVisitor):
 
         return f"{self.indent()}return {self.visit(node.value)};\n"
 
-    #FIXME list multitype is NOTWORK
+    #FIXME list multitype is NOT  WORK
     """
     def visit_List(self, node):
         #visit list with different types
