@@ -1,8 +1,13 @@
-template <typename T> 
- T fun(int a, int b);
+int f();
 
-template <typename T> 
- T fun(int a, int b)
+int fun(long long a, int b);
+
+int f()
+{
+  return 1;
+}
+
+int fun(long long a, int b)
 {
   b = 1;
   for (int i = 0; i < 10; ++i) {
