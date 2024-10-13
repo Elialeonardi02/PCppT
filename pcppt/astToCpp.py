@@ -6,7 +6,8 @@ class code():
     def __init__(self):
         self.declarations=''
         self.classes={}     #{name classe[{signature: body},attributes]
-        self.functions={}   #functions {signature: body} 
+        self.functions={}   #functions {signature: body}
+        self.scope={}       #variables scope{structure{var:type}} use root for global scope
 codeCpp = code()
 
 
