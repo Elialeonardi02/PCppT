@@ -16,9 +16,9 @@ file_path_destination= sys.argv[2]  #destination c++
 
 astG, comment = pythonToAST.generateAstComments(file_path_source)
 
-#import ast                      #TODO remove, use for debugging
-#print("Commented AST:")         #TODO remove, use for debugging
-#print(ast.dump(astG, indent=4)) #TODO remove, use for debugging
+import ast                      #TODO remove, use for debugging
+print("Commented AST:")         #TODO remove, use for debugging
+print(ast.dump(astG, indent=4)) #TODO remove, use for debugging
 
 codeCppObject=astToCpp.generateAstToCppCode(astG)
 #print(codeCppObject)  #TODO remove, use for debugging
