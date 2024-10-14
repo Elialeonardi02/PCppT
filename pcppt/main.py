@@ -1,11 +1,8 @@
-from logging import exception
-
 import astToCpp
 import pythonToAST
 import sys
 import subprocess
 
-endline= '\n'
 
 if len(sys.argv) != 3:
     print("Usage: <path_python_script>.py  <path_cpp_destination_file>.cpp")
@@ -22,7 +19,7 @@ print(ast.dump(astG, indent=4)) #TODO remove, use for debugging
 
 codeCppObject=astToCpp.generateAstToCppCode(astG)
 #print(codeCppObject)  #TODO remove, use for debugging
-codeCpp=codeCppObject.declarations
+codeCpp=codeCppObject.globalCode
 if codeCppObject.classes!={}:
     for cls in codeCppObject.classes:
         codeCpp+='class '+cls+'{\n'

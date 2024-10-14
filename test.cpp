@@ -18,7 +18,6 @@ int f(int a)
 int fun(int a, int b)
 {
   int s =  1;
-  b = 1;
   int f = 2;
   for (int i = 0; i < 10; ++i) {
     a += 1;

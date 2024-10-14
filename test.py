@@ -5,7 +5,7 @@ class test:
         b:int
 def fun(a:int, b:int)->int:
     s:int=1
-    b=1
+    c,b=1
     f=2
     def f(a:int)->int:
         return 1
