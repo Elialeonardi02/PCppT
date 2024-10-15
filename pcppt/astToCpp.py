@@ -6,7 +6,7 @@ import exceptions as ex
 class code():
     def __init__(self):
         self.globalCode=''  #code in the global scope
-        self.classes={}     #{name classe[{signature: body},attributes]
+        self.classes={}     #{name class:[{signature: body},attributes]}
         self.functions={}   #functions {signature: body}
 codeCpp = code()
 
@@ -17,6 +17,7 @@ class astToCppParser(ast.NodeVisitor):
         self.indent_level = 0               #indent level of cpp code
         self.current_function_name = None   #function signature of the node being explored, if is a FunctionDef node
         self.current_structure_name = None  #name of the class in the node being explored, if is a ClassDef node
+        self.current_function_signature=None
         #self.array_multitype_names=[]
 
     def visit_Module(self, node):   #visit the root node of the AST
@@ -38,6 +39,10 @@ class astToCppParser(ast.NodeVisitor):
     def visit_Num(self, node):  #visit and translate to C++ Num node
 
         return str(node.n)
+
+    def visit_Constant(self, node):  #visit and translate to C++ Constant node
+
+        return str(node.value)
 
     def visit_Expr(self, node): # visit e translate in C++ Expr node
 
@@ -68,7 +73,8 @@ class astToCppParser(ast.NodeVisitor):
             #if isinstance(body_node, ast.AnnAssign) or isinstance(body_node, ast.FunctionDef):      #FIXME this if is necessary?
             if len(function_attribute_name)>=2 and function_attribute_name[0]=='_' and function_attribute_name[1]!='_':     #_<name> protected
                 body_node_code += 'protected:'
-            elif len(function_attribute_name)>=3 and function_attribute_name[0]=='_' and function_attribute_name[1]=='_':   #__<name> private
+            elif len(function_attribute_name)>=3 and function_attribute_name[0]=='_' and function_attribute_name[1]=='_'\
+                    and function_attribute_name[-2:]!='__':   #__<name> private
                 body_node_code += 'private:'
             elif function_attribute_name is not None:                                                                       #<name> public
                 body_node_code += 'public:'
@@ -90,18 +96,20 @@ class astToCppParser(ast.NodeVisitor):
         self.current_structure_name=None
 
     def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
-        self.current_function_name=node.name                                                                                                #save name for checking of recursive functions
-
+        # save name for checking of recursive functions
+        self.current_function_name = node.name
         #determine the function's type and name
         if node.returns is not None:                                                                                                        #type specified in Python source
-            function_type = tm.pythonTypes_CppTypes.get(str(node.returns.id))                                                                   #use typesMapping to traslate python type to c++ type
+            function_type = tm.pythonTypes_CppTypes.get(str(self.visit_returns(node.returns)))                                                                   #use typesMapping to traslate python type to c++ type
         else:                                                                                                                               #type of function is not specified in the python source
             function_type = 'template <typename T> T'                                                                                           #use template in c++
         if (self.current_structure_name is not None and                                                                                     #previos node is not a class
                 (node.name=='__init__' or node.name==self.current_structure_name)):                                                         #is a constructor of a class
             signature = f"{self.indent()}{self.current_structure_name}("                                                                        #signature construction
+            tm.add_to_callableFunction(self.current_structure_name, self.current_structure_name)
         else:                                                                                                                               #is a normal function or a method of a class
-            signature = f"{self.indent()}{function_type} {node.name}("                                                                          #normal signature with type
+            signature = f"{self.indent()}{function_type} {node.name}(" #normal signature with type
+            tm.add_to_callableFunction(self.current_structure_name, node.name)
 
         #parameters and types of the function
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):                                           #start from 1 for methods to skip 'self'
@@ -110,14 +118,14 @@ class astToCppParser(ast.NodeVisitor):
             signature += f"{param_type} {param_name}"
             if i < len(node.args.args) - 1:                                                                                                 #it is not last parameter
                 signature += ', '
-        signature += ')'
-        self.current_function_name = signature                                                                                              #save name for checking of recursive functions and scope
+        signature += ')'                                                                                          #save name for checking of recursive functions and scope
 
         #add parameters to scope of the function in typesMapping.scope
+        self.current_function_signature = signature
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):                                           #start from 1 for methods to skip 'self'
             param_type = 'auto' if node.args.args[i].annotation is None else tm.pythonTypes_CppTypes.get(str(node.args.args[i].annotation.id))  #use 'auto' if type not specified #FIXME if the type is not specified raise an exception, type inference or use auto with vitis
             param_name = node.args.args[i].arg
-            tm.add_to_scope(self.current_function_name,self.current_structure_name,param_name,param_type)
+            tm.add_to_scope(signature,self.current_structure_name,param_name,param_type)
 
         self.indent_level += 1
 
@@ -132,10 +140,12 @@ class astToCppParser(ast.NodeVisitor):
                 self.indent_level=0
                 self.visit(astNode)
                 self.indent_level=temp_indent_level
-                self.current_function_name = signature                                                                                          #reset current_function_name to current signature after visit
+                self.current_function_name = node.name                                                                                          #reset current_function_name to current signature after visit
+                self.current_function_signature = signature
 
         self.indent_level -= 1
         func_code += self.indent() + "}\n"
+
 
         #save signature and func_code in codeCpp
         if self.current_structure_name is None:                                                                                                 #is a function
@@ -147,20 +157,20 @@ class astToCppParser(ast.NodeVisitor):
         else:                                                                                                                                   #is a method of a class
             return signature, func_code
 
+
         #end of functionDef node explorations
         self.current_function_name = None
+        self.current_function_signature = None
 
     def visit_Call(self, node):  #visit and translate to C++ Call node(function call)
         #recursive function check
-        function_name = self.visit(node.func)                       #get the name of the function being called
+        function_name= self.visit(node.func)                       #get the name of the function being called
         if function_name==self.current_function_name:               #is recursive function
             raise ex.RecursiveFunctionError(function_name)
 
         #check if the function is supported
-        if (function_name not in codeCpp.classes and                #the fuction is not in the code.class
-                function_name not in codeCpp.functions and          #the fuction in not in the code.functions
-                function_name not in tm.pythonFunction_toParse):    #the function is not in the list of parsable Python functions
-            raise RuntimeError(f"Function or class' {function_name}' is not supported.")
+        if(self.current_structure_name is not None):    #FIXME check of method call on instance doesn't work
+            tm.check_callableFunction(function_name)
 
         #parameters of the call
         args = [self.visit(arg) for arg in node.args]
@@ -221,6 +231,12 @@ class astToCppParser(ast.NodeVisitor):
 
         return f"{self.indent()}return {self.visit(node.value)};\n"
 
+    def visit_returns(self, node):  #part of Return node
+        if isinstance(node, ast.Name):
+            return self.visit_Name(node)
+        elif isinstance(node, ast.Constant):
+            return self.visit_Constant(node)
+
     #FIXME list multitype is NOT  WORK
     """
     def visit_List(self, node):
@@ -253,13 +269,18 @@ class astToCppParser(ast.NodeVisitor):
         else:
             value='this'
         attr_name = node.attr
-
-        return f"{value}{'->' if self.current_structure_name is not None else '.'}{attr_name}"
+        return f"{value}{'->' if self.current_structure_name is not None else '.'}{attr_name}"  #FIXME not correct if use istance of other class
 
     def visit_targets(self, node):  #visit and traslate to C++ targets elements. It is not a fuction of AST library
-        targets = [self.visit(t) for t in node]
-
-        return ', '.join(targets)
+        targets=[]
+        if isinstance(node[0], ast.Tuple):
+             for el in node[0].elts:
+                 targets.append(el)
+        elif isinstance(node[0],ast.Attribute):
+            targets.append(node[0].attr)
+        else:
+            targets.append(node[0].id)
+        return targets
 
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
         targets = self.visit_targets(node.targets)                                                                                  #left variable or variables
@@ -271,27 +292,29 @@ class astToCppParser(ast.NodeVisitor):
         else: """
         value = self.visit(node.value)
         assign_code=''
-        type=f"{self.indent()}{tm.check_scope(self.current_function_name,self.current_structure_name,targets,node.value.value)}";   #generate type for variable if it is not defined
-        for target in targets:                                                                                                      #different instruction for every target
-            assign_code+=f"{type}{target} = {value};\n"
 
-        if self.current_function_name is None:                                                                                      #assign is outside a function,method,class
-            if(targets not in tm.pythonTypes_CppTypes):
-                codeCpp.globalCode+=assign_code
+        for target in targets:
+            if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None:
+                assign_code += f"{self.indent()}this->{target} = {value};\n"
+            elif target not in tm.pythonTypes_CppTypes:
+                type = f"{self.indent()}{tm.check_scope(self.current_function_signature, self.current_structure_name, target, node.value)}"  # generate type for variable if it is not defined
+                assign_code+=f"{type}{target} = {value};\n"  #different instruction for every target
+
+        if self.current_function_signature is None:                                                                                      #assign is outside a function,method,class
+            codeCpp.globalCode+=assign_code
         else:                                                                                                                       #assing is inside a function,method,class
             return assign_code
 
     def visit_AnnAssign(self, node): #visit and translate to C++ AnnAssign node(es. c:int=0 or c:int;)
         #generate assign code
         var_name = self.visit(node.target)                                                                                                                  #name variable
-        var_type = tm.pythonTypes_CppTypes.get(self.visit(node.annotation))                                                                                 #type variable
+        var_type = tm.get_type(self.visit(node.annotation))                                                                                 #type variable
         value = self.visit(node.value)                                                                                                                      #value assign
         annAssign_code = f"{self.indent()}{var_type} {var_name}" + (f" = {'' if var_type in codeCpp.classes else ''} {value}" if value!='' else "") + ";\n" #assign with value and no value
-
         #add variable to typesMapping.scope
-        tm.add_to_scope(self.current_function_name,self.current_structure_name,var_name,var_type)
+        tm.add_to_scope(self.current_function_signature,self.current_structure_name,var_name,var_type)
 
-        if self.current_function_name is None and self.current_structure_name is None:                                                                      #annAssign is outside a function or class
+        if self.current_function_signature is None and self.current_structure_name is None:                                                                      #annAssign is outside a function or class
             codeCpp.globalCode+=annAssign_code
         else:                                                                                                                                               #annAssign is inside a function or class
             return annAssign_code
@@ -302,7 +325,7 @@ class astToCppParser(ast.NodeVisitor):
         value = self.visit(node.value)          #value
 
         augAssign_code=f"{self.indent()}{target} {op}= {value};\n"
-        if self.current_function_name is None:  #augAssign is outside a function
+        if self.current_function_signature is None:  #augAssign is outside a function
             codeCpp.globalCode+=augAssign_code
         else:
             return augAssign_code               #augAssign is inside a function
@@ -394,6 +417,7 @@ def generateAstToCppCode(python_ast):
     try:
         astToCppParser().visit(python_ast)
         print(tm.scope) #TODO remove, use for debugging
+        print(tm.callableFunctions) #TODO remove, use for debugging
         return codeCpp
     except (ex.UnsupportedCommandError, ex.RecursiveFunctionError) as e:
         raise

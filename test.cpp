@@ -1,27 +1,29 @@
-int c =  1;
-class test{
-  public:  template <typename T> T f()
+class person{
+  public:  int age;
+  public:  float weight;
+  public:  person(int a, float w)
   {
-    int b;
+    this->age = a;
+    this->weight = w;
   }
-  public:  int a =  1;
+  public:  int get_age()
+  {
+    return this->age;
+  }
+  public:  void set_age(int a)
+  {
+    this->age = a;
+  }
 };
-int f(int a);
+void create_person(int a, int w);
 
-int fun(int a, int b);
-
-int f(int a)
+void create_person(int a, int w)
 {
-  return 1;
-}
-
-int fun(int a, int b)
-{
-  int s =  1;
-  int f = 2;
-  for (int i = 0; i < 10; ++i) {
-    a += 1;
-  }
-  return 1;
+  person p =  person(a, w);
+  int a1 = 2;
+  float w1 = 4.6;
+  person p1 =  person(a1, w1);
+  p1.get_age();
+  p1.set_age(10);
 }
 

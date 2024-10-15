@@ -18,17 +18,15 @@ print("Commented AST:")         #TODO remove, use for debugging
 print(ast.dump(astG, indent=4)) #TODO remove, use for debugging
 
 codeCppObject=astToCpp.generateAstToCppCode(astG)
-#print(codeCppObject)  #TODO remove, use for debugging
+print(codeCppObject)  #TODO remove, use for debugging
 codeCpp=codeCppObject.globalCode
 if codeCppObject.classes!={}:
     for cls in codeCppObject.classes:
         codeCpp+='class '+cls+'{\n'
-    for cli in codeCppObject.classes[cls]:
-        if isinstance(cli, dict):
-            for sign in cli:
-                codeCpp+=sign+cli[sign]
-        else:
+        for cli in codeCppObject.classes[cls][1:]:
             codeCpp+=cli
+        for sign in codeCppObject.classes[cls][0]:
+            codeCpp += sign + codeCppObject.classes[cls][0][sign]
     codeCpp+='};\n'
 for sign in codeCppObject.functions:
     codeCpp+=sign+';\n\n'

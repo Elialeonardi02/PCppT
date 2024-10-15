@@ -9,3 +9,11 @@ class RecursiveFunctionError(Exception):    #exception for recursive functions
 class AlreadyDefinedError(Exception):   #exception for class, function already defined
     def __init__(self, elem):
         super().__init__(f"{elem} is already defined")
+
+class NotCallableError(Exception):   #exception for function uncullable
+    def __init__(self, elem):
+        super().__init__(f"{elem} is not callable")
+
+class TypeNotExistError(Exception):   #exception for type doesn't exist
+    def __init__(self, elem):
+        super().__init__(f"{elem} not exist")
