@@ -17,3 +17,4 @@ class NotCallableError(Exception):   #exception for function uncullable
 class TypeNotExistError(Exception):   #exception for type doesn't exist
     def __init__(self, elem):
         super().__init__(f"{elem} not exist")
+

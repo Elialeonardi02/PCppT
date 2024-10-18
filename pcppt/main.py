@@ -3,6 +3,7 @@ import pythonToAST
 import sys
 import subprocess
 
+import codeCpp.codeCppClass as cppc
 
 if len(sys.argv) != 3:
     print("Usage: <path_python_script>.py  <path_cpp_destination_file>.cpp")
@@ -17,21 +18,20 @@ import ast                      #TODO remove, use for debugging
 print("Commented AST:")         #TODO remove, use for debugging
 print(ast.dump(astG, indent=4)) #TODO remove, use for debugging
 
-codeCppObject=astToCpp.generateAstToCppCode(astG)
-print(codeCppObject)  #TODO remove, use for debugging
-codeCpp=codeCppObject.globalCode
-if codeCppObject.classes!={}:
-    for cls in codeCppObject.classes:
+astToCpp.generateAstToCppCode(astG)
+codeCpp=cppc.cppCodeObject.globalCode
+if cppc.cppCodeObject.classes!={}:
+    for cls in cppc.cppCodeObject.classes:
         codeCpp+='class '+cls+'{\n'
-        for cli in codeCppObject.classes[cls][1:]:
+        for cli in cppc.cppCodeObject.classes[cls][1:]:
             codeCpp+=cli
-        for sign in codeCppObject.classes[cls][0]:
-            codeCpp += sign + codeCppObject.classes[cls][0][sign]
+        for sign in cppc.cppCodeObject.classes[cls][0]:
+            codeCpp += sign + cppc.cppCodeObject.classes[cls][0][sign]
     codeCpp+='};\n'
-for sign in codeCppObject.functions:
+for sign in cppc.cppCodeObject.functions:
     codeCpp+=sign+';\n\n'
-for sign_fun in codeCppObject.functions:
-    codeCpp+=sign_fun+'\n'+codeCppObject.functions[sign_fun]+'\n'
+for sign_fun in cppc.cppCodeObject.functions:
+    codeCpp+=sign_fun+'\n'+cppc.cppCodeObject.functions[sign_fun]+'\n'
 
 print(codeCpp)  #TODO remove, use for debugging
 #add comments
