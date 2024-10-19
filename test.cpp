@@ -4,10 +4,8 @@ void fun();
 
 void fun()
 {
-    int c = 1;
-    c = 2;
-    c = 3;
-    int a = 1;
-    a = 2;
+  FlexibleValue c[]= {{1}, {2}, {3}, {4}, {5}};
+  int a =  1;
+  c[a].setValue(1);
 }
 

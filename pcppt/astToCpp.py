@@ -248,7 +248,7 @@ class astToCppParser(ast.NodeVisitor):
         obj = self.visit(node.value)          #the object being indexed
         index = self.visit(node.slice)    #the index to access
         if not self.is_in_Compare:
-            return f"{obj}[{index}].{cppc.cppSupportClass['get']}("
+            return f"{obj}[{index}].{cppc.cppSupportClass['get']}"
         else:
             self.Subscript_to_handle[f"{obj}[{index}]"]=cppc.cppSupportClass['flexType']+obj+str(index)
             return cppc.cppSupportClass['flexType']+obj+str(index)
@@ -271,19 +271,24 @@ class astToCppParser(ast.NodeVisitor):
         elif isinstance(node[0],ast.Name):
             for el in node:
                 targets.append(el.id)
+        elif isinstance(node[0],ast.Subscript):
+            targets.append(f"{node[0].value.id}[{self.visit(node[0].slice)}]")
         return targets
 
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
         targets = self.visit_targets(node.targets)                                                                                  #left variable or variables
         assign_code = self.indent()
         value = self.visit(node.value)
-        if isinstance(node.value,ast.List) and len(targets)==1: #is a list,
+        print(isinstance(node.targets[0],ast.Subscript))
+        if isinstance(node.value,ast.List) and len(targets)==1 and isinstance(node.targets[0],ast.Name) : #is an array declaration
             #FIXME handler when is already defined
             type=cppSupportClass['flexType']
             assign_code+=f"{type} {targets[0]}[]= {value};\n"#FIXME add to scope structure
-        elif isinstance(node.value,ast.Subscript):
-            assign_code+=f"{value}{targets[0]});\n"
-        else:
+        elif isinstance(node.value,ast.Subscript):  #assign array value to variable
+            assign_code+=f"{value}({targets[0]});\n"
+        elif len(targets)==1 and isinstance(node.targets[0],ast.Subscript): #assign value to array element
+            assign_code += f"{targets[0]}.{cppc.cppSupportClass['set']}({value});\n"
+        else:#common assign code
             for target in targets:
                 if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None:
                     assign_code += f"this->{target} = {value};\n"
