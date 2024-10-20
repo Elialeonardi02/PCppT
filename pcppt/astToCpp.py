@@ -1,7 +1,5 @@
 import ast
 
-from docutils.nodes import target
-
 import typesMapping as tm
 import exceptions as ex
 import codeCpp.codeCppClass as cppc
@@ -17,6 +15,8 @@ class astToCppParser(ast.NodeVisitor):
         self.current_function_signature=None
         self.is_in_Compare=False                 #false: not exploring compareNode, true: exploring compareNode
         self.Subscript_to_handle={}
+        self.type_array_single_type=False
+        self.array_multi_type_declaration=False
         #self.array_multitype_names=[]
 
     def visit_Module(self, node):   #visit the root node of the AST
@@ -226,6 +226,7 @@ class astToCppParser(ast.NodeVisitor):
 
         self.is_in_if=False
 
+
         return if_code
 
     def visit_Return(self, node):   #visit and translate to C++ Return node
@@ -238,11 +239,16 @@ class astToCppParser(ast.NodeVisitor):
         elif isinstance(node, ast.Constant):
             return str(self.visit_Constant(node))
 
-    #FIXME list multitype is NOT  WORK
-
     def visit_List(self, node):
-        elements = [f"{{{tm.corret_value(self.visit(el))}}}" for el in node.elts]
-        return f"{{{', '.join(elements)}}}"
+        if self.type_array_single_type:    #is type of array one type element declaration
+            return tm.corret_value(self.visit(node.elts[0]))
+        elif self.array_multi_type_declaration:
+            elements = [f"{{{tm.corret_value(self.visit(el))}}}" for el in node.elts]
+            return f"{{{', '.join(elements)}}}"
+        else:
+            elements = [f"{tm.corret_value(self.visit(el))}" for el in node.elts]
+            return f"{', '.join(elements)}"
+
 
     def visit_Subscript(self, node):    #visit and translate to C++ Subscript node (accessing elements) #FIXME add sintax for code outside of a function
         obj = self.visit(node.value)          #the object being indexed
@@ -276,44 +282,57 @@ class astToCppParser(ast.NodeVisitor):
         return targets
 
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
-        targets = self.visit_targets(node.targets)                                                                                  #left variable or variables
+        targets = self.visit_targets(node.targets)                                                                       #left variable or variables
         assign_code = self.indent()
         value = self.visit(node.value)
         print(isinstance(node.targets[0],ast.Subscript))
-        if isinstance(node.value,ast.List) and len(targets)==1 and isinstance(node.targets[0],ast.Name) : #is an array declaration
+        if isinstance(node.value,ast.List) and len(targets)==1 and isinstance(node.targets[0],ast.Name) : #is an array multi typedeclaration
+            self.array_multi_type_declaration=True
+            value = self.visit(node.value)
             #FIXME handler when is already defined
             type=cppSupportClass['flexType']
-            assign_code+=f"{type} {targets[0]}[]= {value};\n"#FIXME add to scope structure
+            assign_code+=f"{type} {targets[0]}[]= {value};\n"
+            tm.add_to_scope(self.current_function_signature, self.current_structure_name,targets[0],f"[{type}]")
+            self.array_multi_type_declaration=False
         elif isinstance(node.value,ast.Subscript):  #assign array value to variable
             assign_code+=f"{value}({targets[0]});\n"
         elif len(targets)==1 and isinstance(node.targets[0],ast.Subscript): #assign value to array element
             assign_code += f"{targets[0]}.{cppc.cppSupportClass['set']}({value});\n"
         else:#common assign code
             for target in targets:
-                if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None:
+                if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None: #TODO check correct scope and declaration when is absent
                     assign_code += f"this->{target} = {value};\n"
                 elif target not in tm.pythonTypes_CppTypes:
-                    type=tm.check_scope(self.current_function_signature, self.current_structure_name, target, node.value)#generate type for variable if it is not defined
+                    if tm.check_scope(self.current_function_signature, self.current_structure_name, target, node.value):#generate type for variable if it is not defined
+                        type=""     #is already declare
+                    else:
+                        type=tm.infer_type(node.value)+" "  #is not already declare
                     assign_code+=f"{self.indent()}{type}{target} = {value};\n"  #different instruction for every target
                     if type !="":
                         tm.add_to_scope(self.current_structure_name,self.current_function_signature, target, type)
-        if self.current_function_signature is None:                                                                                      #assign is outside a function,method,class
+        if self.current_function_signature is None: #assign is outside a function,method,class
             cppc.cppCodeObject.globalCode+=assign_code
-        else:                                                                                                                       #assing is inside a function,method,class
+        else:   #assing is inside a function,method,class
             return assign_code
 
     def visit_AnnAssign(self, node): #visit and translate to C++ AnnAssign node(es. c:int=0 or c:int;)
         #generate assign code
-        var_name = self.visit(node.target)                                                                                                                  #name variable
-        var_type = tm.get_type(self.visit(node.annotation))                                                                                 #type variable
-        value = self.visit(node.value)                                                                                                                      #value assign
-        annAssign_code = f"{self.indent()}{var_type} {var_name}" + (f" = {'' if var_type in cppc.cppCodeObject.classes else ''} {value}" if value!='' else "") + ";\n" #assign with value and no value
+        var_name = self.visit(node.target)  #name variable
+        self.type_array_single_type = True
+        var_type = tm.get_type(self.visit(node.annotation)) #type variable
+        self.type_array_single_type = False
+        value = self.visit(node.value)  #value assign
+        if f"[{var_type}]" in tm.pythonTypes_CppTypesArrays: #array of a single type
+            var_name+='[]'
+            value="{"+value+"}"
+        annAssign_code = f"{self.indent()}{var_type} {var_name}" + (f" = {value}" if value!='' else "") + ";\n" #assign with value and no value #FIXME {'' if var_type in cppc.cppCodeObject.classes else ''}?
         #add variable to typesMapping.scope
         tm.add_to_scope(self.current_function_signature,self.current_structure_name,var_name,var_type)
+        self.is_in_AnnAssing=False
 
-        if self.current_function_signature is None and self.current_structure_name is None:                                                                      #annAssign is outside a function or class
+        if self.current_function_signature is None and self.current_structure_name is None: #annAssign is outside a function or class
             cppc.cppCodeObject.globalCode+=annAssign_code
-        else:                                                                                                                                               #annAssign is inside a function or class
+        else:   #annAssign is inside a function or class
             return annAssign_code
 
     def visit_AugAssign(self, node):    #visit and translate to C++ AugAssign node(es: i+=<value)

@@ -21,14 +21,34 @@ pythonTypes_CppTypes = {    #take from dace
     'float32': "float",
     'float64': "double"
 }
+
+pythonTypes_CppTypesArrays = {    #take from dace
+    '[int]': "int",
+    '[float]': "float",
+    '[bool]': "bool",
+    '[int8]': "char",
+    '[int16]': "short",
+    '[int32]': "int",
+    '[int64]': "long long",
+    '[uint8]': "unsigned char",
+    '[uint16]': "unsigned short",
+    '[uint32]': "unsigned int",
+    '[uint64]': "unsigned long long",
+    '[float16]': "half",
+    '[float32]': "float",
+    '[float64]': "double"
+}
+
 scope = {}  # variables scope{function{var:type}class:{function:{var:type},var:type}root:{var:type} use root for global scope
 
 def get_type(ptype):
-    if ptype in scope:
+    if ptype in scope:  #FIXME only check the key, fix
         return ptype
-    else:
-        return pythonTypes_CppTypes.get(ptype)
-
+    if ptype in pythonTypes_CppTypes:
+        return ptype
+    if ptype in pythonTypes_CppTypesArrays:
+        return ptype
+    raise ex.TypeNotExistError()
 
 def add_to_scope(in_function, in_class, var=None, type_var=None): #add variable(var) to scope
     if in_function is not None and in_class is None:        #var is in a function
@@ -66,7 +86,6 @@ def add_to_scope(in_function, in_class, var=None, type_var=None): #add variable(
 
 def check_scope(in_function, in_class, var, val):           #check if the variable is in the correct scope, if it is not, return the type of the value associated with the variable
     #FIXME now only check local scope
-    ftype=False #false:not do type inferece, true:do type inference
     if isinstance(val, ast.Constant) and (
             (in_function is not None and in_class is None and
              (scope.get(in_function) is None or var not in scope[in_function])) or
@@ -78,18 +97,14 @@ def check_scope(in_function, in_class, var, val):           #check if the variab
             (in_function is None and in_class is None and
              (scope.get(globalScope) is None or var not in scope[globalScope]))
     ):
-        ftype = True
-    elif isinstance(val, ast.Call):
+        return False
+    elif isinstance(val, ast.Call): #TODO method check class scope
         f = val.func.id
         if f in scope:
             return f
         else:
             raise ex.TypeNotExistError(f)
-    if ftype:   #type inference
-        return infer_type(val)+" "
-    else:       #no type inference
-        return  ""
-
+    return True
 
 def infer_type(val):
     if isinstance(val, ast.Constant):
