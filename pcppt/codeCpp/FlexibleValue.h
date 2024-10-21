@@ -1,5 +1,6 @@
 class FlexibleValue {
 public:
+    int sizeString=100; //maximun dimension of string
     union Value {
         int i;
         float f;
@@ -12,7 +13,8 @@ public:
         unsigned int ui;
         unsigned long long ull;
         double d;
-        // Aggiungi altri tipi se necessario
+        char str[100];
+
     } val;
 
     enum Type {
@@ -27,10 +29,10 @@ public:
         UNSIGNED_INT,
         UNSIGNED_LONG_LONG,
         DOUBLE,
+        STRING,
         UNKNOWN
     } currentType;
 
-    // Costruttori per i vari tipi
     FlexibleValue(int x) {
         this->val.i = x;
         currentType = INT;
@@ -86,7 +88,14 @@ public:
         currentType = DOUBLE;
     }
 
-    // Metodi per impostare i valori
+    FlexibleValue(const char* x) {
+        for (int i = 0; i < this->sizeString-1 && x[i] != '\0'; i++) {
+            val.str[i] = x[i];
+        }
+        val.str[this->sizeString-1] = '\0';
+        currentType = STRING;
+    }
+
     void setValue(int x) {
         if (currentType == INT) {
             val.i = x;
@@ -153,7 +162,15 @@ public:
         }
     }
 
-    // Metodi per assegnare i valori a variabili di riferimento
+    void setValue(const char* x) {
+        if (currentType == STRING) {
+            for (int i = 0; i < this->sizeString-1 && x[i] != '\0'; i++) {
+                val.str[i] = x[i];
+            }
+            val.str[this->sizeString-1] = '\0';
+        }
+    }
+
     void assignValue(int &x) {
         if (currentType == INT) {
             x = val.i;
@@ -220,7 +237,14 @@ public:
         }
     }
 
-    // Metodo per confrontare con un predicato
+    void assignValue(char* x) {
+        if (currentType == STRING) {
+            for (int i = 0; i < this->sizeString; i++) {
+                x[i] = val.str[i];
+            }
+        }
+    }
+
     bool compare(const auto& pred) {
         switch (currentType) {
             case INT:
@@ -245,6 +269,15 @@ public:
                 return pred(val.ull);
             case DOUBLE:
                 return pred(val.d);
+            case STRING:
+                for (int i = 0; i<this->sizeString ; i++) {
+                    if (not pred(val.str[i]))
+                        return false;
+                    if (val.str[i] == '\0') {
+                        break;
+                    }
+                }
+                return true;
             default:
                 return false;
         }

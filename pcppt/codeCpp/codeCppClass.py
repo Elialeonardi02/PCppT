@@ -7,6 +7,6 @@ class code():
 cppCodeObject=code()
 cppCodeObject.globalCode+='#include "pcppt/codeCpp/FlexibleValue.h"\n\n'
 
-cppSupportClass={'flexType':'FlexibleValue', #class to make array compose to mylty type
+cppSupportClass={'flexType':'FlexibleValue', #class to make array compose to multy type
     'get':'assignValue','compare':'compare', 'set':'setValue'
 }

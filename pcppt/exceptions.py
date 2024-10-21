@@ -18,3 +18,6 @@ class TypeNotExistError(Exception):   #exception for type doesn't exist
     def __init__(self, elem):
         super().__init__(f"{elem} not exist")
 
+class IsNotDefinedError(Exception):   #exception for not defined
+    def __init__(self, elem):
+        super().__init__(f"{elem} is not defined")
