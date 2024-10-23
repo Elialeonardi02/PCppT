@@ -40,16 +40,23 @@ pythonTypes_CppTypesArrays = {    #take from dace
     '[float64]': "double"
 }
 
+
 scope = {}  # variables scope{function{var:type}class:{function:{var:type},var:type}root:{var:type} use root for global scope
 
 def get_type(ptype):
-    if ptype in scope:  #FIXME only check the key
-        return ptype
-    if ptype in pythonTypes_CppTypes:
-        return pythonTypes_CppTypes.get(ptype)
-    if ptype in pythonTypes_CppTypesArrays:
-        return pythonTypes_CppTypesArrays.get(ptype)
-    raise ex.TypeNotExistError()
+    if isinstance(ptype,dict):
+        key_type = next(iter(ptype))
+        value_type = ptype[key_type]
+        return {key_type:value_type}
+
+    else:
+        if ptype in scope:  #FIXME only check the key
+            return ptype
+        if ptype in pythonTypes_CppTypes:
+            return pythonTypes_CppTypes.get(ptype)
+        if ptype in pythonTypes_CppTypesArrays:
+            return pythonTypes_CppTypesArrays.get(ptype)
+        raise ex.TypeNotExistError(ptype)
 
 def get_var_type_scope(in_function, in_class, var=None):
     if in_function is not None and in_class is None and in_function in scope and var in scope[in_function]:        #var is in a function
@@ -60,7 +67,7 @@ def get_var_type_scope(in_function, in_class, var=None):
         return scope[in_class][in_function][var]
     if in_function is None and in_class is None and globalScope in scope and var in scope[globalScope]:            #var is in global scope
         return [globalScope][var]
-    raise ex.IsNotDefinedError(var)
+    return None
 
 def add_to_scope(in_function, in_class, var=None, type_var=None): #add variable(var) to scope
     if in_function is not None and in_class is None:        #var is in a function

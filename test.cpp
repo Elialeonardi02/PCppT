@@ -1,29 +1,20 @@
 #include "pcppt/codeCpp/FlexibleValue.h"
-
-class persona{
-  public:  int age;
-  public:  float weight;
-  public:  persona(int a, float w)
-  {
-    this->age = a;
-    this->weight = w;
-  }
-  public:  int get_age()
-  {
-    return this->age;
-  }
-  public:  void set_age(int a)
-  {
-    this->age = a;
-  }
-};
+#include "pcppt/codeCpp/ArrayMap.h"
 void fun();
 
 void fun()
 {
-  persona p = persona(1, 1.1);
-  int c = 1;
-  c = 2;
-  int a = 3;
-}
+  ArrayMap<float,int,2> a(
+    KeyValuePair<float,int>(1.1,1),
+    KeyValuePair<float,int>(2.2,2)
+  );
+  a.insert(1.1, 2);
+  int b;
+    FlexibleValue c[]= {{1}, {2}, {"a"}, {4}};
+  float d[] = {1.0f, 2.3f};
+  if (c[1].compare([](auto FlexibleValuec1)->bool{return FlexibleValuec1 == 1;})) {
+    d[0] += 1;
+  }
+  char e[] = "tests str";
+  }
 
