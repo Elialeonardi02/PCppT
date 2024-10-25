@@ -35,7 +35,7 @@ class astToCppParser(ast.NodeVisitor):
         return "  " * self.indent_level
 
     def generic_visit(self, node):  #Called if no explicit visitor function exists for a node.
-        #FIXME raise an exception when threre is not a function to explore the Node?
+
         return ""
 
     def visit_Name(self, node): #visit and translate to C++ Name node
@@ -47,8 +47,9 @@ class astToCppParser(ast.NodeVisitor):
         return str(node.n)
 
     def visit_Constant(self, node):  #visit and translate to C++ Constant node
-        if isinstance(node.value, str):
+        if isinstance(node.value, str): #parse for string declaration
             return f"\"{node.value}\""
+
         return node.value
 
     def visit_Expr(self, node): # visit e translate in C++ Expr node
@@ -56,14 +57,13 @@ class astToCppParser(ast.NodeVisitor):
         return self.indent()+self.visit(node.value) + ";\n"
 
     def visit_ClassDef(self, node):  # visit e translate in C++ ClassDef node
-        class_name = node.name
-        self.current_structure_name = class_name                                                                        #save name of class for cppc.classes dictionary and scope dictionary
+        self.current_structure_name = node.name #save name of class for cppc.classes dictionary and scope
 
-        #check the class is already defined
-        if class_name not in cppc.cppCodeObject.classes:                                                                           #the class isn't already defined
-            cppc.cppCodeObject.classes[class_name]=[{}]                                                                                #the first element of cppc.classes is {signature:body} of  functions
-        else:                                                                                                           #the class is already defined
-            raise ex.AlreadyDefinedError(class_name)
+        #check class is already defined
+        if self.current_structure_name not in cppc.cppCodeObject.classes:   #class isn't already define
+            cppc.cppCodeObject.classes[self.current_structure_name]=[{}]        #add class to scope
+        else:                                                               #class already define
+            raise ex.AlreadyDefinedError(self.current_structure_name)
         self.indent_level += 1
 
         #parse attributes and methods
@@ -74,28 +74,29 @@ class astToCppParser(ast.NodeVisitor):
                 function_attribute_name = body_node.name    #save name method
             else:                                       #body_node is unsopported in class body
                 raise ex.UnsupportedCommandError(node.body)
+            body_node_code=self.indent()    #cpp code of body_node
 
-            body_node_code=self.indent()
-            #visibility of fuction or attribute
-            if len(function_attribute_name)>=2 and function_attribute_name[0]=='_' and function_attribute_name[1]!='_': #_<name> protected
+            #visibility of function or attribute
+            if len(function_attribute_name)>=2 and function_attribute_name[0]=='_' and function_attribute_name[1]!='_': #_<name> -> protected
                 body_node_code += 'protected:'
             elif len(function_attribute_name)>=3 and function_attribute_name[0]=='_' and function_attribute_name[1]=='_'\
-                    and function_attribute_name[-2:]!='__': #__<name> private
+                    and function_attribute_name[-2:]!='__': #__<name> -> private
                 body_node_code += 'private:'
-            elif function_attribute_name is not None:   #<name> public
+            elif function_attribute_name is not None:   #<name> -> public
                 body_node_code += 'public:'
 
-            #add code to cppc
-            if isinstance(body_node, ast.AnnAssign):                                                                        #is attribute
+            #add code to cppc.cppCodeObject[self.current_structure_name
+            if isinstance(body_node, ast.AnnAssign):    #is attribute
                 body_node_code += self.visit(body_node)
-                cppc.cppCodeObject.classes[class_name].append(body_node_code)                                                              #add code attribute to class list
-            elif isinstance(body_node, ast.FunctionDef):                                                                    #is a method
+                cppc.cppCodeObject.classes[self.current_structure_name].append(body_node_code)
+            elif isinstance(body_node, ast.FunctionDef):    #is a method
                 signature,method_body = self.visit(body_node)
-                signature=body_node_code+signature                                                                              #add visibility to signature
-                if signature not in cppc.cppCodeObject.classes[class_name][0]:                                                             #the method is not arleady defined
-                    cppc.cppCodeObject.classes[class_name][0][signature]=f"\n{self.indent()}{method_body}"
-                else:                                                                                                           #the method is arleady defined
+                signature=body_node_code+signature                 #add visibility to signature
+                if signature not in cppc.cppCodeObject.classes[self.current_structure_name][0]:#the method is not arleady defined
+                    cppc.cppCodeObject.classes[self.current_structure_name][0][signature]=f"\n{self.indent()}{method_body}"
+                else:                                              #the method is arleady defined
                     raise ex.AlreadyDefinedError(f"in this class {signature}")
+
 
         #end of ClassDef node explorations
         self.indent_level -= 1
@@ -104,17 +105,18 @@ class astToCppParser(ast.NodeVisitor):
     def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
         # save name for checking of recursive functions
         self.current_function_name = node.name
-        #determine the function's type and name
-        if node.returns is not None:                #type specified in Python source
+
+        #determine function type and name
+        if node.returns is not None:    #type specified in Python source
             function_type = tm.pythonTypes_CppTypes.get(str(self.visit_returns(node.returns)))  #use typesMapping to traslate python type to c++ type
-        else:                                       #type of function is not specified in the python source
+        else:   #type of function is not specified in the python source
             function_type = 'template <typename T> T'   #use template in c++
         if (self.current_structure_name is not None and #outside node is not a class
                 (node.name=='__init__' or node.name==self.current_structure_name)): #function is a constructor of a class
-            signature = f"{self.indent()}{self.current_structure_name}("    #signature construction
+            signature = f"{self.current_structure_name}("    #signature construction
             tm.add_to_callableFunction(self.current_structure_name, self.current_structure_name)
         else:   #is a normal function or a method of a class
-            signature = f"{self.indent()}{function_type} {node.name}(" #normal signature with type
+            signature = f"{function_type} {node.name}(" #normal signature with type
             tm.add_to_callableFunction(self.current_structure_name, node.name)
 
         #parameters and types of the function
@@ -128,11 +130,15 @@ class astToCppParser(ast.NodeVisitor):
 
         #add parameters to scope of the function in typesMapping.scope
         self.current_function_signature = signature
-        tm.add_to_scope(signature,self.current_structure_name)  #FIXME add function without parameter to scope
-        for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):                                           #start from 1 for methods to skip 'self'
+        signature=self.indent()+signature
+
+        for i in range(0, len(node.args.args)):                                           #start from 1 for methods to skip 'self'
             param_type = 'auto' if node.args.args[i].annotation is None else tm.pythonTypes_CppTypes.get(str(node.args.args[i].annotation.id))  #use 'auto' if type not specified #FIXME if the type is not specified raise an exception, type inference or use auto with vitis
             param_name = node.args.args[i].arg
-            tm.add_to_scope(signature,self.current_structure_name,param_name,param_type)
+            if param_name=='self': #i==1
+                tm.add_to_scope(self.current_function_signature,self.current_structure_name)
+            else:
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
 
         self.indent_level += 1
 
@@ -261,7 +267,7 @@ class astToCppParser(ast.NodeVisitor):
         dictionary={}
         for k,v in zip(node.keys,node.values):
             dictionary[self.visit(k)]=self.visit(v)
-        return  dictionary
+        return dictionary
 
     def visit_Subscript(self, node):    #visit and translate to C++ Subscript node (accessing elements) #FIXME add sintax for code outside of a function
         obj = self.visit(node.value)          #the object being indexed
@@ -283,7 +289,6 @@ class astToCppParser(ast.NodeVisitor):
                 return f"*{obj}.{cppc.cppSupportClass['mapSearch']}({index})"
         else:
             return [f"{self.visit(node.value)}[{self.visit(node.slice)}]"]
-
 
     def visit_Attribute(self, node):  #visit and translate to C++ Attribute node
         if self.current_structure_name is None:
@@ -346,7 +351,7 @@ class astToCppParser(ast.NodeVisitor):
                     if not tm.check_scope(self.current_function_signature, self.current_structure_name, target, node.value):#generate type for variable if it is not defined
                         var_type=tm.infer_type(node.value)#is not already declare
                         assign_code+=f"{var_type} "
-                        tm.add_to_scope(self.current_structure_name,self.current_function_signature, target, var_type)
+                        tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
 
                     assign_code += f"{target}{[] if var_type == 'char' else ''} = {value};\n"
         if self.current_function_signature is None: #assign is outside a function,method,class

@@ -11,6 +11,3 @@ def fun()->None:
     e:str="tests str"
     b=3
 
-
-
-

@@ -50,7 +50,7 @@ def get_type(ptype):
         return {key_type:value_type}
 
     else:
-        if ptype in scope:  #FIXME only check the key
+        if ptype in scope:  #is class
             return ptype
         if ptype in pythonTypes_CppTypes:
             return pythonTypes_CppTypes.get(ptype)
@@ -73,33 +73,37 @@ def add_to_scope(in_function, in_class, var=None, type_var=None): #add variable(
     if in_function is not None and in_class is None:        #var is in a function
         if in_function not in scope:
             scope[in_function]={}
-        if var not in scope[in_function] :
-            scope[in_function][var]=type_var
-        else:
-            raise ex.AlreadyDefinedError(var)
+        if var is not None:
+            if var not in scope[in_function]:
+                scope[in_function][var]=type_var
+            else:
+                raise ex.AlreadyDefinedError(var)
     if in_function is None and in_class is not None:        #var is in a class, is an attribute
         if in_class not in scope:
             scope[in_class]={}
-        if var not in scope[in_class]:
-            scope[in_class][var]=type_var
-        else:
-            raise ex.AlreadyDefinedError(var)
+        if var is not None:
+            if var not in scope[in_class]:
+                scope[in_class][var]=type_var
+            else:
+                raise ex.AlreadyDefinedError(var)
     if in_function is not None and in_class is not None:    #var is in a method of a class
         if in_class not in scope:
             scope[in_class] = {}
         if in_function not in scope[in_class]:
             scope[in_class][in_function] = {}
-        if var not in scope[in_class][in_function]:
-            scope[in_class][in_function][var] = type_var
-        else:
-            raise ex.AlreadyDefinedError(var)
+        if var is not None:
+            if  var not in scope[in_class][in_function] :
+                scope[in_class][in_function][var] = type_var
+            else:
+                raise ex.AlreadyDefinedError(var)
     if in_function is None and in_class is None:            #var is in global scope
         if globalScope not in scope:
             scope[globalScope]={}
-        if var not in scope[globalScope]:
-            scope[globalScope][var]=type_var
-        else:
-            raise ex.AlreadyDefinedError(var)
+        if var is not None:
+            if var not in scope[globalScope]:
+                scope[globalScope][var]=type_var
+            else:
+                raise ex.AlreadyDefinedError(var)
 
 
 
@@ -107,12 +111,15 @@ def check_scope(in_function, in_class, var, val):           #check if the variab
     #FIXME now only check local scope
     if isinstance(val, ast.Constant) and (
             (in_function is not None and in_class is None and
-             (scope.get(in_function) is None or var not in scope[in_function])) or
+             (scope.get(in_function) is None or var not in scope[in_function])) #var in function
+            or
             (in_function is None and in_class is not None and
-             (scope.get(in_class) is None or var not in scope[in_class])) or
+             (scope.get(in_class) is None or var not in scope[in_class]))   #var attribute of class
+            or
             (in_function is not None and in_class is not None and
-             (scope.get(in_class) is None or scope.get(in_function) is None or
-              var not in scope[in_class][in_function])) or
+             (scope.get(in_class) is None or scope.get(in_class).get(in_function) is None or
+              var not in scope[in_class][in_function]))
+            or
             (in_function is None and in_class is None and
              (scope.get(globalScope) is None or var not in scope[globalScope]))
     ):
