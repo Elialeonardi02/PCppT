@@ -8,18 +8,23 @@ from pcppt.codeCpp.codeCppClass import cppSupportClass
 class astToCppParser(ast.NodeVisitor):
 
     def __init__(self): #constructor
-        self.indent_level = 0               #indent level of cpp code
-        self.current_function_name = None   #function signature of the node being explored, if is a FunctionDef node
-        self.current_structure_name = None  #name of the class in the node being explored, if is a ClassDef node
-        self.current_function_signature=None
-        self.is_in_Compare=False                 #false: not exploring compareNode, true: exploring compareNode
-        self.Subscript_to_handle={}
-        self.is_mapArray=False
-        self.type_array_single_type=False
-        self.array_multi_type_declaration=False
-        self.map_insert=False
-        self.map_search=False
-        #self.array_multitype_names=[]
+        self.indent_level = 0                       #indent level of cpp code
+        self.current_structure_name = None          #contain name of the exploring ClassDef node,
+        self.current_function_name = None           #contain name of the exploring FunctionDef node,use for check recursive function
+        self.current_function_signature=None        #contain function signature of the exploring FunctionDef Node, use for scope check
+
+        #flag for array flexType
+        self.array_multi_type_declaration = False   #true: value node to explore in AssignNode is a list, use for declaration of array flexType
+        self.is_in_Compare=False                    #false: not exploring compareNode, true: exploring compareNode(if else), use for correct subscript in compare node of array flex type
+        self.subscript_flexType_in_compare={}       #contain Subscript of array flexType to handle from a compare block, use for write the call to compare method with lambda functions
+
+        # flag array single type
+        self.array_single_type_declaration = False  # true: value node to explore in annAssignNode is a list, use for declaration of array single type
+
+        #flag for map array
+        self.is_mapArray=False                      #true: subscript node refer to MapArray(python dict), use in Assign node to write correctly subscript of MapArray
+        self.mapArray_insert=False                  #true: subscrit node refer to mapArray ad is target of assign node, use in assign node for add (key, value) to MapArray
+        self.mapArray_search=False                  #true: subscrit node refer to mapArray ad is value of assign node, use in assign node for search key in  MapArray
 
     def visit_Module(self, node):   #visit the root node of the AST
         for astNode in node.body:       #iterate through all the child nodes in the module body
@@ -243,7 +248,7 @@ class astToCppParser(ast.NodeVisitor):
             return str(self.visit_Constant(node))
 
     def visit_List(self, node):
-        if self.type_array_single_type:    #is type of array one type element declaration
+        if self.array_single_type_declaration:    #is type of array one type element declaration
             return tm.corret_value(self.visit(node.elts[0]))
         elif self.array_multi_type_declaration:
             elements = [f"{{{tm.corret_value(self.visit(el))}}}" for el in node.elts]
@@ -268,13 +273,13 @@ class astToCppParser(ast.NodeVisitor):
             if not self.is_in_Compare:
                 return f"{obj}[{index}].{cppc.cppSupportClass['get']}"
             else:
-                self.Subscript_to_handle[f"{obj}[{index}]"]=cppc.cppSupportClass['flexType']+obj+str(index)
+                self.subscript_flexType_in_compare[f"{obj}[{index}]"]=cppc.cppSupportClass['flexType']+obj+str(index)
                 return cppc.cppSupportClass['flexType']+obj+str(index)
         elif type==cppc.cppSupportClass['dict'] :
             self.is_mapArray=True
-            if self.map_insert:
+            if self.mapArray_insert:
                 return f"{obj}.{cppc.cppSupportClass['mapInsert']}({index},"
-            elif self.map_search:
+            elif self.mapArray_search:
                 return f"*{obj}.{cppc.cppSupportClass['mapSearch']}({index})"
         else:
             return [f"{self.visit(node.value)}[{self.visit(node.slice)}]"]
@@ -303,18 +308,18 @@ class astToCppParser(ast.NodeVisitor):
         return targets, None
 
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
-        self.map_insert=True
+        self.mapArray_insert=True
         targets, var_name = self.visit_targets(node.targets)#left variable or variables
-        self.map_insert=False
-        self.map_search=True
+        self.mapArray_insert=False
+        self.mapArray_search=True
         value = self.visit(node.value)
-        self.map_search=False
+        self.mapArray_search=False
         assign_code = self.indent()
         var_type = tm.get_var_type_scope(self.current_function_signature, self.current_structure_name, var_name)
         if isinstance(node.value,ast.List) and len(targets)==1 and isinstance(node.targets[0],ast.Name) : #is an array multi typedeclaration
             self.array_multi_type_declaration=True
             value = self.visit(node.value)
-            #FIXME handler when is already defined
+            #FIXME handler when is already defined,
             var_type=cppSupportClass['flexType']
             assign_code+=f"{var_type} {targets[0]}[]= {value};\n"
             tm.add_to_scope(self.current_function_signature, self.current_structure_name,targets[0],f"[{var_type}]")
@@ -329,6 +334,7 @@ class astToCppParser(ast.NodeVisitor):
                 assign_code+=f"{targets[0]} {value});\n"
             elif isinstance(node.value,ast.Subscript):
                 assign_code += f"{targets[0]} = {value};\n"
+            self.is_mapArray=False
         elif isinstance(node.value,ast.Subscript) :  #assign array multitype value to variable
             assign_code+=f"{value}({targets[0]});\n"
         else:#common assign code
@@ -351,9 +357,9 @@ class astToCppParser(ast.NodeVisitor):
     def visit_AnnAssign(self, node): #visit and translate to C++ AnnAssign node(es. c:int=0 or c:int;)
         #generate assign code
         var_name = self.visit(node.target)  #name variable
-        self.type_array_single_type = True
+        self.array_single_type_declaration = True
         var_type = tm.get_type(self.visit(node.annotation)) #type variable
-        self.type_array_single_type = False
+        self.array_single_type_declaration = False
         value = self.visit(node.value)  #value assign
         annAssign_code=self.indent()
         if isinstance(node.annotation, ast.List) and f"[{var_type}]" in tm.pythonTypes_CppTypesArrays: #array of a single type
@@ -379,7 +385,6 @@ class astToCppParser(ast.NodeVisitor):
                 annAssign_code += f"{var_type} {var_name}" + (f" = {value}" if value!='' else "") + ";\n" #assign with value and no value
         #add variable to typesMapping.scope
         tm.add_to_scope(self.current_function_signature,self.current_structure_name,var_name,f"{var_type}")
-        self.is_in_AnnAssing=False
 
         if self.current_function_signature is None and self.current_structure_name is None: #annAssign is outside a function or class
             cppc.cppCodeObject.globalCode+=annAssign_code
@@ -417,10 +422,11 @@ class astToCppParser(ast.NodeVisitor):
         right = self.visit(node.comparators[0]) #right element to compare
         op = self.visit(node.ops[0])            #operator
         self.is_in_Compare = False
-        if len(self.Subscript_to_handle)==0:
+        if len(self.subscript_flexType_in_compare)==0:
             return f"{str(left)} {op} {str(right)}"
         else:
-            k,v=next(iter(self.Subscript_to_handle.items()))
+            k,v=next(iter(self.subscript_flexType_in_compare.items()))
+            self.subscript_flexType_in_compare={}
             return f"{k}.{cppc.cppSupportClass['compare']}([](auto {v})->bool"+"{"+f"return {str(left)} {op} {str(right)};"+"})"
 
 

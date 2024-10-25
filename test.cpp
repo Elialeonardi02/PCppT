@@ -10,11 +10,13 @@ void fun()
   );
   a.insert(1.1, 2);
   int b;
-    FlexibleValue c[]= {{1}, {2}, {"a"}, {4}};
+  FlexibleValue c[]= {{1}, {2}, {"a"}, {4}};
   float d[] = {1.0f, 2.3f};
   if (c[1].compare([](auto FlexibleValuec1)->bool{return FlexibleValuec1 == 1;})) {
     d[0] += 1;
   }
+  float f = d[1];
   char e[] = "tests str";
-  }
+  b = 3;
+}
 
