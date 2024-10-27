@@ -134,9 +134,10 @@ def check_scope(in_function, in_class, var, val):           #check if the variab
 
 def infer_type(val):
     if isinstance(val, ast.Constant):
-        python_type = str(type(val.value).__name__)
-        if python_type in pythonTypes_CppTypes:
-            return pythonTypes_CppTypes[python_type]
+        val=val.value
+    python_type = str(type(val).__name__)
+    if python_type in pythonTypes_CppTypes:
+        return pythonTypes_CppTypes[python_type]
 
 def corret_value(v):    #correct a rappresentation of a python value in cpp value
     if isinstance(v,float):

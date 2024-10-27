@@ -1,8 +1,12 @@
 #include "../pcppt/codeCpp/FlexibleValue.h"
 #include "../pcppt/codeCpp/ArrayMap.h"
-class test{
-  public:  int fun()
-  {
-    return 1;
+void fun();
+
+void fun()
+{
+  int n = 10;
+  for (float i = n; i < 0; i += 0.2) {
+    i += 1;
   }
-};
+}
+

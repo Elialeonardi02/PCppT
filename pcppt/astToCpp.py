@@ -192,18 +192,33 @@ class astToCppParser(ast.NodeVisitor):
 
     def visit_For(self, node):  #visit and translate to C++ For node
         target = self.visit(node.target)    #loop counter
-        iter_value = self.visit(node.iter)  #iterator (range)
-        loop_code = ""
-
+        iter_values = []
+        types=[]
+        type_target=None
+        for arg in node.iter.args:
+            iter_values.append(self.visit(arg))
+            if not isinstance(arg,ast.Name):
+                types.append(type(self.visit(arg)))
+        print(types)
+        if len(types)==2:
+            if types[0]==types[1]:
+                type_target = types[0]
+            elif {types[0], types[1]}.issubset({int, float}):
+                type_target='float'
+        else:
+            type_target=types[0]
+        print(type_target)
+        type_target=tm.pythonTypes_CppTypes.get(type_target)
+        loop_code = self.indent()
         if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name) and node.iter.func.id == 'range':   #range cicle
-            if len(node.iter.args) == 1:                                                                                    #range(stop) #FIXME add type inference for the target?
-                loop_code += f"{self.indent()}for (int {target} = 0; {target} < {self.visit(node.iter.args[0])}; ++{target}) {{\n"
-            elif len(node.iter.args) == 2:                                                                                  #range(start, stop)
-                loop_code += f"{self.indent()}for (int {target} = {self.visit(node.iter.args[0])}; {target} < {self.visit(node.iter.args[1])}; ++{target}) {{\n"
-            elif len(node.iter.args) == 3:                                                                                  #range(start, stop, step)
-                loop_code += f"{self.indent()}for (int {target} = {self.visit(node.iter.args[0])}; {target} < {self.visit(node.iter.args[1])}; {target} += {self.visit(node.iter.args[2])}) {{\n"
+            if len(iter_values) == 1:                                                                                    #range(stop) #FIXME add type inference for the target?
+                loop_code += f"for ({type_target} {target} = 0; {target} < {iter_values[0]}; ++{target}) {{\n"
+            elif len(iter_values) == 2:                                                                                  #range(start, stop)
+                loop_code += f"for ({type_target} {target} = {iter_values[0]}; {target} < {iter_values[1]}; ++{target}) {{\n"
+            elif len(iter_values) == 3:                                                                                  #range(start, stop, step)
+                loop_code += f"for ({type_target} {target} = {iter_values[0]}; {target} < {iter_values[1]}; {target} += {iter_values[2]}) {{\n"
         else: #FIXME i have to handle the others type of for?
-            raise ex.UnsupportedCommandError(f"{iter_value} unsupported iterator")
+            raise ex.UnsupportedCommandError(f"{iter_values} unsupported iterator")
 
         #loop body
         self.indent_level += 1
