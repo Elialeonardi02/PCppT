@@ -174,7 +174,7 @@ class astToCppParser(ast.NodeVisitor):
             if i < len(node.args.args) - 1:  # Aggiunge una virgola se non è l'ultimo parametro
                 signature += ', '
         signature += ")"
-        return  f"[]{signature} {{return {self.visit(node.body)};}}",signature
+        return  f"[]{signature} {{{self.visit(node.body)};}}",signature
 
     def visit_Call(self, node):  #visit and translate to C++ Call node(function call)
         #recursive function check

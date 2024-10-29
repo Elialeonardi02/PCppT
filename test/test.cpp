@@ -13,7 +13,7 @@ void fun(int y)
   for (int i = 0; i < 1; ++i) {
     z += 2;
   }
-  auto l = [](auto x, auto y) {return z + y;};
+  auto l = [](auto x, auto y) {x + y;};
   l(1, 2);
 }
 
