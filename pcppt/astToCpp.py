@@ -1,8 +1,9 @@
 import ast
+from inspect import signature
+
 import typesMapping as tm
 import exceptions as ex
 import codeCpp.codeCppClass as cppc
-from pcppt.codeCpp.codeCppClass import cppSupportClass
 
 
 class astToCppParser(ast.NodeVisitor):
@@ -13,18 +14,9 @@ class astToCppParser(ast.NodeVisitor):
         self.current_function_name = None           #contain name of the exploring FunctionDef node,use for check recursive function
         self.current_function_signature=None        #contain function signature of the exploring FunctionDef Node, use for scope check
 
-        #flag for array flexType
-        self.array_multi_type_declaration = False   #true: value node to explore in AssignNode is a list, use for declaration of array flexType
-        self.is_in_Compare=False                    #false: not exploring compareNode, true: exploring compareNode(if else), use for correct subscript in compare node of array flex type
-        self.subscript_flexType_in_compare={}       #contain Subscript of array flexType to handle from a compare block, use for write the call to compare method with lambda functions
-
         # flag array single type
         self.array_single_type_declaration = False  # true: value node to explore in annAssignNode is a list, use for declaration of array single type
 
-        #flag for map array
-        self.is_mapArray=False                      #true: subscript node refer to MapArray(python dict), use in Assign node to write correctly subscript of MapArray
-        self.mapArray_insert=False                  #true: subscrit node refer to mapArray ad is target of assign node, use in assign node for add (key, value) to MapArray
-        self.mapArray_search=False                  #true: subscrit node refer to mapArray ad is value of assign node, use in assign node for search key in  MapArray
 
     def visit_Module(self, node):   #visit the root node of the AST
         for astNode in node.body:       #iterate through all the child nodes in the module body
@@ -114,11 +106,10 @@ class astToCppParser(ast.NodeVisitor):
         if (self.current_structure_name is not None and #outside node is not a class
                 (node.name=='__init__' or node.name==self.current_structure_name)): #function is a constructor of a class
             signature = f"{self.current_structure_name}("    #signature construction
-            tm.add_to_callableFunction(self.current_structure_name, self.current_structure_name)
         else:   #is a normal function or a method of a class
             signature = f"{function_type} {node.name}(" #normal signature with type
-            tm.add_to_callableFunction(self.current_structure_name, node.name)
 
+        tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, node.name)
         #parameters and types of the function
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
             param_type = 'auto' if node.args.args[i].annotation is None else tm.pythonTypes_CppTypes.get(str(node.args.args[i].annotation.id))  #use 'auto' if type not specified #FIXME if the type is not specified raise an exception, type inference or use auto with vitis
@@ -164,7 +155,7 @@ class astToCppParser(ast.NodeVisitor):
         if self.current_structure_name is None:                                                                                                 #is a function
             if signature not in cppc.cppCodeObject.functions:                                                                                                  #function is not already defined
                 cppc.cppCodeObject.functions[signature] = ''
-            else:                                                                                                                                   #function is already defined
+            else:   #FIXME it is the same control of tm.add_to_scope                                                                                                                              #function is already defined
                 raise ex.AlreadyDefinedError(signature)
             cppc.cppCodeObject.functions[signature]=func_code
         else:                                                                                                                                   #is a method of a class
@@ -175,6 +166,16 @@ class astToCppParser(ast.NodeVisitor):
         self.current_function_name = None
         self.current_function_signature = None
 
+    def visit_Lambda(self, node):
+        # parameters and types of the function
+        signature="("
+        for i, arg in enumerate(node.args.args):
+            signature += f"auto {arg.arg}"
+            if i < len(node.args.args) - 1:  # Aggiunge una virgola se non è l'ultimo parametro
+                signature += ', '
+        signature += ")"
+        return  f"[]{signature} {{{self.visit(node.body)};}}",signature
+
     def visit_Call(self, node):  #visit and translate to C++ Call node(function call)
         #recursive function check
         function_name= self.visit(node.func)    #get the name of the function being called
@@ -182,8 +183,8 @@ class astToCppParser(ast.NodeVisitor):
             raise ex.RecursiveFunctionError(function_name)
 
         #check if the function is supported
-        if(self.current_structure_name is not None):    #FIXME check of method call on instance doesn't work
-            tm.check_callableFunction(function_name)
+        if not tm.check_callableFunction(self.current_structure_name, self.current_function_name, function_name): #FIXME check of method call on instance doesn't work
+            raise ex.NotCallableError(function_name)
 
         #parameters of the call
         args = [str(self.visit(arg)) for arg in node.args]
@@ -193,25 +194,24 @@ class astToCppParser(ast.NodeVisitor):
     def visit_For(self, node):  #visit and translate to C++ For node
         target = self.visit(node.target)    #loop counter
         iter_values = []
+        #target type_inference #TODO add more type
         types=[]
         type_target=None
         for arg in node.iter.args:
             iter_values.append(self.visit(arg))
             if not isinstance(arg,ast.Name):
                 types.append(type(self.visit(arg)))
-        print(types)
         if len(types)==2:
             if types[0]==types[1]:
-                type_target = types[0]
+                type_target =types[0].__name__
             elif {types[0], types[1]}.issubset({int, float}):
                 type_target='float'
         else:
             type_target=types[0]
-        print(type_target)
         type_target=tm.pythonTypes_CppTypes.get(type_target)
         loop_code = self.indent()
         if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name) and node.iter.func.id == 'range':   #range cicle
-            if len(iter_values) == 1:                                                                                    #range(stop) #FIXME add type inference for the target?
+            if len(iter_values) == 1:                                                                                    #range(stop)
                 loop_code += f"for ({type_target} {target} = 0; {target} < {iter_values[0]}; ++{target}) {{\n"
             elif len(iter_values) == 2:                                                                                  #range(start, stop)
                 loop_code += f"for ({type_target} {target} = {iter_values[0]}; {target} < {iter_values[1]}; ++{target}) {{\n"
@@ -255,7 +255,6 @@ class astToCppParser(ast.NodeVisitor):
 
         self.is_in_if=False
 
-
         return if_code
 
     def visit_Return(self, node):   #visit and translate to C++ Return node
@@ -271,9 +270,6 @@ class astToCppParser(ast.NodeVisitor):
     def visit_List(self, node):
         if self.array_single_type_declaration:    #is type of array one type element declaration
             return tm.corret_value(self.visit(node.elts[0]))
-        elif self.array_multi_type_declaration:
-            elements = [f"{{{tm.corret_value(self.visit(el))}}}" for el in node.elts]
-            return f"{{{', '.join(elements)}}}"
         else:
             elements = [f"{tm.corret_value(self.visit(el))}" for el in node.elts]
             return f"{', '.join(elements)}"
@@ -290,19 +286,7 @@ class astToCppParser(ast.NodeVisitor):
         type=tm.get_var_type_scope(self.current_function_signature,self.current_structure_name,obj)
         if type in tm.pythonTypes_CppTypesArrays:
             return f"{obj}[{index}]"
-        elif type==f"[{cppc.cppSupportClass['flexType']}]":
-            if not self.is_in_Compare:
-                return f"{obj}[{index}].{cppc.cppSupportClass['get']}"
-            else:
-                self.subscript_flexType_in_compare[f"{obj}[{index}]"]=cppc.cppSupportClass['flexType']+obj+str(index)
-                return cppc.cppSupportClass['flexType']+obj+str(index)
-        elif type==cppc.cppSupportClass['dict'] :
-            self.is_mapArray=True
-            if self.mapArray_insert:
-                return f"{obj}.{cppc.cppSupportClass['mapInsert']}({index},"
-            elif self.mapArray_search:
-                return f"*{obj}.{cppc.cppSupportClass['mapSearch']}({index})"
-        else:
+        else:   #FIXME is it necessary without flextype and dict?
             return [f"{self.visit(node.value)}[{self.visit(node.slice)}]"]
 
     def visit_Attribute(self, node):  #visit and translate to C++ Attribute node
@@ -311,7 +295,7 @@ class astToCppParser(ast.NodeVisitor):
         else:
             value='this'
         attr_name = node.attr
-        return f"{value}{'->' if self.current_structure_name is not None else '.'}{attr_name}"  #FIXME not correct if use istance of other class
+        return f"{value}{'->' if self.current_structure_name is not None else '.'}{attr_name}"  #FIXME not correct if use instance of other class
 
     def visit_targets(self, node):  #visit and traslate to C++ targets elements. It is not a fuction of AST library
         targets=[]
@@ -319,56 +303,32 @@ class astToCppParser(ast.NodeVisitor):
              for el in node[0].elts:
                  targets.append(el.id)
         elif isinstance(node[0],ast.Attribute):
-            return[node[0].attr], None
+            return[node[0].attr]
         elif isinstance(node[0],ast.Name):
             for el in node:
                 targets.append(el.id)
         elif isinstance(node[0],ast.Subscript):
-            return [self.visit(node[0])],node[0].value.id
-        return targets, None
+            return [self.visit(node[0])]
+        return targets
 
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
-        self.mapArray_insert=True
-        targets, var_name = self.visit_targets(node.targets)#left variable or variables
-        self.mapArray_insert=False
-        self.mapArray_search=True
+        targets= self.visit_targets(node.targets)#left variable or variables
         value = self.visit(node.value)
-        self.mapArray_search=False
         assign_code = self.indent()
-        var_type = tm.get_var_type_scope(self.current_function_signature, self.current_structure_name, var_name)
-        if isinstance(node.value,ast.List) and len(targets)==1 and isinstance(node.targets[0],ast.Name) : #is an array multi typedeclaration
-            self.array_multi_type_declaration=True
-            value = self.visit(node.value)
-            #FIXME handler when is already defined,
-            var_type=cppSupportClass['flexType']
-            assign_code+=f"{var_type} {targets[0]}[]= {value};\n"
-            tm.add_to_scope(self.current_function_signature, self.current_structure_name,targets[0],f"[{var_type}]")
-            self.array_multi_type_declaration=False
-        elif len(targets)==1 and isinstance(node.targets[0],ast.Subscript) and var_type==cppc.cppSupportClass['flexType']:  #assign value to array flexType element
-            if var_type not in tm.pythonTypes_CppTypesArrays:
-                    assign_code += f"{targets[0]}.{cppc.cppSupportClass['set']}({value});\n"
-            elif var_type in tm.pythonTypes_CppTypesArrays:
-                    assign_code+=f"{targets[0]}={value};\n"
-        elif self.is_mapArray:
-            if len(targets)==1 and isinstance(node.targets[0],ast.Subscript) and var_type == cppc.cppSupportClass['dict']:  # assign value to arrayMap
-                assign_code+=f"{targets[0]} {value});\n"
-            elif isinstance(node.value,ast.Subscript):
-                assign_code += f"{targets[0]} = {value};\n"
-            self.is_mapArray=False
-        elif isinstance(node.value,ast.Subscript) :  #assign array multitype value to variable
-            assign_code+=f"{value}({targets[0]});\n"
-        else:#common assign code
-            for target in targets:
-                if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None: #TODO check correct scope and declaration when is absent
-                    assign_code += f"this->{target} = {value};\n"
-                elif target not in tm.pythonTypes_CppTypes:
-                    var_type=""
-                    if not tm.check_scope(self.current_function_signature, self.current_structure_name, target, node.value):#generate type for variable if it is not defined
-                        var_type=tm.infer_type(node.value)#is not already declare
-                        assign_code+=f"{var_type} "
-                        tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
-
-                    assign_code += f"{target}{[] if var_type == 'char' else ''} = {value};\n"
+        for target in targets:
+            if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None: #TODO check correct scope and declaration when is absent
+                assign_code += f"this->{target} = {value};\n"
+            if isinstance(node.value, ast.Lambda):
+                assign_code+=f"auto {target} = {value[0]};\n"
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, f"{target}{value[1]}", 'auto')
+                tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, target)
+            elif target not in tm.pythonTypes_CppTypes:
+                var_type=""
+                if not tm.check_scope(self.current_function_signature, self.current_structure_name, target, node.value):#generate type for variable if it is not defined
+                    var_type=tm.infer_type(node.value)#is not already declare
+                    assign_code+=f"{var_type} "
+                    tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
+                assign_code += f"{target}{[] if var_type == 'char' else ''} = {value};\n"
         if self.current_function_signature is None: #assign is outside a function,method,class
             cppc.cppCodeObject.globalCode+=assign_code
         else:   #assing is inside a function,method,class
@@ -385,19 +345,6 @@ class astToCppParser(ast.NodeVisitor):
         if isinstance(node.annotation, ast.List) and f"[{var_type}]" in tm.pythonTypes_CppTypesArrays: #array of a single type
             annAssign_code+= f"{var_type} {var_name}[] = " +'{'+value +"};\n"
             var_type=f"[{var_type}]"
-        elif isinstance(node.annotation, ast.Dict):
-            key_type = next(iter(var_type))
-            value_type = var_type[key_type]
-            annAssign_code+=f"{cppc.cppSupportClass['dict']}<{key_type},{value_type},{len(value)}> {var_name}(\n"
-            self.indent_level+=1
-            for i, k in enumerate(value):
-                annAssign_code += f"{self.indent()}{cppc.cppSupportClass['dictStruct']}<{key_type},{value_type}>({k},{value[k]})"
-                if i < len(value) - 1:
-                    annAssign_code += ',\n'
-                else:
-                    self.indent_level-=1
-                    annAssign_code += f"\n{self.indent()});\n"
-            var_type=cppc.cppSupportClass['dict']
         else:# f"{var_type}" not in tm.pythonTypes_CppTypesArrays:
             if var_type=="char":
                 annAssign_code += f"{var_type} {var_name}[]" + (f" = {value}" if value != '' else "") + ";\n"
@@ -437,17 +384,10 @@ class astToCppParser(ast.NodeVisitor):
         return f" {op} ".join(values)
 
     def visit_Compare(self, node):  #visit and translate to C++ Compare node
-        self.is_in_Compare=True
         left = self.visit(node.left)   #left element to compare
         right = self.visit(node.comparators[0]) #right element to compare
         op = self.visit(node.ops[0])            #operator
-        self.is_in_Compare = False
-        if len(self.subscript_flexType_in_compare)==0:
-            return f"{str(left)} {op} {str(right)}"
-        else:
-            k,v=next(iter(self.subscript_flexType_in_compare.items()))
-            self.subscript_flexType_in_compare={}
-            return f"{k}.{cppc.cppSupportClass['compare']}([](auto {v})->bool"+"{"+f"return {str(left)} {op} {str(right)};"+"})"
+        return f"{str(left)} {op} {str(right)}"
 
 
     #aritmetics operators

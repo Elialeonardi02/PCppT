@@ -145,23 +145,21 @@ def corret_value(v):    #correct a rappresentation of a python value in cpp valu
     else:
         return str(v)
 
-callableFunctions = {}  #{root:[fuctionName],nameclass:[function_name]} use root for global scope
+callableFunctions = {}  #{root:{fuctionName:[functionName,lambda]},nameclass:{MethodName:[MethodName,lambda]}} use root for global scope
 
-def add_to_callableFunction(in_class, fname): #add variable(var) to scope
-    if in_class is None:
-        if globalScope not in callableFunctions:
-            callableFunctions[globalScope]=[]
-        callableFunctions[globalScope].append(fname)
-    else:
-        if in_class not in callableFunctions:
-            callableFunctions[in_class]=[]
-        callableFunctions[in_class].append(fname)
+def add_to_callableFunction(in_class, functionName, fname):
+    scopeCall = globalScope if in_class is None else in_class
+    if scopeCall not in callableFunctions:
+        callableFunctions[scopeCall] = {}
+    if functionName not in callableFunctions[scopeCall]:
+        callableFunctions[scopeCall][functionName] = []
+    callableFunctions[scopeCall][functionName].append(fname)
 
-def check_callableFunction(fname):  #FIXME check if is a method or in in the correct scope
-    for fs in callableFunctions:
-        for f in callableFunctions[fs]:
-            if f==fname: return
-    if fname in pythonFunction_toParse:
-        return
-    raise ex.NotCallableError(fname)
+
+def check_callableFunction(in_class, functionName, fname):  #FIXME check if is a method or in in the correct scope
+    scopeCall = globalScope if in_class is None else in_class
+
+    return (scopeCall in callableFunctions and functionName in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][functionName]) or (fname in pythonFunction_toParse)
+
+
 
