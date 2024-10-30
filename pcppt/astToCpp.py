@@ -1,5 +1,4 @@
 import ast
-from inspect import signature
 
 import typesMapping as tm
 import exceptions as ex
@@ -17,6 +16,10 @@ class astToCppParser(ast.NodeVisitor):
         # flag array single type
         self.array_single_type_declaration = False  # true: value node to explore in annAssignNode is a list, use for declaration of array single type
 
+        #array body class
+        self.protected = {'attributes': [], 'methods': {}}
+        self.private = {'attributes': [], 'methods': {}}
+        self.public = {'attributes': [], 'methods': {}}
 
     def visit_Module(self, node):   #visit the root node of the AST
         for astNode in node.body:       #iterate through all the child nodes in the module body
@@ -53,44 +56,48 @@ class astToCppParser(ast.NodeVisitor):
 
         #check class is already defined
         if self.current_structure_name not in cppc.cppCodeObject.classes:   #class isn't already define
-            cppc.cppCodeObject.classes[self.current_structure_name]=[{}]        #add class to scope
+            cppc.cppCodeObject.classes[self.current_structure_name]={}       #add class to scope
         else:                                                               #class already define
             raise ex.AlreadyDefinedError(self.current_structure_name)
         self.indent_level += 1
 
+        #array for visibility
+
+
         #parse attributes and methods
         for body_node in node.body:
             if isinstance(body_node, ast.AnnAssign):    #body_node is an attribute
-                function_attribute_name=body_node.target.id #save name attribute
+                body_node_code = self.visit(body_node)
+                self.classDef_add_AnnAssign(body_node_code,body_node.target.id)
             elif isinstance(body_node, ast.FunctionDef):    #body_node is a method
-                function_attribute_name = body_node.name    #save name method
+                signature,method_body = self.visit(body_node)
+                self.classDef_add_FunctionDef(signature,method_body,body_node.name)
             else:                                       #body_node is unsopported in class body
                 raise ex.UnsupportedCommandError(node.body)
-            body_node_code=self.indent()    #cpp code of body_node
-
-            #visibility of function or attribute
-            if len(function_attribute_name)>=2 and function_attribute_name[0]=='_' and function_attribute_name[1]!='_': #_<name> -> protected
-                body_node_code += 'protected:'
-            elif len(function_attribute_name)>=3 and function_attribute_name[0]=='_' and function_attribute_name[1]=='_'\
-                    and function_attribute_name[-2:]!='__': #__<name> -> private
-                body_node_code += 'private:'
-            elif function_attribute_name is not None:   #<name> -> public
-                body_node_code += 'public:'
 
             #add code to cppc.cppCodeObject[self.current_structure_name
-            if isinstance(body_node, ast.AnnAssign):    #is attribute
-                body_node_code += self.visit(body_node)
-                cppc.cppCodeObject.classes[self.current_structure_name].append(body_node_code)
-            elif isinstance(body_node, ast.FunctionDef):    #is a method
-                signature,method_body = self.visit(body_node)
-                signature=body_node_code+signature                 #add visibility to signature
-                if signature not in cppc.cppCodeObject.classes[self.current_structure_name][0]:#the method is not arleady defined
-                    cppc.cppCodeObject.classes[self.current_structure_name][0][signature]=f"\n{self.indent()}{method_body}"
-                else:                                              #the method is arleady defined
-                    raise ex.AlreadyDefinedError(f"in this class {signature}")
-
+            #if isinstance(body_node, ast.AnnAssign):    #is attribute
+                #body_node_code += self.visit(body_node)
+                #cppc.cppCodeObject.classes[self.current_structure_name].append(body_node_code)
+            #elif isinstance(body_node, ast.FunctionDef):    #is a method
+                #signature,method_body = self.visit(body_node)
+                #signature=body_node_code+signature                 #add visibility to signature
+                #if signature not in cppc.cppCodeObject.classes[self.current_structure_name][0]:#the method is not already defined
+                    #cppc.cppCodeObject.classes[self.current_structure_name][0][signature]=f"\n{self.indent()}{method_body}"
+                #else:                                              #the method is arleady defined
+                    #raise ex.AlreadyDefinedError(f"in this class {signature}")
 
         #end of ClassDef node explorations
+        if self.protected['attributes'] or self.protected['methods']:
+            cppc.cppCodeObject.classes[self.current_structure_name]['protected']=self.protected
+        if self.private['attributes'] or self.private['methods']:
+            cppc.cppCodeObject.classes[self.current_structure_name]['private']=self.private
+        if self.public['attributes'] or self.public['methods']:
+            cppc.cppCodeObject.classes[self.current_structure_name]['public']=self.public
+
+        self.protected = {'attributes': [], 'methods': {}}
+        self.private = {'attributes': [], 'methods': {}}
+        self.public = {'attributes': [], 'methods': {}}
         self.indent_level -= 1
         self.current_structure_name=None
 
@@ -131,10 +138,10 @@ class astToCppParser(ast.NodeVisitor):
             else:
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
 
-        self.indent_level += 1
-
+        func_code = f"{self.indent()}{{\n"
         # body of the function
-        func_code='{\n'
+
+        self.indent_level += 1
         for astNode in node.body:
             if not isinstance(astNode, ast.FunctionDef):                                                                                        #the node is not a def of a function
                 iBodyCode=self.visit(astNode)
@@ -183,7 +190,7 @@ class astToCppParser(ast.NodeVisitor):
             raise ex.RecursiveFunctionError(function_name)
 
         #check if the function is supported
-        if not tm.check_callableFunction(self.current_structure_name, self.current_function_name, function_name): #FIXME check of method call on instance doesn't work
+        if not tm.check_callableFunction(self.current_structure_name, self.current_function_name, function_name) and function_name not in cppc.cppCodeObject.classes and isinstance(node.func,ast.Name): #FIXME raise when func is not only a name
             raise ex.NotCallableError(function_name)
 
         #parameters of the call
@@ -283,11 +290,11 @@ class astToCppParser(ast.NodeVisitor):
     def visit_Subscript(self, node):    #visit and translate to C++ Subscript node (accessing elements) #FIXME add sintax for code outside of a function
         obj = self.visit(node.value)          #the object being indexed
         index = self.visit(node.slice)    #the index to access
-        type=tm.get_var_type_scope(self.current_function_signature,self.current_structure_name,obj)
-        if type in tm.pythonTypes_CppTypesArrays:
-            return f"{obj}[{index}]"
-        else:   #FIXME is it necessary without flextype and dict?
-            return [f"{self.visit(node.value)}[{self.visit(node.slice)}]"]
+        #type=tm.get_var_type_scope(self.current_function_signature,self.current_structure_name,obj)
+        #if type in tm.pythonTypes_CppTypesArrays:
+        return f"{obj}[{index}]"
+        #else:   #FIXME is it necessary without flextype and dict?
+            #return [f"{self.visit(node.value)}[{self.visit(node.slice)}]"]
 
     def visit_Attribute(self, node):  #visit and translate to C++ Attribute node
         if self.current_structure_name is None:
@@ -316,19 +323,37 @@ class astToCppParser(ast.NodeVisitor):
         value = self.visit(node.value)
         assign_code = self.indent()
         for target in targets:
-            if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None: #TODO check correct scope and declaration when is absent
+            if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None:
                 assign_code += f"this->{target} = {value};\n"
-            if isinstance(node.value, ast.Lambda):
+                if not tm.check_scope(None,self.current_structure_name,target):
+                    var_type = tm.infer_type(node.value)  # is not already declare
+                    tempIndent = self.indent_level
+                    self.indent_level = 1
+                    if isinstance(node.value, ast.List):
+                        assign_code =""
+                        self.classDef_add_AnnAssign(f"{self.indent()}{var_type} {target}[{len(node.value.elts)}] = {{{value}}};\n", target)
+                        var_type=f"[{var_type}]"
+                    else:
+                        self.classDef_add_AnnAssign(f"{self.indent()}{var_type} {target};\n", target)
+                    tm.add_to_scope(None, self.current_structure_name, target, var_type)
+                    self.indent_level=tempIndent
+
+            elif isinstance(node.value, ast.Lambda):
                 assign_code+=f"auto {target} = {value[0]};\n"
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name, f"{target}{value[1]}", 'auto')
                 tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, target)
+
             elif target not in tm.pythonTypes_CppTypes:
-                var_type=""
-                if not tm.check_scope(self.current_function_signature, self.current_structure_name, target, node.value):#generate type for variable if it is not defined
-                    var_type=tm.infer_type(node.value)#is not already declare
-                    assign_code+=f"{var_type} "
-                    tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
-                assign_code += f"{target}{[] if var_type == 'char' else ''} = {value};\n"
+                if not tm.check_scope(self.current_function_signature, self.current_structure_name, target):#generate type for variable if it is not defined
+                    var_type = tm.infer_type(node.value)  # is not already declare
+                    assign_code += f"{var_type} "
+                    if isinstance(node.value,ast.List):
+                        assign_code+=f"{target}[{len(node.value.elts)}] = {{{value}}};\n"
+                        tm.add_to_scope(self.current_function_signature, self.current_structure_name, target, f"[{var_type}]")
+                        break
+                    else:
+                        tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
+                    assign_code += f"{target}{[] if var_type == 'char' else ''} = {value};\n"
         if self.current_function_signature is None: #assign is outside a function,method,class
             cppc.cppCodeObject.globalCode+=assign_code
         else:   #assing is inside a function,method,class
@@ -342,7 +367,7 @@ class astToCppParser(ast.NodeVisitor):
         self.array_single_type_declaration = False
         value = self.visit(node.value)  #value assign
         annAssign_code=self.indent()
-        if isinstance(node.annotation, ast.List) and f"[{var_type}]" in tm.pythonTypes_CppTypesArrays: #array of a single type
+        if isinstance(node.annotation, ast.List) and(var_type in tm.pythonTypes_CppTypes or var_type in cppc.cppCodeObject.classes): #array of a single type
             annAssign_code+= f"{var_type} {var_name}[] = " +'{'+value +"};\n"
             var_type=f"[{var_type}]"
         else:# f"{var_type}" not in tm.pythonTypes_CppTypesArrays:
@@ -453,6 +478,21 @@ class astToCppParser(ast.NodeVisitor):
 
         return ">="
 
+    def classDef_add_AnnAssign(self, body_node_code,function_attribute_name):
+        if len(function_attribute_name) >= 2 and function_attribute_name[0] == '_' and function_attribute_name[1] != '_':  # _<name> -> protected
+            self.protected['attributes'].append(body_node_code)
+        elif len(function_attribute_name) >= 3 and function_attribute_name[0] == '_' and function_attribute_name[ 1] == '_' and function_attribute_name[-2:] != '__':  # __<name> -> private
+            self.private['attributes'].append(body_node_code)
+        elif function_attribute_name is not None:  # <name> -> public
+            self.public['attributes'].append(body_node_code)
+
+    def classDef_add_FunctionDef(self, signature,method_body, function_attribute_name):
+        if len(function_attribute_name) >= 2 and function_attribute_name[0] == '_' and function_attribute_name[1] != '_':  # _<name> -> protected
+            self.protected['methods'][signature] = method_body
+        elif len(function_attribute_name) >= 3 and function_attribute_name[0] == '_' and function_attribute_name[1] == '_' and function_attribute_name[-2:] != '__':  # __<name> -> private
+            self.private['methods'][signature] = method_body
+        elif function_attribute_name is not None:  # <name> -> public
+            self.public['methods'][signature] = method_body
 def generateAstToCppCode(python_ast):
     try:
         astToCppParser().visit(python_ast)

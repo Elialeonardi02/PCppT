@@ -23,10 +23,15 @@ codeCpp=cppc.cppCodeObject.globalCode
 if cppc.cppCodeObject.classes!={}:
     for cls in cppc.cppCodeObject.classes:
         codeCpp+='class '+cls+'{\n'
-        for cli in cppc.cppCodeObject.classes[cls][1:]:
-            codeCpp+=cli
-        for sign in cppc.cppCodeObject.classes[cls][0]:
-            codeCpp += sign + cppc.cppCodeObject.classes[cls][0][sign]
+        for vis,elms in cppc.cppCodeObject.classes[cls].items():
+            codeCpp+=f"{vis}:\n"
+            print(elms['attributes'])
+            for elm in elms['attributes']:
+                codeCpp+=f"{elm}\n"
+
+            for sig,func in elms['methods'].items():
+
+                codeCpp+=f"{sig} \n{func}\n"
     codeCpp+='};\n'
 for sign in cppc.cppCodeObject.functions:
     codeCpp+=sign+';\n\n'

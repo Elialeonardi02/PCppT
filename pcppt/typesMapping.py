@@ -107,9 +107,9 @@ def add_to_scope(in_function, in_class, var=None, type_var=None): #add variable(
 
 
 
-def check_scope(in_function, in_class, var, val):           #check if the variable is in the correct scope, if it is not, return the type of the value associated with the variable
+def check_scope(in_function, in_class, var):           #check if the variable is in the correct scope, if it is not, return the type of the value associated with the variable
     #FIXME now only check local scope
-    if isinstance(val, ast.Constant) and (
+    return not(
             (in_function is not None and in_class is None and
              (scope.get(in_function) is None or var not in scope[in_function])) #var in function
             or
@@ -122,23 +122,16 @@ def check_scope(in_function, in_class, var, val):           #check if the variab
             or
             (in_function is None and in_class is None and
              (scope.get(globalScope) is None or var not in scope[globalScope]))
-    ):
-        return False
-    elif isinstance(val, ast.Call): #TODO method check class scope
-        f = val.func.id
-        if f in scope:
-            return f
-        else:
-            raise ex.TypeNotExistError(f)
-    return True
+    )
 
 def infer_type(val):
+    if isinstance(val,ast.List):
+        val=val.elts[0]
     if isinstance(val, ast.Constant):
         val=val.value
     python_type = str(type(val).__name__)
     if python_type in pythonTypes_CppTypes:
         return pythonTypes_CppTypes[python_type]
-
 def corret_value(v):    #correct a rappresentation of a python value in cpp value
     if isinstance(v,float):
         return str(v)+'f'
@@ -158,7 +151,6 @@ def add_to_callableFunction(in_class, functionName, fname):
 
 def check_callableFunction(in_class, functionName, fname):  #FIXME check if is a method or in in the correct scope
     scopeCall = globalScope if in_class is None else in_class
-
     return (scopeCall in callableFunctions and functionName in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][functionName]) or (fname in pythonFunction_toParse)
 
 
