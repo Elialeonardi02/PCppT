@@ -1,5 +1,7 @@
 import ast
 
+from docutils.frontend import validate_encoding
+
 import typesMapping as tm
 import exceptions as ex
 import codeCpp.codeCppClass as cppc
@@ -308,7 +310,10 @@ class astToCppParser(ast.NodeVisitor):
         targets=[]
         if isinstance(node[0], ast.Tuple):
              for el in node[0].elts:
-                 targets.append(el.id)
+                 if isinstance(el, ast.Attribute):  #elem in a tuple is attribute class
+                     targets.append(el.value.id)
+                 else:
+                    targets.append(el.id)
         elif isinstance(node[0],ast.Attribute):
             return[node[0].attr]
         elif isinstance(node[0],ast.Name):
@@ -321,12 +326,13 @@ class astToCppParser(ast.NodeVisitor):
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
         targets= self.visit_targets(node.targets)#left variable or variables
         value = self.visit(node.value)
-        assign_code = self.indent()
+        assign_code = ""
         for target in targets:
-            if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None:
+            assign_code +=self.indent()
+            if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None:   #target attribute inside a class
                 assign_code += f"this->{target} = {value};\n"
-                if not tm.check_scope(None,self.current_structure_name,target):
-                    var_type = tm.infer_type(node.value)  # is not already declare
+                if not tm.check_scope(None,self.current_structure_name,target): # is not already declare
+                    var_type = tm.infer_type(node.value)
                     tempIndent = self.indent_level
                     self.indent_level = 1
                     if isinstance(node.value, ast.List):
@@ -338,22 +344,38 @@ class astToCppParser(ast.NodeVisitor):
                     tm.add_to_scope(None, self.current_structure_name, target, var_type)
                     self.indent_level=tempIndent
 
-            elif isinstance(node.value, ast.Lambda):
+            elif isinstance(node.value, ast.Lambda):    #declare lambda function
                 assign_code+=f"auto {target} = {value[0]};\n"
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name, f"{target}{value[1]}", 'auto')
                 tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, target)
-
-            elif target not in tm.pythonTypes_CppTypes:
-                if not tm.check_scope(self.current_function_signature, self.current_structure_name, target):#generate type for variable if it is not defined
+            elif isinstance(node.value,ast.List):
+                if not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]):#generate type for variable if it is not defined #.split("[")[0] for check array(subscript) in scope
                     var_type = tm.infer_type(node.value)  # is not already declare
                     assign_code += f"{var_type} "
-                    if isinstance(node.value,ast.List):
-                        assign_code+=f"{target}[{len(node.value.elts)}] = {{{value}}};\n"
-                        tm.add_to_scope(self.current_function_signature, self.current_structure_name, target, f"[{var_type}]")
-                        break
-                    else:
-                        tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
+                    assign_code+=f"{target}[{len(node.value.elts)}] = {{{value}}};\n"
+                    tm.add_to_scope(self.current_function_signature, self.current_structure_name, target, f"[{var_type}]")
+                else:   #array is already define, can't assign array to list already defined, make a temp array to assign value to target
+                    temp_indent=self.indent_level
+                    var_type = tm.infer_type(node.value)
+                    self.indent_level += 1
+                    assign_code+=f"{{\n{self.indent()}{var_type} temp_array_assign[{len(node.value.elts)}] = {{{value}}};\n"
+                    assign_code+=f"{self.indent()}for (int i=0; i<{len(node.value.elts)}; i++) {{\n"
+                    self.indent_level += 1
+                    assign_code += f"{self.indent()}{target}[i] = temp_array_assign[i];\n"
+                    self.indent_level -= 1
+                    assign_code+=f"{self.indent()}}}\n"
+                    self.indent_level -= 1
+                    assign_code += f"{self.indent()}}}\n"
+
+                    self.indent_level=temp_indent
+            else:
+                if not tm.check_scope(self.current_function_signature, self.current_structure_name, target):
+                    var_type = tm.infer_type(node.value)  # is not already declare
+                    assign_code += f"{var_type} "
+                    tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
                     assign_code += f"{target}{[] if var_type == 'char' else ''} = {value};\n"
+                else:
+                    assign_code += f"{target} = {value};\n"
         if self.current_function_signature is None: #assign is outside a function,method,class
             cppc.cppCodeObject.globalCode+=assign_code
         else:   #assing is inside a function,method,class

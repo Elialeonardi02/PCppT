@@ -23,7 +23,7 @@ pythonTypes_CppTypes = {    #take from dace
     'str' : "char"
 }
 
-pythonTypes_CppTypesArrays = {    #take from dace
+pythonTypes_CppTypesArrays = {    #take from dace #TODO remove
     '[int]': "int",
     '[float]': "float",
     '[bool]': "bool",
