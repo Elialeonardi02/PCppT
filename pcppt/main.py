@@ -66,4 +66,4 @@ with open(file_path_destination, "w") as file:
     file.write(codeCpp)
 
 # compile to check sintax of the c++ code
-subprocess.run(["g++", "-c", file_path_destination,"-fconcepts", "-o", file_path_destination[:-4]]) #FIXME "-fconcepts" for auto in parameter declaratiot(c++ 20)
+subprocess.run(["g++", "-c", file_path_destination,"-fconcepts", "-o", file_path_destination[:-4]])

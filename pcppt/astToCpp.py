@@ -1,7 +1,5 @@
 import ast
 
-from docutils.frontend import validate_encoding
-
 import typesMapping as tm
 import exceptions as ex
 import codeCpp.codeCppClass as cppc
@@ -145,15 +143,15 @@ class astToCppParser(ast.NodeVisitor):
 
         self.indent_level += 1
         for astNode in node.body:
-            if not isinstance(astNode, ast.FunctionDef):                                                                                        #the node is not a def of a function
+            if not isinstance(astNode, ast.FunctionDef):    #the node is not a def of a function
                 iBodyCode=self.visit(astNode)
                 func_code += iBodyCode
-            else:                                                                                                                               #a function declaration in the body
+            else:   #a function declaration in the body
                 temp_indent_level=self.indent_level
                 self.indent_level=0
                 self.visit(astNode)
                 self.indent_level=temp_indent_level
-                self.current_function_name = node.name                                                                                          #reset current_function_name to current signature after visit
+                self.current_function_name = node.name  #reset current_function_name to current signature after visit
                 self.current_function_signature = signature
 
         self.indent_level -= 1
@@ -161,13 +159,13 @@ class astToCppParser(ast.NodeVisitor):
 
 
         #save signature and func_code in cppc
-        if self.current_structure_name is None:                                                                                                 #is a function
-            if signature not in cppc.cppCodeObject.functions:                                                                                                  #function is not already defined
+        if self.current_structure_name is None: #is a function
+            if signature not in cppc.cppCodeObject.functions:   #function is not already defined
                 cppc.cppCodeObject.functions[signature] = ''
-            else:   #FIXME it is the same control of tm.add_to_scope                                                                                                                              #function is already defined
+            else:   #FIXME it is the same control of tm.add_to_scope
                 raise ex.AlreadyDefinedError(signature)
             cppc.cppCodeObject.functions[signature]=func_code
-        else:                                                                                                                                   #is a method of a class
+        else:   #is a method of a class
             return signature, func_code
 
 
@@ -289,14 +287,12 @@ class astToCppParser(ast.NodeVisitor):
             dictionary[self.visit(k)]=self.visit(v)
         return dictionary
 
-    def visit_Subscript(self, node):    #visit and translate to C++ Subscript node (accessing elements) #FIXME add sintax for code outside of a function
+    def visit_Subscript(self, node):    #visit and translate to C++ Subscript node (accessing elements)
         obj = self.visit(node.value)          #the object being indexed
         index = self.visit(node.slice)    #the index to access
         #type=tm.get_var_type_scope(self.current_function_signature,self.current_structure_name,obj)
         #if type in tm.pythonTypes_CppTypesArrays:
         return f"{obj}[{index}]"
-        #else:   #FIXME is it necessary without flextype and dict?
-            #return [f"{self.visit(node.value)}[{self.visit(node.slice)}]"]
 
     def visit_Attribute(self, node):  #visit and translate to C++ Attribute node
         if self.current_structure_name is None:
