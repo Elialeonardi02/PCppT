@@ -276,7 +276,7 @@ class astToCppParser(ast.NodeVisitor):
 
     def visit_List(self, node):
         if self.array_single_type_declaration:    #is type of array one type element declaration
-            return tm.corret_value(self.visit(node.elts[0]))
+           return [f"{self.visit(el)}" for el in node.elts]
         else:
             elements = [f"{tm.corret_value(self.visit(el))}" for el in node.elts]
             return f"{', '.join(elements)}"
@@ -365,7 +365,7 @@ class astToCppParser(ast.NodeVisitor):
 
                     self.indent_level=temp_indent
             else:
-                if not tm.check_scope(self.current_function_signature, self.current_structure_name, target):
+                if not tm.check_scope(self.current_function_signature, self.current_structure_name, target) and not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]): #TODO move check scope for subscript?
                     var_type = tm.infer_type(node.value)  # is not already declare
                     assign_code += f"{var_type} "
                     tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
@@ -381,16 +381,18 @@ class astToCppParser(ast.NodeVisitor):
         #generate assign code
         var_name = self.visit(node.target)  #name variable
         self.array_single_type_declaration = True
-        var_type = tm.get_type(self.visit(node.annotation)) #type variable
+        annotation = self.visit(node.annotation) #annotation array
+        var_type=tm.get_type(annotation[0])      #type
+        dim_array=annotation[1] if len(annotation)>1 is not None else ""    #dimension of array, if specified
         self.array_single_type_declaration = False
         value = self.visit(node.value)  #value assign
         annAssign_code=self.indent()
         if isinstance(node.annotation, ast.List) and(var_type in tm.pythonTypes_CppTypes or var_type in cppc.cppCodeObject.classes): #array of a single type
-            annAssign_code+= f"{var_type} {var_name}[] = " +'{'+value +"};\n"
+            annAssign_code+= f"{var_type} {var_name}[{dim_array}] = " +'{'+value +"};\n"
             var_type=f"[{var_type}]"
         else:# f"{var_type}" not in tm.pythonTypes_CppTypesArrays:
             if var_type=="char":
-                annAssign_code += f"{var_type} {var_name}[]" + (f" = {value}" if value != '' else "") + ";\n"
+                annAssign_code += f"{var_type} {var_name}[]" + (f" = {value}" if value != '' else "") + ";\n"   #FIXME str parsing
             else:
                 annAssign_code += f"{var_type} {var_name}" + (f" = {value}" if value!='' else "") + ";\n" #assign with value and no value
         #add variable to typesMapping.scope
