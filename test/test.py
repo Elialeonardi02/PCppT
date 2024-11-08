@@ -1,4 +1,5 @@
-def test()->None:
-    c:[int]=[5,6,7]
-    a:[int,10]=[1,2]
-    a[3]=c[1]+a[1]
+class test:
+    def __init__(self):
+        self.d,self.c=1
+        self.d+=1
+        self.c=self.d*2

@@ -1,9 +1,15 @@
-void test();
+class test{
+public:
+  int d;
 
-void test()
-{
-  int c[] = {5, 6, 7};
-  int a[10] = {1, 2};
-  a[3] = c[1] + a[1];
-}
+  int c;
 
+  test() 
+  {
+    this->d = 1;
+    this->c = 1;
+    this->d += 1;
+    this->c = this->d * 2;
+  }
+
+};

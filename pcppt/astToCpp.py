@@ -307,7 +307,7 @@ class astToCppParser(ast.NodeVisitor):
         if isinstance(node[0], ast.Tuple):
              for el in node[0].elts:
                  if isinstance(el, ast.Attribute):  #elem in a tuple is attribute class
-                     targets.append(el.value.id)
+                     targets.append(el.attr)
                  else:
                     targets.append(el.id)
         elif isinstance(node[0],ast.Attribute):
@@ -325,7 +325,7 @@ class astToCppParser(ast.NodeVisitor):
         assign_code = ""
         for target in targets:
             assign_code +=self.indent()
-            if isinstance(node.targets[0],ast.Attribute) and self.current_structure_name is not None:   #target attribute inside a class
+            if (isinstance(node.targets[0],ast.Attribute) or isinstance(node.targets[0].elts[0],ast.Attribute) ) and self.current_structure_name is not None:   #target attribute inside a class, or tuple declaration of attribute
                 assign_code += f"this->{target} = {value};\n"
                 if not tm.check_scope(None,self.current_structure_name,target): # is not already declare
                     var_type = tm.infer_type(node.value)
