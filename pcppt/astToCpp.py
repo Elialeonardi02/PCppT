@@ -325,10 +325,10 @@ class astToCppParser(ast.NodeVisitor):
         assign_code = ""
         for target in targets:
             assign_code +=self.indent()
-            if (isinstance(node.targets[0],ast.Attribute) or isinstance(node.targets[0].elts[0],ast.Attribute) ) and self.current_structure_name is not None:   #target attribute inside a class, or tuple declaration of attribute
+            if (isinstance(node.targets[0],ast.Attribute) or (isinstance(node.targets[0],ast.Tuple) and isinstance(node.targets[0].elts[0],ast.Attribute)) ) and self.current_structure_name is not None:   #target attribute inside a class, or tuple declaration of attribute
                 assign_code += f"this->{target} = {value};\n"
                 if not tm.check_scope(None,self.current_structure_name,target): # is not already declare
-                    var_type = tm.infer_type(node.value)
+                    var_type = tm.infer_type(node.value,value)
                     tempIndent = self.indent_level
                     self.indent_level = 1
                     if isinstance(node.value, ast.List):
@@ -346,13 +346,13 @@ class astToCppParser(ast.NodeVisitor):
                 tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, target)
             elif isinstance(node.value,ast.List):
                 if not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]):#generate type for variable if it is not defined #.split("[")[0] for check array(subscript) in scope
-                    var_type = tm.infer_type(node.value)  # is not already declare
+                    var_type = tm.infer_type(node.value,value)  # is not already declare
                     assign_code += f"{var_type} "
                     assign_code+=f"{target}[{len(node.value.elts)}] = {{{value}}};\n"
                     tm.add_to_scope(self.current_function_signature, self.current_structure_name, target, f"[{var_type}]")
                 else:   #array is already define, can't assign array to list already defined, make a temp array to assign value to target
                     temp_indent=self.indent_level
-                    var_type = tm.infer_type(node.value)
+                    var_type = tm.infer_type(node.value,value)
                     self.indent_level += 1
                     assign_code+=f"{{\n{self.indent()}{var_type} temp_array_assign[{len(node.value.elts)}] = {{{value}}};\n"
                     assign_code+=f"{self.indent()}for (int i=0; i<{len(node.value.elts)}; i++) {{\n"
@@ -366,7 +366,7 @@ class astToCppParser(ast.NodeVisitor):
                     self.indent_level=temp_indent
             else:
                 if not tm.check_scope(self.current_function_signature, self.current_structure_name, target) and not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]): #TODO move check scope for subscript?
-                    var_type = tm.infer_type(node.value)  # is not already declare
+                    var_type = tm.infer_type(node.value,value)  # is not already declare
                     assign_code += f"{var_type} "
                     tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
                     assign_code += f"{target}{[] if var_type == 'char' else ''} = {value};\n"
@@ -383,7 +383,7 @@ class astToCppParser(ast.NodeVisitor):
         self.array_single_type_declaration = True
         annotation = self.visit(node.annotation) #annotation array
         var_type=tm.get_type(annotation[0])      #type
-        dim_array=annotation[1] if len(annotation)>1 is not None else ""    #dimension of array, if specified
+        dim_array=annotation[1] if len(annotation) > 1 is not None else ""    #dimension of array, if specified
         self.array_single_type_declaration = False
         value = self.visit(node.value)  #value assign
         annAssign_code=self.indent()

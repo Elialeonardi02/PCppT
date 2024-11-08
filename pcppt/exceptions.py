@@ -21,3 +21,7 @@ class TypeNotExistError(Exception):   #exception for type doesn't exist
 class IsNotDefinedError(Exception):   #exception for not defined
     def __init__(self, elem):
         super().__init__(f"{elem} is not defined")
+
+class MultyTypesArrayNotAllowed(Exception):   #exception for array multitype
+    def __init__(self, elem):
+        super().__init__(f"{elem} contain elements with different type")
