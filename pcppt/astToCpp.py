@@ -382,7 +382,7 @@ class astToCppParser(ast.NodeVisitor):
         var_name = self.visit(node.target)  #name variable
         self.array_single_type_declaration = True
         annotation = self.visit(node.annotation) #annotation array
-        var_type=tm.get_type(annotation[0])      #type
+        var_type=tm.get_type(annotation[0] if isinstance(node.annotation,ast.List) else annotation)      #type
         dim_array=annotation[1] if len(annotation) > 1 is not None else ""    #dimension of array, if specified
         self.array_single_type_declaration = False
         value = self.visit(node.value)  #value assign

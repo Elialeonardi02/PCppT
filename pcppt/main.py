@@ -22,10 +22,13 @@ astToCpp.generateAstToCppCode(astG)
 codeCpp=cppc.cppCodeObject.globalCode
 if cppc.cppCodeObject.classes!={}:
     for cls in cppc.cppCodeObject.classes:
-        codeCpp+='class '+cls+'{\n'
+        if 'private' not in cppc.cppCodeObject.classes[cls] and 'protected' not in cppc.cppCodeObject.classes[cls]:
+            codeCpp+='struct '+cls+'{\n'
+        else:
+            codeCpp+='class '+cls+'{\n'
         for vis,elms in cppc.cppCodeObject.classes[cls].items():
             codeCpp+=f"{vis}:\n"
-            print(elms['attributes'])
+            #print(elms['attributes'])
             for elm in elms['attributes']:
                 codeCpp+=f"{elm}\n"
 
