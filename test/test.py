@@ -1,6 +1,6 @@
 class test:
     def __init__(self):
-        a=[1,2,1]
-        b:[int,-1]
+        a="aaaaa"
+        b:[str,3]=["Aaaa","a","aaaa"]
 def fun():
     a:[test,10]=test()

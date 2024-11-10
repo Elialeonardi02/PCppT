@@ -2,8 +2,8 @@ struct test{
 public:
   test() 
   {
-    int a[3] = {1, 2, 1};
-    int b[] = {};
+    char a[] = "aaaaa";
+    const char* b[3] = {"Aaaa", "a", "aaaa"};
   }
 
 };

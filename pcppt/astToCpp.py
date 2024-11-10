@@ -347,8 +347,10 @@ class astToCppParser(ast.NodeVisitor):
             elif isinstance(node.value,ast.List):
                 if not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]):#generate type for variable if it is not defined #.split("[")[0] for check array(subscript) in scope
                     var_type = tm.infer_type(node.value,value)  # is not already declare
-                    assign_code += f"{var_type} "
-                    assign_code+=f"{target}[{len(node.value.elts)}] = {{{value}}};\n"
+                    if var_type=='char':    #array string
+                        assign_code += f"const {var_type}* {target}[{len(node.value.elts)}] = {{{value}}};\n"
+                    else:   #common array
+                        assign_code+=f"{var_type} {target}[{len(node.value.elts)}] = {{{value}}};\n"
                     tm.add_to_scope(self.current_function_signature, self.current_structure_name, target, f"[{var_type}]")
                 else:   #array is already define, can't assign array to list already defined, make a temp array to assign value to target
                     temp_indent=self.indent_level
@@ -383,7 +385,7 @@ class astToCppParser(ast.NodeVisitor):
         self.array_single_type_declaration = True
         annotation = self.visit(node.annotation) #annotation array
         var_type=tm.get_type(annotation[0] if isinstance(node.annotation,ast.List) else annotation)      #type
-        dim_array=annotation[1] if len(annotation) > 1 is not None else ""    #dimension of array, if specified
+        dim_array=annotation[1] if len(annotation) > 1  else ""    #dimension of array, if specified
         self.array_single_type_declaration = False
         value = self.visit(node.value)  #value assign
         annAssign_code=self.indent()
@@ -391,7 +393,9 @@ class astToCppParser(ast.NodeVisitor):
             annAssign_code+= f"{var_type} {var_name}[{dim_array}] = " +'{'+value +"};\n"
             var_type=f"[{var_type}]"
         else:# f"{var_type}" not in tm.pythonTypes_CppTypesArrays:
-            if var_type=="char":
+            if len(annotation) > 1 and var_type=='char':    #array string, const
+                annAssign_code += f"const {var_type}* {var_name}[{dim_array}]" + (f" = {{{value}}}" if value != '' else "") + ";\n"
+            elif var_type=="char":
                 annAssign_code += f"{var_type} {var_name}[]" + (f" = {value}" if value != '' else "") + ";\n"   #FIXME str parsing
             else:
                 annAssign_code += f"{var_type} {var_name}" + (f" = {value}" if value!='' else "") + ";\n" #assign with value and no value

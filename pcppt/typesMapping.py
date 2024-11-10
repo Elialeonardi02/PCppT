@@ -125,16 +125,15 @@ def check_scope(in_function, in_class, var):           #check if the variable is
     )
 
 def infer_type(val,value):
+    python_type=None
     if isinstance(val,ast.List):    #array type inference
-        first_elem_type=str(type(val.elts[0].value).__name__)
+        python_type=str(type(val.elts[0].value).__name__)
         for i in range(1, len(val.elts)):   #raise an exception for element of different type
-            if str(type(val.elts[i].value).__name__) != first_elem_type:
+            if str(type(val.elts[i].value).__name__) != python_type:
                 raise ex.MultyTypesArrayNotAllowed(value)
-        return first_elem_type
     if isinstance(val, ast.Constant):
         python_type = str(type(val.value).__name__)
-        if python_type in pythonTypes_CppTypes:
-            return pythonTypes_CppTypes[python_type]
+    return pythonTypes_CppTypes[python_type]
 def corret_value(v):    #correct a rappresentation of a python value in cpp value
     if isinstance(v,float):
         return str(v)+'f'
