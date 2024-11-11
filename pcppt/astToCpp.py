@@ -41,10 +41,11 @@ class astToCppParser(ast.NodeVisitor):
 
         return str(node.n)
 
-    def visit_Constant(self, node):  #visit and translate to C++ Constant node
+    def visit_Constant(self, node):  #visit and translate to C++ Constant nod
         if isinstance(node.value, str): #parse for string declaration
             return f"\"{node.value}\""
-
+        elif isinstance(node.value, bool): #parsing bool
+            return tm.parsing_constant[node.value]
         return node.value
 
     def visit_Expr(self, node): # visit e translate in C++ Expr node
@@ -61,9 +62,6 @@ class astToCppParser(ast.NodeVisitor):
             raise ex.AlreadyDefinedError(self.current_structure_name)
         self.indent_level += 1
 
-        #array for visibility
-
-
         #parse attributes and methods
         for body_node in node.body:
             if isinstance(body_node, ast.AnnAssign):    #body_node is an attribute
@@ -74,18 +72,6 @@ class astToCppParser(ast.NodeVisitor):
                 self.classDef_add_FunctionDef(signature,method_body,body_node.name)
             else:                                       #body_node is unsopported in class body
                 raise ex.UnsupportedCommandError(node.body)
-
-            #add code to cppc.cppCodeObject[self.current_structure_name
-            #if isinstance(body_node, ast.AnnAssign):    #is attribute
-                #body_node_code += self.visit(body_node)
-                #cppc.cppCodeObject.classes[self.current_structure_name].append(body_node_code)
-            #elif isinstance(body_node, ast.FunctionDef):    #is a method
-                #signature,method_body = self.visit(body_node)
-                #signature=body_node_code+signature                 #add visibility to signature
-                #if signature not in cppc.cppCodeObject.classes[self.current_structure_name][0]:#the method is not already defined
-                    #cppc.cppCodeObject.classes[self.current_structure_name][0][signature]=f"\n{self.indent()}{method_body}"
-                #else:                                              #the method is arleady defined
-                    #raise ex.AlreadyDefinedError(f"in this class {signature}")
 
         #end of ClassDef node explorations
         if self.protected['attributes'] or self.protected['methods']:
@@ -235,6 +221,20 @@ class astToCppParser(ast.NodeVisitor):
         loop_code += self.indent() + "}\n"
 
         return loop_code
+
+    def visit_While(self, node):  #visit and translate to C++ While node
+        loop_code=f"{self.indent()}while({self.visit(node.test)}){{\n"    #compare whail
+        #loop body
+        self.indent_level += 1
+        for astNode in node.body:
+            loop_code += self.visit(astNode)
+        self.indent_level -= 1
+        loop_code += self.indent() + "}\n"
+
+        return loop_code
+
+    def visit_Break(self, node):    #visit and traslate to c++ Break node
+        return f"{self.indent()}break;\n"
 
     def visit_If(self, node):   #visit and translate to C++ If node
         #if condition
@@ -409,7 +409,7 @@ class astToCppParser(ast.NodeVisitor):
 
     def visit_AugAssign(self, node):    #visit and translate to C++ AugAssign node(es: i+=<value)
         target = self.visit(node.target)        #variable
-        op = self.visit(node.op)                #operator
+        op = tm.get_operator(node.op)                 #operator
         value = self.visit(node.value)          #value
 
         augAssign_code=f"{self.indent()}{target} {op}= {value};\n"
@@ -421,24 +421,39 @@ class astToCppParser(ast.NodeVisitor):
     def visit_BinOp(self, node):    #visit and translate to C++ BinOp node
         left = self.visit(node.left)    #left member
         right = self.visit(node.right)  #right member
-
-        op = self.visit(node.op)        #operator
-
-        return f"{left} {op} {right}"
+        op = tm.get_operator(node.op)    #operator
+        if isinstance(node.op, ast.FloorDiv):   #floor division parsing
+            return f"({left}<0) ? ({left}-{right} +1 ) /{right} : {left}/{right}"   #FIXME round correct?
+        else:
+            return f"{left} {op} {right}"
 
     def visit_BoolOp(self, node):   #visit and translate to C++ BoolOp node
-        op = self.visit(node.op)                                #operator
+        op = tm.get_operator(node.op)                               #operator
         values = [self.visit(value) for value in node.values]   #values
 
         return f" {op} ".join(values)
 
+    def visit_UnaryOp(self, node):
+        op = tm.get_operator(node.op)  # operator
+        operand = self.visit(node.operand) # values
+
+        return f"{op}{operand}"
+
     def visit_Compare(self, node):  #visit and translate to C++ Compare node
-        left = self.visit(node.left)   #left element to compare
-        right = self.visit(node.comparators[0]) #right element to compare
-        op = self.visit(node.ops[0])            #operator
-        return f"{str(left)} {op} {str(right)}"
+        left = self.visit(node.left)
+        right = []
 
+        for op, comparator in zip(node.ops, node.comparators): #multiple comparisons in a chain
+            op_str = tm.get_operator(op)
+            comp_str = self.visit(comparator)
+            right.append(f"{str(left)} {op_str} {str(comp_str)}")
+            left = comp_str
+        if len(right) == 1:
+            return right[0]
+        return " && ".join(right)
 
+    #TODO remove, replaced by tm.get_operator
+    """ 
     #aritmetics operators
     def visit_Add(self, node):  #visit and translate to C++ Add node
 
@@ -501,7 +516,8 @@ class astToCppParser(ast.NodeVisitor):
     def visit_GtE(self, node):  #visit and translate to C++ Gte node
 
         return ">="
-
+    """
+    #support functions
     def classDef_add_AnnAssign(self, body_node_code,function_attribute_name):
         if len(function_attribute_name) >= 2 and function_attribute_name[0] == '_' and function_attribute_name[1] != '_':  # _<name> -> protected
             self.protected['attributes'].append(body_node_code)

@@ -22,8 +22,11 @@ pythonTypes_CppTypes = {    #take from dace
     'float64': "double",
     'str' : "char"
 }
-
-pythonTypes_CppTypesArrays = {    #take from dace #TODO remove
+parsing_constant={
+    True:'true',
+    False:'false'
+}
+pythonTypes_CppTypesArrays = {    #take from dace #TODO remov, use in get_type
     '[int]': "int",
     '[float]': "float",
     '[bool]': "bool",
@@ -40,6 +43,46 @@ pythonTypes_CppTypesArrays = {    #take from dace #TODO remove
     '[float64]': "double"
 }
 
+pythonOperator_CppOperator= {
+        #boolop
+        "And": "&&",
+        "Or": "||",
+
+        #operator
+        "Add": "+",
+        "Sub": "-",
+        "Mult": "*",
+        #"MatMult"not implemented
+        "Div": "/",
+        "Mod": "%",
+        "Pow": "**",
+        "LShift":"<<",
+        "Rshift":">>",
+        "BitOr":"|",
+        "BitXor":"^",
+        "BidAnd":"&",
+        "FloorDiv": "/",
+
+        #UnaryOp
+        "Invert":"~",
+        "Not":"!",
+        "UAdd":"+",
+        "USub":"-",
+
+        #cmpop
+        "Eq": "==",
+        "NotEq": "!=",
+        "Lt": "<",
+        "LtE": "<=",
+        "Gt": ">",
+        "GtE": ">=",
+        #"Is" not implemented
+        #"IsNot" not implemented
+        #"In" not implemented
+        #"NotIn" not implemented
+    }
+def get_operator(nodeOperator): #
+    return pythonOperator_CppOperator[nodeOperator.__class__.__name__]
 
 scope = {}  # variables scope{function{var:type}class:{function:{var:type},var:type}root:{var:type} use root for global scope
 
