@@ -31,11 +31,9 @@ if cppc.cppCodeObject.classes!={}:
             #print(elms['attributes'])
             for elm in elms['attributes']:
                 codeCpp+=f"{elm}\n"
-
             for sig,func in elms['methods'].items():
-
                 codeCpp+=f"{sig} \n{func}\n"
-    codeCpp+='};\n'
+        codeCpp+='};\n'
 for sign in cppc.cppCodeObject.functions:
     codeCpp+=sign+';\n\n'
 for sign_fun in cppc.cppCodeObject.functions:
