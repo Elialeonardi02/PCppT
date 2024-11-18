@@ -15,7 +15,6 @@ file_path_destination= sys.argv[2]  #destination c++
 astG, comment = pythonToAST.generateAstComments(file_path_source)
 
 import ast                      #TODO remove, use for debugging
-print("Commented AST:")         #TODO remove, use for debugging
 print(ast.dump(astG, indent=4)) #TODO remove, use for debugging
 
 astToCpp.generateAstToCppCode(astG)
@@ -24,15 +23,18 @@ if cppc.cppCodeObject.classes!={}:
     for cls in cppc.cppCodeObject.classes:
         if 'private' not in cppc.cppCodeObject.classes[cls] and 'protected' not in cppc.cppCodeObject.classes[cls]:
             codeCpp+='struct '+cls+'{\n'
+            for elm in cppc.cppCodeObject.classes[cls]['public']['attributes']:
+                codeCpp += f"{elm}\n"
+            for sig, func in  cppc.cppCodeObject.classes[cls]['public']['methods'].items():
+                codeCpp += f"{sig} \n{func}\n"
         else:
             codeCpp+='class '+cls+'{\n'
-        for vis,elms in cppc.cppCodeObject.classes[cls].items():
-            codeCpp+=f"{vis}:\n"
-            #print(elms['attributes'])
-            for elm in elms['attributes']:
-                codeCpp+=f"{elm}\n"
-            for sig,func in elms['methods'].items():
-                codeCpp+=f"{sig} \n{func}\n"
+            for vis,elms in cppc.cppCodeObject.classes[cls].items():
+                codeCpp+=f"{vis}:\n"
+                for elm in elms['attributes']:
+                    codeCpp+=f"{elm}\n"
+                for sig,func in elms['methods'].items():
+                    codeCpp+=f"{sig} \n{func}\n"
         codeCpp+='};\n'
 for sign in cppc.cppCodeObject.functions:
     codeCpp+=sign+';\n\n'

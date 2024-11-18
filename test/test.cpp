@@ -1,16 +1,52 @@
-struct test{
-public:
-  void testa() 
+auto tuple_key_extractor = [](auto t) {t.key;};
+struct tuple_t{
+  unsigned int key;
+
+  float value;
+
+  int a[3]={1, 2, 3};
+
+  tuple_t() 
   {
-    int a = 2;
-    int t[2] = {1, 1};
+  }
+
+  tuple_t(unsigned int key, float value) 
+  {
+    this->key = key;
+    this->value = value;
   }
 
 };
-template <typename T> T t();
+struct result_t{
+  float sum;
 
-template <typename T> T t()
-{
-  auto a = !1;
-}
+  unsigned int count;
 
+  result_t() 
+  {
+    this->sum = 0.0;
+    this->count = 0;
+  }
+
+  float mean() 
+  {
+    return this->sum / this->count;
+  }
+
+  template <typename T> T __str__() 
+  {
+    return <<"(sum: "<<this->sum<<", count: "<<this->count<<")";
+  }
+
+};
+struct window_functor{
+  window_functor() 
+   =default;
+
+  template <typename T> T __call__(tuple_t tuple, result_t result) 
+  {
+    result.sum += tuple.value;
+    result.count = result.count + 1;
+  }
+
+};

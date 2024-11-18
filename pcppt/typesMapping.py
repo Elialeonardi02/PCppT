@@ -91,7 +91,6 @@ def get_type(ptype):
         key_type = next(iter(ptype))
         value_type = ptype[key_type]
         return {key_type:value_type}
-
     else:
         if ptype in scope:  #is class
             return ptype
@@ -150,7 +149,7 @@ def add_to_scope(in_function, in_class, var=None, type_var=None): #add variable(
 
 
 
-def check_scope(in_function, in_class, var):           #check if the variable is in the correct scope, if it is not, return the type of the value associated with the variable
+def check_scope(in_function, in_class, var):           #check if the variable is in the correct scope
     #FIXME now only check local scope
     return not(
             (in_function is not None and in_class is None and
@@ -167,17 +166,31 @@ def check_scope(in_function, in_class, var):           #check if the variable is
              (scope.get(globalScope) is None or var not in scope[globalScope]))
     )
 
-def infer_type(val,value):
-    if isinstance(val,ast.List):    #array type inference
-        python_type=str(type(val.elts[0].value).__name__)
-        for i in range(1, len(val.elts)):   #raise an exception for element of different type
-            if str(type(val.elts[i].value).__name__) != python_type:
-                raise ex.MultyTypesArrayNotAllowed(value)
-        return pythonTypes_CppTypes[python_type]
-    if isinstance(val, ast.Constant):
-        python_type = str(type(val.value).__name__)
-        return pythonTypes_CppTypes[python_type]
-    return "auto";
+def infer_type(val,value):  #add
+    if isinstance(val,ast.List) :    #array type inference
+        if all(isinstance(elem,ast.Constant) for elem in val.elts):
+            python_type=str(type(val.elts[0].value).__name__)
+            for i in range(1, len(val.elts)):   #raise an exception for element of different type
+                if str(type(val.elts[i].value).__name__) != python_type:
+                    raise ex.MultyTypesArrayNotAllowed(value)
+            return pythonTypes_CppTypes[python_type]
+        else:   #type inference array with expression
+            python_type=''
+            ivalue=0
+            value=value.split(",")
+            names=[]
+            for elem in val.elts:
+                if not isinstance(elem, ast.Name):
+                    python_type+=f"{value[ivalue]},"
+                elif  value[ivalue].replace(" ", "") not in names:
+                    python_type += f"{value[ivalue]},"
+                    names.append(value[ivalue].replace(" ", ""))
+                ivalue+=1
+            return f"decltype({python_type[:-1]})";
+    elif isinstance(val, ast.Constant):
+        return pythonTypes_CppTypes[str(type(val.value).__name__)]
+    return f"decltype({value})";    #FIXME or use auto
+
 def corret_value(v):    #correct a rappresentation of a python value in cpp value
     if isinstance(v,float):
         return str(v)+'f'
@@ -197,7 +210,7 @@ def add_to_callableFunction(in_class, functionName, fname):
 
 def check_callableFunction(in_class, functionName, fname):  #FIXME check if is a method or in in the correct scope
     scopeCall = globalScope if in_class is None else in_class
-    return (scopeCall in callableFunctions and functionName in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][functionName]) or (fname in pythonFunction_toParse)
+    return scopeCall in callableFunctions and functionName in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][functionName] or (fname in pythonFunction_toParse)
 
 
 
