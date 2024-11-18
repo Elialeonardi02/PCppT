@@ -45,8 +45,8 @@ struct window_functor{
 
   template <typename T> T __call__(tuple_t tuple, result_t result) 
   {
-    result.sum += tuple.value;
-    result.count = result.count + 1;
+    adfbvfd.rec;
+    decltype(result_t()) a = result_t();
   }
 
 };

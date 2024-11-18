@@ -154,15 +154,14 @@ class astToCppParser(ast.NodeVisitor):
     def visit_Return(self, node):   #visit and translate to C++ Return node
 
         return f"{self.indent()}return {self.visit(node.value)};\n"
-        return f"{self.indent()}return {self.visit(node.value)};\n"
 
     def visit_Assign(self, node):   #visit and translate to C++ Assign node
         targets= self.visit_targets(node.targets)#left variable or variables
         value = self.visit(node.value)
         assign_code = ""
-        for target in targets:
+        for itarget, target in enumerate(targets):
             assign_code +=self.indent()
-            if isinstance(node.targets[0],ast.Attribute) or (isinstance(node.targets[0],ast.Tuple) and isinstance(node.targets[0].elts[0],ast.Attribute)):   #target attribute inside a class, or tuple declaration of attribute
+            if (isinstance(node.targets[0],ast.Tuple) and isinstance(node.targets[0].elts[itarget],ast.Attribute)) or isinstance(node.targets[0],ast.Attribute) :   #target attribute inside a class, or tuple declaration of attribute
                 assign_code += f"{target['code']} = {value};\n"
                 if target['value']=='self' and not tm.check_scope(None, self.current_structure_name,target['attr']): #attribute of self class
                     var_type = tm.infer_type(node.value, value)
@@ -178,7 +177,10 @@ class astToCppParser(ast.NodeVisitor):
                     tm.add_to_scope(self.current_function_signature if target['value']!='self' else None , self.current_structure_name, target['attr'], var_type)
                     self.indent_level = temp_indent
                 elif target['value']!='self':
-                   pass
+                   if  not tm.check_scope(self.current_function_signature, self.current_structure_name,target['value']): #undefined instance
+                       raise ex.IsNotDefinedError(target['value'])
+                    #TODO add exception when method doesn't exist
+
 
             elif isinstance(node.value, ast.Lambda):    #declare lambda function
                 assign_code+=f"auto {target} = {value[0]};\n"
@@ -487,7 +489,7 @@ class astToCppParser(ast.NodeVisitor):
         if isinstance(node[0], ast.Tuple):
             for el in node[0].elts:
                 if isinstance(el, ast.Attribute):  # elem in a tuple is attribute class
-                    targets.append({'attr':el.attr,'code':self.visit(el),'value':self.visit(node[0].value)})
+                    targets.append({'attr':el.attr,'code':self.visit(el),'value':self.visit(el.value)})
                 else:
                     targets.append(el.id)
         elif isinstance(node[0], ast.Attribute):
