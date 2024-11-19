@@ -36,7 +36,7 @@ class astToCppParser(ast.NodeVisitor):
         return ""
 
     def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
-        # save name for checking of recursive functions
+        # save name for checking -of recursive functions
         self.current_function_name = node.name
 
         #determine function type and name
@@ -245,7 +245,7 @@ class astToCppParser(ast.NodeVisitor):
         var_name = self.visit(node.target)  #name variable
         self.array_single_type_declaration = True
         annotation = self.visit(node.annotation) #annotation array
-        var_type=tm.get_type(annotation[0] if isinstance(node.annotation,ast.List) else annotation)      #type
+        var_type=tm.get_type(annotation[0] if isinstance(node.annotation,ast.List) else annotation)  #type
         dim_array=annotation[1] if len(annotation) > 1  else ""    #dimension of array, if specified
         self.array_single_type_declaration = False
         value = self.visit(node.value)  #value assign
@@ -258,8 +258,9 @@ class astToCppParser(ast.NodeVisitor):
                 annAssign_code += f"const {var_type}* {var_name}[{dim_array}]" + (f" = {{{value}}}" if value != '' else "") + ";\n"
             elif var_type=="char":
                 annAssign_code += f"{var_type} {var_name}[]" + (f" = {value}" if value != '' else "") + ";\n"   #FIXME str parsing
-            else:
-                annAssign_code += f"{var_type} {var_name}" + (f" = {value}" if value!='' else "") + ";\n" #assign with value and no value
+            else:#assign with value and no value
+                annAssign_code  += f"{var_type}{'*' if var_type in tm.scope else ''} {var_name}" + (f" = {value}" if value != '' else "") + ";\n"   #
+
         #add variable to typesMapping.scope
         tm.add_to_scope(self.current_function_signature,self.current_structure_name,var_name,f"{var_type}")
 
@@ -427,6 +428,8 @@ class astToCppParser(ast.NodeVisitor):
         if not tm.check_callableFunction(self.current_structure_name, self.current_function_name, function_name) and function_name not in cppc.cppCodeObject.classes and isinstance(node.func,ast.Name): #FIXME raise when func is not only a name
             raise ex.NotCallableError(function_name)
 
+        if function_name in tm.scope:
+            function_name=f"new {function_name}"
         #parameters of the call
         args = [str(self.visit(arg)) for arg in node.args]
 

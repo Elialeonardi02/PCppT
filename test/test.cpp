@@ -5,11 +5,15 @@ struct tuple_t{
   float value;
 
   tuple_t() 
-  :key(0),value(0.0) {}
-
-  int a() 
   {
-    return 1;
+    this->key = 0;
+    this->value = 0.0;
+  }
+
+  tuple_t(unsigned int key, float value) 
+  {
+    this->key = key;
+    this->value = value;
   }
 
 };
@@ -36,6 +40,7 @@ struct window_functor{
 
   template <typename T> T __call__(tuple_t tuple, result_t result) 
   {
+    result_t* resulta = new result_t();
     result.sum += tuple.value;
     result.count = result.count + 1;
   }
