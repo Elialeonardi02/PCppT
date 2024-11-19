@@ -132,10 +132,17 @@ class astToCppParser(ast.NodeVisitor):
                 raise ex.UnsupportedCommandError(node.body)
 
         #is not a constructor defined
-        if not(tm.check_callableFunction(self.current_structure_name,'__init__','__init__')):
-            construct_default = {f"{self.indent()}{self.current_structure_name}()": f"{self.indent()} =default;\n"}
-            self.public['methods'] = {**construct_default, **self.public['methods']}
+        if not(tm.check_callableFunction(self.current_structure_name,'__init__','__init__')):   #FIXME correct __init__ with name of the class
+            constructor_code = ""
+            for var, type in tm.scope[self.current_structure_name].items():
+                if not isinstance(type, dict):
+                    constructor_code += f"{var}({tm.cppTypes_DefaultsValues.get(type)}),"
+            if constructor_code != "":  #class with parameters
+                constructor_code = {f"{self.indent()}{self.current_structure_name}()":f"{self.indent()}:{constructor_code.rstrip(',')} {{}}\n"}
+            else:   #class without parameters
+                constructor_code = {f"{self.indent()}{self.current_structure_name}()": f"{self.indent()} = default;\n"}
 
+            self.public['methods'] = {**constructor_code, **self.public['methods']}
 
         #end of ClassDef node explorations
         if self.protected['attributes'] or self.protected['methods']:

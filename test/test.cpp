@@ -5,17 +5,11 @@ struct tuple_t{
   float value;
 
   tuple_t() 
-  {
-  #pragma HLS inline
-    this->key = 0;
-    this->value = 0.0;
-  }
+  :key(0),value(0.0) {}
 
-  tuple_t(unsigned int key, float value) 
+  int a() 
   {
-  #pragma HLS inline
-    this->key = key;
-    this->value = value;
+    return 1;
   }
 
 };
@@ -26,26 +20,22 @@ struct result_t{
 
   result_t() 
   {
-  #pragma HLS inline
     this->sum = 0.0;
     this->count = 0;
   }
 
   float mean() 
   {
-  #pragma HLS inline
     return this->sum / this->count;
   }
 
 };
 struct window_functor{
   window_functor() 
-   =default;
-  #pragma HLS inline
+   = default;
 
   template <typename T> T __call__(tuple_t tuple, result_t result) 
   {
-  #pragma HLS inline
     result.sum += tuple.value;
     result.count = result.count + 1;
   }
