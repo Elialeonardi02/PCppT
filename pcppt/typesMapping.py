@@ -16,6 +16,7 @@ pythonTypes_CppTypes = {    #take from dace
     'uint8': "unsigned char",
     'uint16': "unsigned short",
     'uint32': "unsigned int",
+    'unsigned int': "unsigned int",#FIXME use for test, use for test
     'uint64': "unsigned long long",
     'float16': "half",
     'float32': "float",

@@ -5,6 +5,13 @@ import subprocess
 
 import codeCpp.codeCppClass as cppc
 
+#pragmas
+def applyHLSInline(func_code,):  #FIXME pragma hls inline test
+    if func.count('\n') <= 5:
+        i=func_code.find('\n')
+        func_code=f"{func_code[:i+1]}  #pragma HLS inline\n{func_code[i+1:]}"
+    return func_code
+
 if len(sys.argv) != 3:
     print("Usage: <path_python_script>.py  <path_cpp_destination_file>.cpp")
     sys.exit(1)
@@ -26,6 +33,7 @@ if cppc.cppCodeObject.classes!={}:
             for elm in cppc.cppCodeObject.classes[cls]['public']['attributes']:
                 codeCpp += f"{elm}\n"
             for sig, func in  cppc.cppCodeObject.classes[cls]['public']['methods'].items():
+                #func=applyHLSInline(func)# FIXME pragma hls inline test
                 codeCpp += f"{sig} \n{func}\n"
         else:
             codeCpp+='class '+cls+'{\n'
@@ -34,12 +42,14 @@ if cppc.cppCodeObject.classes!={}:
                 for elm in elms['attributes']:
                     codeCpp+=f"{elm}\n"
                 for sig,func in elms['methods'].items():
-                    codeCpp+=f"{sig} \n{func}\n"
+                    #func=applyHLSInline(func)# FIXME pragma hls inline test
+                    codeCpp += f"{sig} \n{func}\n"
         codeCpp+='};\n'
 for sign in cppc.cppCodeObject.functions:
     codeCpp+=sign+';\n\n'
 for sign_fun in cppc.cppCodeObject.functions:
-    codeCpp+=sign_fun+'\n'+cppc.cppCodeObject.functions[sign_fun]+'\n'
+    #func=applyHLSInline(cppc.cppCodeObject.functions[sign_fun])# FIXME pragma hls inline test
+    codeCpp+=f"{sign_fun}\n{func}\n"
 
 print(codeCpp)  #TODO remove, use for debugging
 with open(file_path_destination, "w") as file:

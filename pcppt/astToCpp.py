@@ -179,7 +179,8 @@ class astToCppParser(ast.NodeVisitor):
                 elif target['value']!='self':
                    if  not tm.check_scope(self.current_function_signature, self.current_structure_name,target['value']): #undefined instance
                        raise ex.IsNotDefinedError(target['value'])
-                    #TODO add exception when method doesn't exist
+                   elif not tm.check_scope(None, tm.get_var_type_scope(self.current_function_signature, self.current_structure_name,target['value']),target['attr']): #istance defined but the method is not defined in the class of the instance
+                       raise ex.IsNotDefinedError(f"{target['attr']} in class or struct {target['value']}")
 
 
             elif isinstance(node.value, ast.Lambda):    #declare lambda function
@@ -223,7 +224,7 @@ class astToCppParser(ast.NodeVisitor):
 
     def visit_AugAssign(self, node):    #visit and translate to C++ AugAssign node(es: i+=<value)
         target = self.visit(node.target)        #variable
-        op = tm.get_operator(node.op)                 #operator
+        op = tm.get_operator(node.op)           #operator
         value = self.visit(node.value)          #value
 
         augAssign_code=f"{self.indent()}{target} {op}= {value};\n"
