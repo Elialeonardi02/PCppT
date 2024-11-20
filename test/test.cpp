@@ -38,7 +38,7 @@ struct window_functor{
   window_functor() 
    = default;
 
-  template <typename T> T __call__(tuple_t tuple, result_t result) 
+  void operator()(tuple_t & tuple, result_t & result) 
   {
     result_t* resulta = new result_t();
     result.sum += tuple.value;

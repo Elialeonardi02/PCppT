@@ -16,7 +16,6 @@ pythonTypes_CppTypes = {    #take from dace
     'uint8': "unsigned char",
     'uint16': "unsigned short",
     'uint32': "unsigned int",
-    'unsigned int': "unsigned int",#FIXME use for test, use for test
     'uint64': "unsigned long long",
     'float16': "half",
     'float32': "float",
@@ -203,22 +202,9 @@ def infer_type(val,value):  #add
                 if str(type(val.elts[i].value).__name__) != python_type:
                     raise ex.MultyTypesArrayNotAllowed(value)
             return pythonTypes_CppTypes[python_type]
-        else:   #type inference array with expression #FIXME remove decltype
-            python_type=''
-            ivalue=0
-            value=value.split(",")
-            names=[]
-            for elem in val.elts:
-                if not isinstance(elem, ast.Name):
-                    python_type+=f"{value[ivalue]},"
-                elif  value[ivalue].replace(" ", "") not in names:
-                    python_type += f"{value[ivalue]},"
-                    names.append(value[ivalue].replace(" ", ""))
-                ivalue+=1
-            return f"decltype({python_type[:-1]})";
     elif isinstance(val, ast.Constant):
         return pythonTypes_CppTypes[str(type(val.value).__name__)]
-    return f"decltype({value})";    #FIXME or use auto
+    return f"auto"
 
 def corret_value(v):    #correct a rappresentation of a python value in cpp value
     if isinstance(v,float):

@@ -3,7 +3,6 @@ import ast
 import typesMapping as tm
 import exceptions as ex
 import codeCpp.codeCppClass as cppc
-from pcppt.typesMapping import check_scope
 
 
 class astToCppParser(ast.NodeVisitor):
@@ -47,6 +46,8 @@ class astToCppParser(ast.NodeVisitor):
         if (self.current_structure_name is not None and #outside node is not a class
                 (node.name=='__init__' or node.name==self.current_structure_name)): #function is a constructor of a class
             signature = f"{self.current_structure_name}("    #signature construction
+        elif node.name=='__call__':
+            signature = f"void operator()("
         else:   #is a normal function or a method of a class
             signature = f"{function_type} {node.name}(" #normal signature with type
 
@@ -55,7 +56,7 @@ class astToCppParser(ast.NodeVisitor):
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
             param_type = 'auto' if node.args.args[i].annotation is None else tm.get_type(str(node.args.args[i].annotation.id))  #use 'auto' if type not specified #FIXME if the type is not specified raise an exception, type inference or use auto with vitis
             param_name = node.args.args[i].arg
-            signature += f"{param_type} {param_name}"
+            signature += f"{param_type}{' & ' if node.name=='__call__' else ' '}{param_name}"
             if i < len(node.args.args) - 1: #it is not last parameter
                 signature += ', '
         signature += ')'
