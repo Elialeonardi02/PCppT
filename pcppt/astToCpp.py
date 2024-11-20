@@ -139,7 +139,7 @@ class astToCppParser(ast.NodeVisitor):
                     constructor_code += f"{var}({tm.cppTypes_DefaultsValues.get(type)}),"
             if constructor_code != "":  #class with parameters
                 constructor_code = {f"{self.indent()}{self.current_structure_name}()":f"{self.indent()}:{constructor_code.rstrip(',')} {{}}\n"}
-            else:   #class without parameters
+            else:   #class without parameters   #FIXME remove
                 constructor_code = {f"{self.indent()}{self.current_structure_name}()": f"{self.indent()} = default;\n"}
 
             self.public['methods'] = {**constructor_code, **self.public['methods']}

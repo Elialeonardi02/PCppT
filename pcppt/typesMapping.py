@@ -203,7 +203,7 @@ def infer_type(val,value):  #add
                 if str(type(val.elts[i].value).__name__) != python_type:
                     raise ex.MultyTypesArrayNotAllowed(value)
             return pythonTypes_CppTypes[python_type]
-        else:   #type inference array with expression
+        else:   #type inference array with expression #FIXME remove decltype
             python_type=''
             ivalue=0
             value=value.split(",")
