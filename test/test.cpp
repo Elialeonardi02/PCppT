@@ -1,3 +1,4 @@
+#include <ostream>
 auto tuple_key_extractor = [](auto t) {t.key;};
 struct tuple_t{
   unsigned int key;
@@ -14,6 +15,12 @@ struct tuple_t{
   {
     this->key = key;
     this->value = value;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const tuple_t & d) 
+  {
+    os<<"key: "<<"d.key,"<<"value: "<<"d.value";
+    return os;
   }
 
 };
@@ -33,11 +40,14 @@ struct result_t{
     return this->sum / this->count;
   }
 
+  friend std::ostream & operator<<(std::ostream & os, const result_t & d) 
+  {
+    os<<"sum: "<<"d.sum,"<<"count: "<<"d.count";
+    return os;
+  }
+
 };
 struct window_functor{
-  window_functor() 
-   = default;
-
   void operator()(tuple_t & tuple, result_t & result) 
   {
     result_t* resulta = new result_t();

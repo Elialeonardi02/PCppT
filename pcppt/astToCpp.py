@@ -140,10 +140,24 @@ class astToCppParser(ast.NodeVisitor):
                     constructor_code += f"{var}({tm.cppTypes_DefaultsValues.get(type)}),"
             if constructor_code != "":  #class with parameters
                 constructor_code = {f"{self.indent()}{self.current_structure_name}()":f"{self.indent()}:{constructor_code.rstrip(',')} {{}}\n"}
-            else:   #class without parameters   #FIXME remove
-                constructor_code = {f"{self.indent()}{self.current_structure_name}()": f"{self.indent()} = default;\n"}
+                self.public['methods'] = {**constructor_code, **self.public['methods']}
 
-            self.public['methods'] = {**constructor_code, **self.public['methods']}
+        # operator method for debugging code
+        code=""
+        for var, type in tm.scope[self.current_structure_name].items():
+            if not isinstance(type, dict):
+                code += f'<<"{var}: "<<"d.{var},"'
+
+        if code !="":
+            code = code[:-2] + code[-1:]    #remove last <,>
+            code_o = f'{self.indent()}{{\n'
+            self.indent_level += 1
+            code_o += f"{self.indent()}os{code};\n{self.indent()}return os;\n"
+            self.indent_level-=1
+            code_o+=f"{self.indent()}}}\n"
+            self.public['methods'][f"{self.indent()}friend std::ostream & operator<<(std::ostream & os, const {self.current_structure_name} & d)"] = code_o
+
+
 
         #end of ClassDef node explorations
         if self.protected['attributes'] or self.protected['methods']:
