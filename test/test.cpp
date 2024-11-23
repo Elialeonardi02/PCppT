@@ -24,35 +24,3 @@ struct tuple_t{
   }
 
 };
-struct result_t{
-  float sum;
-
-  unsigned int count;
-
-  result_t() 
-  {
-    this->sum = 0.0;
-    this->count = 0;
-  }
-
-  float mean() 
-  {
-    return this->sum / this->count;
-  }
-
-  friend std::ostream & operator<<(std::ostream & os, const result_t & d) 
-  {
-    os<<"sum: "<<"d.sum,"<<"count: "<<"d.count";
-    return os;
-  }
-
-};
-struct window_functor{
-  void operator()(tuple_t & tuple, result_t & result) 
-  {
-    result_t* resulta = new result_t();
-    result.sum += tuple.value;
-    result.count = result.count + 1;
-  }
-
-};

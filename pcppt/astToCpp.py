@@ -21,6 +21,9 @@ class astToCppParser(ast.NodeVisitor):
         self.private = {'attributes': [], 'methods': {}}
         self.public = {'attributes': [], 'methods': {}}
 
+        #flag class to transpile
+        self.transplile_class=False
+
     def indent(self):   #generate an indentation string of space based on the current level of indentation to formate the code
 
         return "  " * self.indent_level
@@ -37,6 +40,11 @@ class astToCppParser(ast.NodeVisitor):
     def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
         # save name for checking -of recursive functions
         self.current_function_name = node.name
+
+        #chose function to parse
+        if not self.transplile_class:
+            if (not node.decorator_list or str(self.visit(node.decorator_list[0])).lower().replace(" ", "") != "wireflow") :   #pars only function and method with decorator "wireflow"
+                return False,False #to stop parsing method of a class
 
         #determine function type and name
         if node.returns is not None:    #type specified in Python source
@@ -112,13 +120,12 @@ class astToCppParser(ast.NodeVisitor):
 
 
     def visit_ClassDef(self, node):  # visit e translate in C++ ClassDef node
-        self.current_structure_name = node.name #save name of class for cppc.classes dictionary and scope
+        if node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow":
+            self.transplile_class = True
+        else:
+            self.transplile_class = False
 
-        #check class is already defined
-        if self.current_structure_name not in cppc.cppCodeObject.classes:   #class isn't already define
-            cppc.cppCodeObject.classes[self.current_structure_name]={}       #add class to scope
-        else:                                                               #class already define
-            raise ex.AlreadyDefinedError(self.current_structure_name)
+        self.current_structure_name = node.name #save name of class for cppc.classes dictionary and scope
         self.indent_level += 1
 
         #parse attributes and methods
@@ -128,12 +135,23 @@ class astToCppParser(ast.NodeVisitor):
                 self.classDef_add_AnnAssign(body_node_code,body_node.target.id)
             elif isinstance(body_node, ast.FunctionDef):    #body_node is a method
                 signature,method_body = self.visit(body_node)
-                self.classDef_add_FunctionDef(signature,method_body,body_node.name)
+                if signature and method_body: #add method if have @wireflow decorator
+                    self.classDef_add_FunctionDef(signature,method_body,body_node.name)
             else:                                       #body_node is unsopported in class body
                 raise ex.UnsupportedCommandError(node.body)
 
+        if self.protected['methods'] == {} and self.private['methods'] == {} and self.public['methods'] == {} and not self.transplile_class:
+            return
+
+        # check class is already defined
+        if self.current_structure_name not in cppc.cppCodeObject.classes:  # class isn't already define
+            cppc.cppCodeObject.classes[self.current_structure_name] = {}  # add class to scope
+        else:  # class already define
+            raise ex.AlreadyDefinedError(self.current_structure_name)
+
+
         #is not a constructor defined
-        if not(tm.check_callableFunction(self.current_structure_name,'__init__','__init__')):   #FIXME correct __init__ with name of the class
+        if not(tm.check_callableFunction(self.current_structure_name,'__init__','__init__')) and self.current_structure_name in tm.scope:   #FIXME correct __init__ with name of the class
             constructor_code = ""
             for var, type in tm.scope[self.current_structure_name].items():
                 if not isinstance(type, dict):
@@ -144,9 +162,10 @@ class astToCppParser(ast.NodeVisitor):
 
         # operator method for debugging code
         code=""
-        for var, type in tm.scope[self.current_structure_name].items():
-            if not isinstance(type, dict):
-                code += f'<<"{var}: "<<"d.{var},"'
+        if self.current_structure_name in tm.scope:
+            for var, type in tm.scope[self.current_structure_name].items():
+                if not isinstance(type, dict):
+                    code += f'<<"{var}: "<<"d.{var},"'
 
         if code !="":
             code = code[:-2] + code[-1:]    #remove last <,>

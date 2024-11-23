@@ -23,10 +23,12 @@ if cppc.cppCodeObject.classes!={}:
     for cls in cppc.cppCodeObject.classes:
         if 'private' not in cppc.cppCodeObject.classes[cls] and 'protected' not in cppc.cppCodeObject.classes[cls]:
             codeCpp+='struct '+cls+'{\n'
-            for elm in cppc.cppCodeObject.classes[cls]['public']['attributes']:
-                codeCpp += f"{elm}\n"
-            for sig, func in  cppc.cppCodeObject.classes[cls]['public']['methods'].items():
-                codeCpp += f"{sig} \n{func}\n"
+            if 'public' in cppc.cppCodeObject.classes[cls] and 'attributes' in cppc.cppCodeObject.classes[cls]['public']:
+                for elm in cppc.cppCodeObject.classes[cls]['public']['attributes']:
+                    codeCpp += f"{elm}\n"
+            if 'public' in cppc.cppCodeObject.classes[cls] and 'methods' in cppc.cppCodeObject.classes[cls]['public']:
+                for sig, func in  cppc.cppCodeObject.classes[cls]['public']['methods'].items():
+                    codeCpp += f"{sig} \n{func}\n"
         else:
             codeCpp+='class '+cls+'{\n'
             for vis,elms in cppc.cppCodeObject.classes[cls].items():
