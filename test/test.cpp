@@ -1,26 +1,16 @@
 #include <ostream>
 auto tuple_key_extractor = [](auto t) {t.key;};
-struct tuple_t{
-  unsigned int key;
+void funct(int la);
 
-  float value;
+void fun();
 
-  tuple_t() 
-  {
-    this->key = 0;
-    this->value = 0.0;
-  }
+void funct(int la)
+{
+  auto a = 1 + 1;
+}
 
-  tuple_t(unsigned int key, float value) 
-  {
-    this->key = key;
-    this->value = value;
-  }
+void fun()
+{
+  funct(2);
+}
 
-  friend std::ostream & operator<<(std::ostream & os, const tuple_t & d) 
-  {
-    os<<"key: "<<"d.key,"<<"value: "<<"d.value";
-    return os;
-  }
-
-};

@@ -1,4 +1,4 @@
-@wireflow
+
 class tuple_t:
     key : uint32  # maybe `uint` is better, but it is less C++ like
     value : float32     # or simply `float`
@@ -24,7 +24,6 @@ class result_t:
         self.count = 0
 
     # `float32` can be deduced from the context?
-
     def mean(self) -> float32:
         return self.sum / self.count
 
@@ -37,3 +36,10 @@ class window_functor:
     def __call__(self, tuple : tuple_t, result : result_t):
         result.sum += tuple.value
         result.count = result.count + 1
+
+@wireflow
+def funct(la:int):
+    a=1+1
+@wireflow
+def fun():
+    funct(2)

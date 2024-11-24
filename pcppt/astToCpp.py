@@ -43,14 +43,18 @@ class astToCppParser(ast.NodeVisitor):
 
         #chose function to parse
         if not self.transplile_class:
-            if (not node.decorator_list or str(self.visit(node.decorator_list[0])).lower().replace(" ", "") != "wireflow") :   #pars only function and method with decorator "wireflow"
+            if not (node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
                 return False,False #to stop parsing method of a class
 
         #determine function type and name
         if node.returns is not None:    #type specified in Python source
             function_type = tm.get_type(str(self.visit_returns(node.returns)))  #use typesMapping to traslate python type to c++ type
         else:   #type of function is not specified in the python source
-            function_type = 'template <typename T> T'   #use template in c++
+            print(ast.Return not in node.body)
+            if all(not isinstance(elem, ast.Return) for elem in node.body): #is not return in body of the functions
+                function_type='void'
+            else:
+                function_type = 'template <typename T> T'   #use template in c++
         if (self.current_structure_name is not None and #outside node is not a class
                 (node.name=='__init__' or node.name==self.current_structure_name)): #function is a constructor of a class
             signature = f"{self.current_structure_name}("    #signature construction
@@ -120,10 +124,12 @@ class astToCppParser(ast.NodeVisitor):
 
 
     def visit_ClassDef(self, node):  # visit e translate in C++ ClassDef node
+        self.protected = {'attributes': [], 'methods': {}}
+        self.private = {'attributes': [], 'methods': {}}
+        self.public = {'attributes': [], 'methods': {}}
+
         if node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow":
             self.transplile_class = True
-        else:
-            self.transplile_class = False
 
         self.current_structure_name = node.name #save name of class for cppc.classes dictionary and scope
         self.indent_level += 1
@@ -141,6 +147,9 @@ class astToCppParser(ast.NodeVisitor):
                 raise ex.UnsupportedCommandError(node.body)
 
         if self.protected['methods'] == {} and self.private['methods'] == {} and self.public['methods'] == {} and not self.transplile_class:
+            self.indent_level -= 1
+            self.current_structure_name = None
+            self.transplile_class = False
             return
 
         # check class is already defined
@@ -186,11 +195,9 @@ class astToCppParser(ast.NodeVisitor):
         if self.public['attributes'] or self.public['methods']:
             cppc.cppCodeObject.classes[self.current_structure_name]['public']=self.public
 
-        self.protected = {'attributes': [], 'methods': {}}
-        self.private = {'attributes': [], 'methods': {}}
-        self.public = {'attributes': [], 'methods': {}}
         self.indent_level -= 1
         self.current_structure_name=None
+        self.transplile_class = False
 
     def visit_Return(self, node):   #visit and translate to C++ Return node
 
@@ -382,7 +389,7 @@ class astToCppParser(ast.NodeVisitor):
 
     def visit_Expr(self, node): # visit e translate in C++ Expr node
 
-        return self.indent()+self.visit(node.value) + ";\n"
+        return f"{self.indent()}{self.visit(node.value)};\n"
 
     def visit_Break(self, node):    #visit and traslate to c++ Break node
 
@@ -455,17 +462,19 @@ class astToCppParser(ast.NodeVisitor):
     def visit_Call(self, node):  #visit and translate to C++ Call node(function call)
         #recursive function check
         function_name= self.visit(node.func)    #get the name of the function being called
-        if function_name==self.current_function_name:   #is recursive function
-            raise ex.RecursiveFunctionError(function_name)
-
+        print((not (self.current_structure_name, self.current_function_name, function_name)) and function_name not in cppc.cppCodeObject.classes and isinstance(node.func, ast.Name))
         #check if the function is supported
-        if not tm.check_callableFunction(self.current_structure_name, self.current_function_name, function_name) and function_name not in cppc.cppCodeObject.classes and isinstance(node.func,ast.Name): #FIXME raise when func is not only a name
+        if not tm.check_callableFunction(self.current_structure_name, self.current_function_name, function_name) and function_name not in cppc.cppCodeObject.classes and not isinstance(node.func,ast.Name): #FIXME raise when func is not only a name
             raise ex.NotCallableError(function_name)
 
-        if function_name in tm.scope:
-            function_name=f"new {function_name}"
         #parameters of the call
-        args = [str(self.visit(arg)) for arg in node.args]
+        args = []
+        for arg in node.args:
+            arg_code=self.visit(arg)
+            if isinstance(arg_code, tuple): #parsing lambda parameter:
+                args.append(str(arg_code[0]))
+            else:
+                args.append(str(arg_code))
 
         return f"{function_name}({', '.join(args)})"
 

@@ -40,7 +40,7 @@ if cppc.cppCodeObject.classes!={}:
         codeCpp+='};\n'
 for sign in cppc.cppCodeObject.functions:
     codeCpp+=sign+';\n\n'
-for sign_fun in cppc.cppCodeObject.functions:
+for sign_fun, func in cppc.cppCodeObject.functions.items():
     codeCpp+=f"{sign_fun}\n{func}\n"
 
 print(codeCpp)  #TODO remove, use for debugging
