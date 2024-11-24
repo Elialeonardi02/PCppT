@@ -50,7 +50,6 @@ class astToCppParser(ast.NodeVisitor):
         if node.returns is not None:    #type specified in Python source
             function_type = tm.get_type(str(self.visit_returns(node.returns)))  #use typesMapping to traslate python type to c++ type
         else:   #type of function is not specified in the python source
-            print(ast.Return not in node.body)
             if all(not isinstance(elem, ast.Return) for elem in node.body): #is not return in body of the functions
                 function_type='void'
             else:
@@ -462,7 +461,6 @@ class astToCppParser(ast.NodeVisitor):
     def visit_Call(self, node):  #visit and translate to C++ Call node(function call)
         #recursive function check
         function_name= self.visit(node.func)    #get the name of the function being called
-        print((not (self.current_structure_name, self.current_function_name, function_name)) and function_name not in cppc.cppCodeObject.classes and isinstance(node.func, ast.Name))
         #check if the function is supported
         if not tm.check_callableFunction(self.current_structure_name, self.current_function_name, function_name) and function_name not in cppc.cppCodeObject.classes and not isinstance(node.func,ast.Name): #FIXME raise when func is not only a name
             raise ex.NotCallableError(function_name)
