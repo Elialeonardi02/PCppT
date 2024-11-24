@@ -41,3 +41,17 @@ struct result_t{
   }
 
 };
+int fun(auto a);
+
+template <typename T> T testl();
+
+int fun(auto a)
+{
+  return a(1);
+}
+
+template <typename T> T testl()
+{
+  return fun([](auto a) {a + 10;});
+}
+
