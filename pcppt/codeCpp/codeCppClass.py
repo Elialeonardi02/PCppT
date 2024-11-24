@@ -5,3 +5,4 @@ class code():
         self.functions={}   #functions {signature: body
 
 cppCodeObject=code()
+cppCodeObject.globalCode+="#include <ostream>\n" #use to generate method for user debugging #FIXME use ore remove?

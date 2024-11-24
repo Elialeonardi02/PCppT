@@ -5,13 +5,6 @@ import subprocess
 
 import codeCpp.codeCppClass as cppc
 
-#pragmas
-def applyHLSInline(func_code,):  #FIXME pragma hls inline test
-    if func.count('\n') <= 5:
-        i=func_code.find('\n')
-        func_code=f"{func_code[:i+1]}  #pragma HLS inline\n{func_code[i+1:]}"
-    return func_code
-
 if len(sys.argv) != 3:
     print("Usage: <path_python_script>.py  <path_cpp_destination_file>.cpp")
     sys.exit(1)
@@ -30,11 +23,12 @@ if cppc.cppCodeObject.classes!={}:
     for cls in cppc.cppCodeObject.classes:
         if 'private' not in cppc.cppCodeObject.classes[cls] and 'protected' not in cppc.cppCodeObject.classes[cls]:
             codeCpp+='struct '+cls+'{\n'
-            for elm in cppc.cppCodeObject.classes[cls]['public']['attributes']:
-                codeCpp += f"{elm}\n"
-            for sig, func in  cppc.cppCodeObject.classes[cls]['public']['methods'].items():
-                #func=applyHLSInline(func)# FIXME pragma hls inline test
-                codeCpp += f"{sig} \n{func}\n"
+            if 'public' in cppc.cppCodeObject.classes[cls] and 'attributes' in cppc.cppCodeObject.classes[cls]['public']:
+                for elm in cppc.cppCodeObject.classes[cls]['public']['attributes']:
+                    codeCpp += f"{elm}\n"
+            if 'public' in cppc.cppCodeObject.classes[cls] and 'methods' in cppc.cppCodeObject.classes[cls]['public']:
+                for sig, func in  cppc.cppCodeObject.classes[cls]['public']['methods'].items():
+                    codeCpp += f"{sig} \n{func}\n"
         else:
             codeCpp+='class '+cls+'{\n'
             for vis,elms in cppc.cppCodeObject.classes[cls].items():
@@ -42,13 +36,11 @@ if cppc.cppCodeObject.classes!={}:
                 for elm in elms['attributes']:
                     codeCpp+=f"{elm}\n"
                 for sig,func in elms['methods'].items():
-                    #func=applyHLSInline(func)# FIXME pragma hls inline test
                     codeCpp += f"{sig} \n{func}\n"
         codeCpp+='};\n'
 for sign in cppc.cppCodeObject.functions:
     codeCpp+=sign+';\n\n'
-for sign_fun in cppc.cppCodeObject.functions:
-    #func=applyHLSInline(cppc.cppCodeObject.functions[sign_fun])# FIXME pragma hls inline test
+for sign_fun, func in cppc.cppCodeObject.functions.items():
     codeCpp+=f"{sign_fun}\n{func}\n"
 
 print(codeCpp)  #TODO remove, use for debugging
