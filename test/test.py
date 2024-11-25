@@ -26,6 +26,8 @@ class result_t:
 
     # `float32` can be deduced from the context?
     def mean(self) -> float32:
+        self.result=0
+        self.result=self.sum/self.count
         return self.sum / self.count
 
     # this is optional and it can be done after more important things are done

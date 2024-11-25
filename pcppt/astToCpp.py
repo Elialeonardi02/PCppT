@@ -173,7 +173,8 @@ class astToCppParser(ast.NodeVisitor):
         if self.current_structure_name in tm.scope:
             for var, type in tm.scope[self.current_structure_name].items():
                 if not isinstance(type, dict):
-                    code += f'<<"{var}: "<<"d.{var},"'
+                    print (var)
+                    code += f'<<"{var}: "<<d.{var}<<","'
 
         if code !="":
             code = code[:-2] + code[-1:]    #remove last <,>

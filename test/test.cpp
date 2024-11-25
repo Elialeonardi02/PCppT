@@ -13,7 +13,7 @@ struct tuple_t{
 
   friend std::ostream & operator<<(std::ostream & os, const tuple_t & d) 
   {
-    os<<"key: "<<"d.key,"<<"value: "<<"d.value";
+    os<<"key: "<<d.key<<","<<"value: "<<d.value<<"";
     return os;
   }
 
@@ -23,6 +23,8 @@ struct result_t{
 
   unsigned int count;
 
+  int result;
+
   result_t() 
   {
     this->sum = 0.0;
@@ -31,12 +33,14 @@ struct result_t{
 
   float mean() 
   {
+    this->result = 0;
+    this->result = this->sum / this->count;
     return this->sum / this->count;
   }
 
   friend std::ostream & operator<<(std::ostream & os, const result_t & d) 
   {
-    os<<"sum: "<<"d.sum,"<<"count: "<<"d.count";
+    os<<"sum: "<<d.sum<<","<<"count: "<<d.count<<","<<"result: "<<d.result<<"";
     return os;
   }
 
@@ -57,7 +61,7 @@ struct window_functor{
 
   friend std::ostream & operator<<(std::ostream & os, const window_functor & d) 
   {
-    os<<"i1: "<<"d.i1,"<<"c1: "<<"d.c1";
+    os<<"i1: "<<d.i1<<","<<"c1: "<<d.c1<<"";
     return os;
   }
 
@@ -68,7 +72,6 @@ template <typename T> T testl();
 
 int fun(auto a)
 {
-  char c[3] = "123";
   return a(1);
 }
 
