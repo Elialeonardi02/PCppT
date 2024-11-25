@@ -38,7 +38,7 @@ class astToCppParser(ast.NodeVisitor):
         return ""
 
     def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
-        # save name for checking -of recursive functions
+        # save name for checking recursive functions
         self.current_function_name = node.name
 
         #chose function to parse
@@ -79,9 +79,7 @@ class astToCppParser(ast.NodeVisitor):
         for i in range(0, len(node.args.args)): #start from 1 for methods to skip 'self'
             param_type = 'auto' if node.args.args[i].annotation is None else tm.get_type(str(node.args.args[i].annotation.id))  #use 'auto' if type not specified #FIXME if the type is not specified raise an exception, type inference or use auto with vitis
             param_name = node.args.args[i].arg
-            if param_name=='self': #i==1
-                tm.add_to_scope(self.current_function_signature,self.current_structure_name)
-            else:
+            if param_name!='self': #i==1
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
 
         func_code = f"{self.indent()}{{\n"
@@ -176,7 +174,9 @@ class astToCppParser(ast.NodeVisitor):
                     code += f'<<"{var}: "<<d.{var}<<","'
 
         if code !="":
-            code = code[:-2] + code[-1:]    #remove last <,>
+            #remove last <,>
+            code = code[:-2] + code[-1:]    
+            #add method
             code_o = f'{self.indent()}{{\n'
             self.indent_level += 1
             code_o += f"{self.indent()}os{code};\n{self.indent()}return os;\n"
