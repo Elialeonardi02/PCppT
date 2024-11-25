@@ -31,15 +31,18 @@ class result_t:
     # this is optional and it can be done after more important things are done
 
 
-
+@wireflow
 class window_functor:
+    i1:int
+    c1:float32
     def __call__(self, tuple : tuple_t, result : result_t):
         result.sum += tuple.value
         result.count = result.count + 1
+
 @wireflow
 def fun(a) -> int:
     return a(1)
-
+    
 @wireflow
 def testl():
     return fun(lambda a: a + 10)

@@ -278,26 +278,26 @@ class astToCppParser(ast.NodeVisitor):
         if self.current_function_signature is None:  #augAssign is outside a function
             cppc.cppCodeObject.globalCode+=augAssign_code
         else:
-            return augAssign_code               #augAssign is inside a function
+            return augAssign_code   #augAssign is inside a function
 
     def visit_AnnAssign(self, node): #visit and translate to C++ AnnAssign node(es. c:int=0 or c:int;)
         #generate assign code
         var_name = self.visit(node.target)  #name variable
         self.array_single_type_declaration = True
         annotation = self.visit(node.annotation) #annotation array
-        var_type=tm.get_type(annotation[0] if isinstance(node.annotation,ast.List) else annotation)  #type
-        dim_array=annotation[1] if len(annotation) > 1  else ""    #dimension of array, if specified
+        var_type=tm.get_type(annotation[0] if isinstance(node.annotation,ast.List) else annotation)  #type 
         self.array_single_type_declaration = False
         value = self.visit(node.value)  #value assign
+        dim_array=annotation[1] if not isinstance(node.annotation,ast.Name)  else ""  if var_type!='char' else len(value)-2   #dimension of array, if specified, chr return between {}->-2
         annAssign_code=self.indent()
         if isinstance(node.annotation, ast.List) and(var_type in tm.pythonTypes_CppTypes or var_type in cppc.cppCodeObject.classes): #array of a single type
             annAssign_code+= f"{var_type} {var_name}[{dim_array}] = " +'{'+value +"};\n"
             var_type=f"[{var_type}]"
         else:# f"{var_type}" not in tm.pythonTypes_CppTypesArrays:
-            if len(annotation) > 1 and var_type=='char':    #array string, const
-                annAssign_code += f"const {var_type}* {var_name}[{dim_array}]" + (f" = {{{value}}}" if value != '' else "") + ";\n"
+            if not isinstance(node.annotation,ast.Name) and var_type=='char':    #array string, const
+                annAssign_code += f"{var_type}* {var_name}[{dim_array}]" + (f" = {{{value}}}" if value != '' else "") + ";\n"
             elif var_type=="char":
-                annAssign_code += f"{var_type} {var_name}[]" + (f" = {value}" if value != '' else "") + ";\n"   #FIXME str parsing
+                annAssign_code += f"{var_type} {var_name}[{dim_array}]" + (f" = {value}" if value != '' else "") + ";\n"   #FIXME str parsing
             else:#assign with value and no value
                 annAssign_code  += f"{var_type}{'*' if var_type in tm.scope else ''} {var_name}" + (f" = {value}" if value != '' else "") + ";\n"   #
 

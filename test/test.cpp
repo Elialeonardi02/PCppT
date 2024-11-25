@@ -41,12 +41,34 @@ struct result_t{
   }
 
 };
+struct window_functor{
+  int i1;
+
+  float c1;
+
+  window_functor() 
+  :i1(0),c1(0.0) {}
+
+  void operator()(tuple_t & tuple, result_t & result) 
+  {
+    result.sum += tuple.value;
+    result.count = result.count + 1;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const window_functor & d) 
+  {
+    os<<"i1: "<<"d.i1,"<<"c1: "<<"d.c1";
+    return os;
+  }
+
+};
 int fun(auto a);
 
 template <typename T> T testl();
 
 int fun(auto a)
 {
+  char c[3] = "123";
   return a(1);
 }
 
