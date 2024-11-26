@@ -1,8 +1,8 @@
 import ast
 
-import typesMapping as tm
-import exceptions as ex
-import codeCpp.codeCppClass as cppc
+from pcppt import typesMapping as tm
+from pcppt import exceptions as ex
+from pcppt.codeCpp import codeCppClass as cppc
 
 
 class astToCppParser(ast.NodeVisitor):
@@ -48,7 +48,8 @@ class astToCppParser(ast.NodeVisitor):
 
         #determine function type and name
         if node.returns is not None:    #type specified in Python source
-            function_type = tm.get_type(str(self.visit_returns(node.returns)))  #use typesMapping to traslate python type to c++ type
+            function_type = tm.get_type(str(self.visit_returns(node.returns)))  #use typesMapping to traslate python type to c++ type #FIXME handler return type array pointer?
+
         else:   #type of function is not specified in the python source
             if all(not isinstance(elem, ast.Return) for elem in node.body): #is not return in body of the functions
                 function_type='void'
@@ -65,7 +66,7 @@ class astToCppParser(ast.NodeVisitor):
         tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, node.name)
         #parameters and types of the function
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
-            param_type = 'auto' if node.args.args[i].annotation is None else tm.get_type(str(node.args.args[i].annotation.id))  #use 'auto' if type not specified #FIXME if the type is not specified raise an exception, type inference or use auto with vitis
+            param_type = 'auto' if node.args.args[i].annotation is None else tm.get_type(str(self.visit(node.args.args[i].annotation)))  #use 'auto' if type not specified #FIXME array parameters?
             param_name = node.args.args[i].arg
             signature += f"{param_type}{' & ' if node.name=='__call__' else ' '}{param_name}"
             if i < len(node.args.args) - 1: #it is not last parameter
@@ -75,9 +76,8 @@ class astToCppParser(ast.NodeVisitor):
         #add parameters to scope of the function in typesMapping.scope
         self.current_function_signature = signature
         signature=self.indent()+signature
-
         for i in range(0, len(node.args.args)): #start from 1 for methods to skip 'self'
-            param_type = 'auto' if node.args.args[i].annotation is None else tm.get_type(str(node.args.args[i].annotation.id))  #use 'auto' if type not specified #FIXME if the type is not specified raise an exception, type inference or use auto with vitis
+            param_type = 'auto' if node.args.args[i].annotation is None else tm.get_type(str(self.visit(node.args.args[i].annotation)))  #use 'auto' if type not specified #FIXME array parameters?
             param_name = node.args.args[i].arg
             if param_name!='self': #i==1
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
@@ -285,10 +285,10 @@ class astToCppParser(ast.NodeVisitor):
         var_name = self.visit(node.target)  #name variable
         self.array_single_type_declaration = True
         annotation = self.visit(node.annotation) #annotation array
-        var_type=tm.get_type(annotation[0] if isinstance(node.annotation,ast.List) else annotation)  #type 
+        var_type=tm.get_type(f"{annotation[0]}" if isinstance(node.annotation,ast.List) else annotation)  #type
         self.array_single_type_declaration = False
         value = self.visit(node.value)  #value assign
-        dim_array=annotation[1] if not isinstance(node.annotation,ast.Name)  else ""  if var_type!='char' else len(value)-2   #dimension of array, if specified, chr return between {}->-2
+        dim_array=annotation[1] if not len(annotation)>1 and isinstance(node.annotation,ast.Name)  else ""  if var_type!='char' else len(value)-2   #dimension of array, if specified, chr return between {}->-2
         annAssign_code=self.indent()
         if isinstance(node.annotation, ast.List) and(var_type in tm.pythonTypes_CppTypes or var_type in cppc.cppCodeObject.classes): #array of a single type
             annAssign_code+= f"{var_type} {var_name}[{dim_array}] = " +'{'+value +"};\n"
@@ -514,7 +514,10 @@ class astToCppParser(ast.NodeVisitor):
 
     def visit_List(self, node):
         if self.array_single_type_declaration:  # is type of array one type element declaration
-            return [f"{self.visit(el)}" for el in node.elts]
+            type_dimension = [f"[{self.visit(node.elts[0])}]"]  #type of array
+            if len(node.elts) > 1:  #dimension of array, optional
+                type_dimension.append(self.visit(node.elts[1]))
+            return  type_dimension
         else:
             elements = [f"{tm.corret_value(self.visit(el))}" for el in node.elts]
             return f"{', '.join(elements)}"

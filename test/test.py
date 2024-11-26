@@ -4,7 +4,6 @@ class tuple_t:
     value : float32     # or simply `float`
 
     # if not defined, the C++ default constructor is used
-    @wireflow
     def __init__(self):
         self.key = 0
         self.value = 0.0
@@ -15,7 +14,7 @@ class tuple_t:
 
 tuple_key_extractor = lambda t: t.key
 
-@wireflow
+
 class result_t:
     sum : float32    # or simply `float`
     count : uint32     # maybe `unsigned int` is better, but it is less C++ like
@@ -33,7 +32,7 @@ class result_t:
     # this is optional and it can be done after more important things are done
 
 
-@wireflow
+
 class window_functor:
     i1:int
     c1:float32
@@ -42,9 +41,9 @@ class window_functor:
         result.count = result.count + 1
 
 @wireflow
-def fun(a) -> int:
-    return a(1)
-    
-@wireflow
+def fun(a:[int]) -> int:
+    test=[1,2,3]
+    return a
+
 def testl():
     return fun(lambda a: a + 10)

@@ -1,4 +1,4 @@
-import exceptions as ex
+from pcppt import exceptions as ex
 import  ast
 globalScope='root'
 
@@ -87,7 +87,6 @@ cppTypes_DefaultsValues = { #use for default constructor
     "int": "0",
     "float": "0.0",
     "bool": "False",
-    "char": "0",
     "short": "0",
     "int16": "0",
     "int32": "0",

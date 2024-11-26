@@ -23,15 +23,16 @@ def extractComments(source_code):
 
             comment_text = line[comment_start:].strip()+'\n'
             comments.append(comment(comment_text, start_position, end_position))
-    return comments                                     #['comment'(line_start,position_start),(line_end,position_end)]
+    return comments #['comment'(line_start,column_start),(line_end,column_end)]
 
 
-def generateAstComments(file_path):
-    #comments
-    with open(file_path, "r") as file:
-        source_code = file.read()
-    comments = extractComments(source_code)
-
-    #ast
-    tree = ast.parse(source_code)
-    return tree, comments
+def generateAstComments(source):
+    try:
+        with open(source, "r") as file:
+            source_code = file.read()
+    except FileNotFoundError:   #source is python code
+        source_code = source
+    finally:
+        comments = extractComments(source_code)
+        tree = ast.parse(source_code)
+        return tree, comments
