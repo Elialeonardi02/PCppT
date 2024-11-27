@@ -46,22 +46,14 @@ class astToCppParser(ast.NodeVisitor):
             if not (node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
                 return False,False #to stop parsing method of a class
 
-        #determine function type and name
-        if node.returns is not None:    #type specified in Python source
-            function_type = tm.get_type(str(self.visit_returns(node.returns)))  #use typesMapping to traslate python type to c++ type #FIXME handler return type array pointer?
-
-        else:   #type of function is not specified in the python source
-            if all(not isinstance(elem, ast.Return) for elem in node.body): #is not return in body of the functions
-                function_type='void'
-            else:
-                function_type = 'template <typename T> T'   #use template in c++
+        #determine function name
         if (self.current_structure_name is not None and #outside node is not a class
                 (node.name=='__init__' or node.name==self.current_structure_name)): #function is a constructor of a class
             signature = f"{self.current_structure_name}("    #signature construction
         elif node.name=='__call__':
-            signature = f"void operator()("
+            signature = f"operator()("
         else:   #is a normal function or a method of a class
-            signature = f"{function_type} {node.name}(" #normal signature with type
+            signature = f"{node.name}(" #normal signature with type
 
         tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, node.name)
         #parameters and types of the function
@@ -82,26 +74,39 @@ class astToCppParser(ast.NodeVisitor):
             if param_name!='self': #i==1
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
 
-        func_code = f"{self.indent()}{{\n"
+
         # body of the function
-
+        func_code = f"{self.indent()}{{\n"
         self.indent_level += 1
+        function_type = ""
         for astNode in node.body:
-            if not isinstance(astNode, ast.FunctionDef):    #the node is not a def of a function
-                iBodyCode=self.visit(astNode)
+            if not isinstance(astNode, ast.FunctionDef):  # the node is not a def of a function
+                iBodyCode = self.visit(astNode)
                 func_code += iBodyCode
-            else:   #a function declaration in the body
-                temp_indent_level=self.indent_level
-                self.indent_level=0
+                if node.returns is None and isinstance(astNode, ast.Return):
+                    function_type = tm.infer_type(astNode.value,None, self.current_structure_name,self.current_function_signature)
+            else:  # a function declaration in the body
+                temp_indent_level = self.indent_level
+                self.indent_level = 0
                 self.visit(astNode)
-                self.indent_level=temp_indent_level
-                self.current_function_name = node.name  #reset current_function_name to current signature after visit
+                self.indent_level = temp_indent_level
+                self.current_function_name = node.name  # reset current_function_name to current signature after visit
                 self.current_function_signature = signature
-
         self.indent_level -= 1
         func_code += self.indent() + "}\n"
 
-
+        # determine function type
+        if node.returns is not None:  # type specified in Python source
+            function_type = tm.get_type(str(self.visit_returns(node.returns)))  # use typesMapping to traslate python type to c++ type #FIXME handler return type array pointer?
+        else:  # type of function is not specified in the python source
+            if function_type=="":  # is not return in body of the functions
+                function_type = 'void'
+            elif function_type=="auto":
+                function_type = 'template <typename T> T'  # use template in c++
+        if node.name == '__call__':
+            signature = f"{self.indent()}void{signature}"
+        elif node.name!='__init__':  # is a normal function or a method of a class
+            signature = f"{self.indent()}{function_type}{signature}"  # normal signature with type
 
         # end of functionDef node explorations
         self.current_function_name = None
@@ -211,7 +216,7 @@ class astToCppParser(ast.NodeVisitor):
             if (isinstance(node.targets[0],ast.Tuple) and isinstance(node.targets[0].elts[itarget],ast.Attribute)) or isinstance(node.targets[0],ast.Attribute) :   #target attribute inside a class, or tuple declaration of attribute
                 assign_code += f"{target['code']} = {value};\n"
                 if target['value']=='self' and not tm.check_scope(None, self.current_structure_name,target['attr']): #attribute of self class
-                    var_type = tm.infer_type(node.value, value)
+                    var_type = tm.infer_type(node.value, value, self.current_structure_name, self.current_function_signature)
                     temp_indent = self.indent_level
                     self.indent_level = 1
                     if isinstance(node.value, ast.List):
@@ -236,7 +241,7 @@ class astToCppParser(ast.NodeVisitor):
                 tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, target)
             elif isinstance(node.value,ast.List):
                 if not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]):#generate type for variable if it is not defined #.split("[")[0] for check array(subscript) in scope
-                    var_type = tm.infer_type(node.value,value)  # is not already declare
+                    var_type = tm.infer_type(node.value,value, self.current_structure_name, self.current_function_signature)  # is not already declare
                     if var_type=='char':    #array string
                         assign_code += f"const {var_type}* {target}[{len(node.value.elts)}] = {{{value}}};\n"
                     else:   #common array
@@ -244,7 +249,7 @@ class astToCppParser(ast.NodeVisitor):
                     tm.add_to_scope(self.current_function_signature, self.current_structure_name, target, f"[{var_type}]")
                 else:   #array is already define, can't assign array to list already defined, make a temp array to assign value to target
                     temp_indent=self.indent_level
-                    var_type = tm.infer_type(node.value,value)
+                    var_type = tm.infer_type(node.value,value, self.current_structure_name, self.current_function_signature)
                     self.indent_level += 1
                     assign_code+=f"{{\n{self.indent()}{var_type} temp_array_assign[{len(node.value.elts)}] = {{{value}}};\n"
                     assign_code+=f"{self.indent()}for (int i=0; i<{len(node.value.elts)}; i++) {{\n"
@@ -258,7 +263,7 @@ class astToCppParser(ast.NodeVisitor):
                     self.indent_level=temp_indent
             else:
                 if not tm.check_scope(self.current_function_signature, self.current_structure_name, target) and not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]): #TODO move check scope for subscript?
-                    var_type = tm.infer_type(node.value,value)  # is not already declare
+                    var_type = tm.infer_type(node.value,value, self.current_structure_name, self.current_function_signature)  # is not already declare
                     assign_code += f"{var_type} "
                     tm.add_to_scope(self.current_function_signature,self.current_structure_name, target, var_type)
                     assign_code += f"{target}{[] if var_type == 'char' else ''} = {value};\n"

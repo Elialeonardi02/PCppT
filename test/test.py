@@ -1,4 +1,3 @@
-
 class tuple_t:
     key : uint32  # maybe `uint` is better, but it is less C++ like
     value : float32     # or simply `float`
@@ -14,7 +13,6 @@ class tuple_t:
 
 tuple_key_extractor = lambda t: t.key
 
-
 class result_t:
     sum : float32    # or simply `float`
     count : uint32     # maybe `unsigned int` is better, but it is less C++ like
@@ -24,14 +22,12 @@ class result_t:
         self.count = 0
 
     # `float32` can be deduced from the context?
-    def mean(self) -> float32:
-        self.result=0
+    @wireflow
+    def mean(self):
         self.result=self.sum/self.count
         return self.sum / self.count
 
     # this is optional and it can be done after more important things are done
-
-
 
 class window_functor:
     i1:int
@@ -40,10 +36,10 @@ class window_functor:
         result.sum += tuple.value
         result.count = result.count + 1
 
-@wireflow
-def fun(a:[int]) -> int:
-    test=[1,2,3]
-    return a
+def fun(a:int):
+    b=0
+    test=testl()
+    return b
 
-def testl():
-    return fun(lambda a: a + 10)
+def testl()->int:
+    return 1

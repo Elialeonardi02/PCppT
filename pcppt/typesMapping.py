@@ -20,7 +20,8 @@ pythonTypes_CppTypes = {    #take from dace
     'float16': "half",
     'float32': "float",
     'float64': "double",
-    'str' : "char"
+    'str' : "char",
+    'auto' : "auto"
 }
 parsing_constant={
     True:'true',
@@ -193,17 +194,17 @@ def check_scope(in_function, in_class, var):    #check if the variable is in the
              (scope.get(globalScope) is None or var not in scope[globalScope])) #var il global scope
     )
 
-def infer_type(val,value):  #infer type from val/value
-    if isinstance(val,ast.List) :    #array type inference
-        if all(isinstance(elem,ast.Constant) for elem in val.elts): #there is only constant (es:[1,2,3]) in the value node
-            python_type=str(type(val.elts[0].value).__name__)   #take the type of the first element of the array
-            for i in range(1, len(val.elts)):   #raise an exception for element of different type 
-                if str(type(val.elts[i].value).__name__) != python_type:
+def infer_type(node, value, class_name, function_signature):  #infer type from val/value
+    if isinstance(node, ast.List) :    #array type inference
+        if all(isinstance(elem,ast.Constant) for elem in node.elts): #there is only constant (es:[1,2,3]) in the value node
+            python_type=str(type(node.elts[0].value).__name__)   #take the type of the first element of the array
+            for i in range(1, len(node.elts)):   #raise an exception for element of different type
+                if str(type(node.elts[i].value).__name__) != python_type:
                     raise ex.MultyTypesArrayNotAllowed(value)
             return pythonTypes_CppTypes[python_type]
-    elif isinstance(val, ast.Constant): #type inference of constant
-        return pythonTypes_CppTypes[str(type(val.value).__name__)]
-    return f"auto"  #type inference of expression
+    elif isinstance(node, ast.Constant): #type inference of constant
+        return pythonTypes_CppTypes[str(type(node.value).__name__)]
+    return explore_value(class_name, function_signature, node)  #type inference of expression
 
 def corret_value(v):    #correct a rappresentation of a python value in cpp value #FIXME necessary?
     if isinstance(v,float):
@@ -225,6 +226,61 @@ def add_to_callableFunction(in_class, functionName, fname): #add function to cal
 def check_callableFunction(in_class, functionName, fname):#false: can't call function, true: can call functions  #FIXME check if is a method or in in the correct scope
     scopeCall = globalScope if in_class is None else in_class
     return scopeCall in callableFunctions and functionName in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][functionName] or (fname in pythonFunction_toParse)
+
+def explore_value(class_name, function_signature, node):
+    if isinstance(node, ast.Constant):
+        return get_type(type(node.value).__name__)
+
+    elif isinstance(node, ast.Name):
+        return get_var_type_scope(class_name, function_signature, node.id)
+
+    elif isinstance(node, ast.BinOp):
+        left_type = explore_value(class_name, function_signature, node.left)
+        right_type = explore_value(class_name, function_signature, node.right)
+
+        if left_type == "auto" or right_type == "auto" or left_type not in cpp_types_hierarchy or right_type not in cpp_types_hierarchy :
+            return "auto"
+        if cpp_types_hierarchy[left_type]>=cpp_types_hierarchy[right_type]:
+            return left_type
+        else:
+            return right_type
+
+    elif isinstance(node, ast.Attribute):
+        return get_var_type_scope(None, class_name, node.attr)
+
+    elif isinstance(node, ast.List):
+        element_type = explore_value(class_name, function_signature, node.elts[0])
+
+        if element_type == "auto" or element_type not in cpp_types_hierarchy:
+            return "auto"
+
+        for el in node.elts:
+            current_type = explore_value(class_name, function_signature, el)
+            if current_type == "auto" or current_type not in cpp_types_hierarchy:
+                element_type = "auto"
+                break
+            if cpp_types_hierarchy[current_type]>=cpp_types_hierarchy[element_type]:
+                element_type = current_type
+        return element_type
+
+    else:
+        return "auto"
+
+cpp_types_hierarchy = {
+    'bool': 0,
+    'char': 1,
+    'short': 2,
+    'int': 3,
+    'long long': 4,
+    'unsigned char': 5,
+    'unsigned short': 6,
+    'unsigned int': 7,
+    'unsigned long long': 8,
+    'half': 9,
+    'float': 10,
+    'double': 11
+}
+
 
 
 
