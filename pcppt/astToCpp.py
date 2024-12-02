@@ -106,7 +106,7 @@ class astToCppParser(ast.NodeVisitor):
         if node.name == '__call__':
             signature = f"{self.indent()}void{signature}"
         elif node.name!='__init__':  # is a normal function or a method of a class
-            signature = f"{self.indent()}{function_type}{signature}"  # normal signature with type
+            signature = f"{self.indent()}{function_type} {signature}"  # normal signature with type
 
         # end of functionDef node explorations
         self.current_function_name = None

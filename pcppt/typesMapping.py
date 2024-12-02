@@ -139,15 +139,16 @@ def get_var_type_scope(in_function, in_class, var=None):    #provide type of var
         return [globalScope][var]
     return None #var is not delcare in this scope
 
-def add_to_scope(in_function, in_class, var=None, type_var=None): #add variable(var) to scope
+def add_to_scope(in_function, in_class, var=None, type_var=None, nameFunction=None): #add variable(var) to scope
     if in_function is not None and in_class is None:    #var is in a function
         if in_function not in scope:    #add function to scope if not already in
             scope[in_function]={}
         if var is not None: 
-            if var not in scope[in_function]:   #add var to function scope
+            if var not in scope[in_function] :   #add var to function scope or update type of function
                 scope[in_function][var]=type_var
             else:   #var is already defined in this scope
                 raise ex.AlreadyDefinedError(var)
+
     if in_function is None and in_class is not None:    #var is in a class, is an attribute
         if in_class not in scope:   #add class to scope if not already in
             scope[in_class]={}
@@ -162,7 +163,7 @@ def add_to_scope(in_function, in_class, var=None, type_var=None): #add variable(
         if in_function not in scope[in_class]:  #add method to scope of class if not already in
             scope[in_class][in_function] = {}
         if var is not None: 
-            if  var not in scope[in_class][in_function]: #add var to scope of method if not already defined
+            if  var not in scope[in_class][in_function] : #add var to scope of method if not already defined or update type if variable
                 scope[in_class][in_function][var] = type_var
             else:   #var is already defined
                 raise ex.AlreadyDefinedError(var)   
@@ -232,7 +233,7 @@ def explore_value(class_name, function_signature, node):
         return get_type(type(node.value).__name__)
 
     elif isinstance(node, ast.Name):
-        return get_var_type_scope(class_name, function_signature, node.id)
+        return get_var_type_scope(function_signature,class_name,node.id)
 
     elif isinstance(node, ast.BinOp):
         left_type = explore_value(class_name, function_signature, node.left)

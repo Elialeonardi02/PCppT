@@ -40,7 +40,7 @@ def generator_cpp_code(source):
     return codeCpp
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  #transpiling file
     if len(sys.argv) != 3:
         print("Usage: <path_python_script>.py  <path_cpp_destination_file>.cpp")
         sys.exit(1)
@@ -56,5 +56,5 @@ if __name__ == "__main__":
     # compile to check sintax of the c++ code
     subprocess.run(["g++", "-c", file_path_destination, "-fconcepts", "-o", file_path_destination[:-4]])
 
-def python_cpp_transpiling(func):
+def python_cpp_transpiling(func):   #transpilling string code
     return generator_cpp_code(f"@wireflow\n{inspect.getsource(func)}")  #FIXME, it is corret to add decorator in this case?
