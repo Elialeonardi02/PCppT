@@ -12,7 +12,7 @@ class tuple_t:
         self.key = key
         self.value = value
 
-tuple_key_extractor = lambda t: t.key
+tuple_key_extractor = lambda t: t+1
 
 @wireflow
 class result_t:
@@ -25,6 +25,9 @@ class result_t:
 
     # `float32` can be deduced from the context?
     def mean(self):
+        def a(self):
+            a = 1
+            return a
         self.result=self.sum/self.count
         return self.sum / self.count
 
@@ -39,10 +42,15 @@ class window_functor:
     def test(self,tuple:tuple_t):
         return tuple
 @wireflow
+def testl()->int:
+    def a():
+        a=1
+        return a
+    z=lambda x:x+1
+    t=tuple_key_extractor(1)
+    return 1
+@wireflow
 def fun(a:int):
     b=0
     test=testl()
     return b
-@wireflow
-def testl()->int:
-    return 1

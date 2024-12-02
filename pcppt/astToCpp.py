@@ -42,7 +42,7 @@ class astToCppParser(ast.NodeVisitor):
         self.current_function_name = node.name
 
         #chose function to parse
-        if not self.transplile_class:
+        if not self.transplile_class and self.current_function_signature is None:
             if not (node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
                 return False,False #to stop parsing method of a class
 
@@ -55,7 +55,7 @@ class astToCppParser(ast.NodeVisitor):
         else:   #is a normal function or a method of a class
             signature = f"{node.name}(" #normal signature with type
 
-        tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, node.name)
+
         #parameters and types of the function
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
             param_type = 'auto' if node.args.args[i].annotation is None else tm.get_type(str(self.visit(node.args.args[i].annotation)))  #use 'auto' if type not specified #FIXME array parameters?
@@ -87,7 +87,10 @@ class astToCppParser(ast.NodeVisitor):
                     function_type = tm.infer_type(astNode.value,None, self.current_structure_name,self.current_function_signature)
             else:  # a function declaration in the body
                 temp_indent_level = self.indent_level
-                self.indent_level = 0
+                if self.current_structure_name is None: #is a function
+                    self.indent_level = 0
+                else:   #is a method of a class
+                    self.indent_level = 1
                 self.visit(astNode)
                 self.indent_level = temp_indent_level
                 self.current_function_name = node.name  # reset current_function_name to current signature after visit
@@ -108,9 +111,7 @@ class astToCppParser(ast.NodeVisitor):
         elif node.name!='__init__':  # is a normal function or a method of a class
             signature = f"{self.indent()}{function_type} {signature}"  # normal signature with type
 
-        # end of functionDef node explorations
-        self.current_function_name = None
-        self.current_function_signature = None
+        tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, function_type)
 
         # save signature and func_code in cppc
         if self.current_structure_name is None: #is a function
@@ -120,10 +121,11 @@ class astToCppParser(ast.NodeVisitor):
                 raise ex.AlreadyDefinedError(signature)
             cppc.cppCodeObject.functions[signature]=func_code
         else:   #is a method of a class
-            return signature, func_code
+            self.classDef_add_FunctionDef(signature,func_code,self.current_function_name)
 
-
-
+        # end of functionDef node explorations
+        self.current_function_name = None
+        self.current_function_signature = None
 
     def visit_ClassDef(self, node):  # visit e translate in C++ ClassDef node
         self.protected = {'attributes': [], 'methods': {}}
@@ -138,13 +140,14 @@ class astToCppParser(ast.NodeVisitor):
 
         #parse attributes and methods
         for body_node in node.body:
+            body_node_code = self.visit(body_node)
             if isinstance(body_node, ast.AnnAssign):    #body_node is an attribute
-                body_node_code = self.visit(body_node)
                 self.classDef_add_AnnAssign(body_node_code,body_node.target.id)
             elif isinstance(body_node, ast.FunctionDef):    #body_node is a method
-                signature,method_body = self.visit(body_node)
-                if signature and method_body: #add method if have @wireflow decorator
-                    self.classDef_add_FunctionDef(signature,method_body,body_node.name)
+                pass
+                #signature,method_body = self.visit(body_node)
+                #if signature and method_body: #add method if have @wireflow decorator
+                    #self.classDef_add_FunctionDef(signature,method_body,body_node.name)
             else:                                       #body_node is unsopported in class body
                 raise ex.UnsupportedCommandError(node.body)
 
@@ -238,7 +241,7 @@ class astToCppParser(ast.NodeVisitor):
             elif isinstance(node.value, ast.Lambda):    #declare lambda function
                 assign_code+=f"auto {target} = {value[0]};\n"
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name, f"{target}{value[1]}", 'auto')
-                tm.add_to_callableFunction(self.current_structure_name, self.current_function_name, target)
+                tm.add_to_callableFunction(self.current_structure_name, target,'auto')
             elif isinstance(node.value,ast.List):
                 if not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]):#generate type for variable if it is not defined #.split("[")[0] for check array(subscript) in scope
                     var_type = tm.infer_type(node.value,value, self.current_structure_name, self.current_function_signature)  # is not already declare
@@ -436,7 +439,7 @@ class astToCppParser(ast.NodeVisitor):
             if i < len(node.args.args) - 1:  # Aggiunge una virgola se non è l'ultimo parametro
                 signature += ', '
         signature += ")"
-        return  f"[]{signature} {{{self.visit(node.body)};}}",signature
+        return  f"[]{signature} {{return {self.visit(node.body)};}}",signature
 
     def visit_IfExp(self,node):
         condition = self.visit(node.test)

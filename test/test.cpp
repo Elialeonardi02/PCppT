@@ -1,5 +1,5 @@
 #include <ostream>
-auto tuple_key_extractor = [](auto t) {t.key;};
+auto tuple_key_extractor = [](auto t) {return t + 1;};
 struct tuple_t{
   unsigned int key;
 
@@ -35,6 +35,12 @@ struct result_t{
   {
     this->sum = 0.0;
     this->count = 0;
+  }
+
+  int   a() 
+  {
+    int a = 1;
+    return a;
   }
 
   float   mean() 
@@ -76,19 +82,29 @@ struct window_functor{
   }
 
 };
-int fun(int a);
+int a();
 
 int testl();
 
-int fun(int a)
+int fun(int a);
+
+int a()
 {
-  int b = 0;
-  auto test = testl();
-  return b;
+  int a = 1;
+  return a;
 }
 
 int testl()
 {
+  auto z = [](auto x) {return x + 1;};
+  auto t = tuple_key_extractor(1);
   return 1;
+}
+
+int fun(int a)
+{
+  int b = 0;
+  int test = testl();
+  return b;
 }
 
