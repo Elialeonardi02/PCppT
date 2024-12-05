@@ -24,9 +24,10 @@ class result_t:
         self.count = 0
 
     # `float32` can be deduced from the context?
-    def mean(self):
+    def mean(self, a:[int]):
         def a(self):
             a = 1
+            bac=[1,2,3,4]
             return a
         self.result=self.sum/self.count
         return self.sum / self.count
