@@ -58,7 +58,12 @@ class astToCppParser(ast.NodeVisitor):
 
         #parameters and types of the function
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
-            param_type = 'auto' if node.args.args[i].annotation is None else tm.get_type(str(self.visit(node.args.args[i].annotation)))  #use 'auto' if type not specified #FIXME array parameters?
+            if node.args.args[i].annotation is None:
+                param_type = 'auto'
+            else:
+                param_type=tm.get_type(str(self.visit(node.args.args[i].annotation)))  #use 'auto' if type not specified
+                if isinstance(node.args.args[i].annotation, ast.List): #array parameter
+                    param_type=f"{param_type}& "
             param_name = node.args.args[i].arg
             signature += f"{param_type}{' & ' if node.name=='__call__' else ' '}{param_name}"
             if i < len(node.args.args) - 1: #it is not last parameter
@@ -69,7 +74,12 @@ class astToCppParser(ast.NodeVisitor):
         self.current_function_signature = signature
         signature=self.indent()+signature
         for i in range(0, len(node.args.args)): #start from 1 for methods to skip 'self'
-            param_type = 'auto' if node.args.args[i].annotation is None else tm.get_type(str(self.visit(node.args.args[i].annotation)))  #use 'auto' if type not specified #FIXME array parameters?
+            if node.args.args[i].annotation is None:
+                param_type = 'auto'
+            else:
+                param_type = tm.get_type(str(self.visit(node.args.args[i].annotation)))  # use 'auto' if type not specified
+                if isinstance(node.args.args[i].annotation, ast.List):  # array parameter
+                    param_type = f"[{param_type}]"
             param_name = node.args.args[i].arg
             if param_name!='self': #i==1
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)

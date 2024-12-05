@@ -40,10 +40,11 @@ struct result_t{
   int   a() 
   {
     int a = 1;
+    int bac[4] = {1, 2, 3, 4};
     return a;
   }
 
-  float   mean() 
+  float   mean(int&  a) 
   {
     this->result = this->sum / this->count;
     return this->sum / this->count;
