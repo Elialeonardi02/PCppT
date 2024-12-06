@@ -7,3 +7,5 @@ class testclass:
 def fun(a:int):
     a=a+1
 print(pcppt.python_cpp_transpiling(testclass))
+print(pcppt.python_cpp_transpiling(testclass))
+print(pcppt.python_cpp_transpiling(fun))

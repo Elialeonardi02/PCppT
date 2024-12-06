@@ -1,11 +1,10 @@
 from pcppt import astToCpp
 from pcppt import pythonToAST
+from pcppt import typesMapping as tm #FIXME for reset in python_cpp_transpiling
 import sys
 import subprocess
 import inspect
 from pcppt.codeCpp import codeCppClass as cppc
-
-
 def generator_cpp_code(source):
     astG, comment = pythonToAST.generateAstComments(source)  # FIXME comments doesn't work
     import ast  # TODO remove, use for debugging
@@ -57,4 +56,8 @@ if __name__ == "__main__":  #transpiling file
     subprocess.run(["g++", "-c", file_path_destination, "-fconcepts", "-o", file_path_destination[:-4]])
 
 def python_cpp_transpiling(func):   #transpilling string code
-    return generator_cpp_code(f"@wireflow\n{inspect.getsource(func)}")  #FIXME, it is corret to add decorator in this case?
+    code=generator_cpp_code(f"@wireflow\n{inspect.getsource(func)}")  #FIXME, it is corret to add decorator in this case?
+    cppc.reset_cppCodeObject()
+    tm.reset_scope()
+    tm.reset_callableFunctions()
+    return code

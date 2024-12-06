@@ -113,7 +113,9 @@ def get_operator(nodeOperator): #provide aritmetic or boolean operator
     return pythonOperator_CppOperator[nodeOperator.__class__.__name__]
 
 scope = {}  # variables scope{function{var:type}class:{function:{var:type},var:type}root:{var:type} use root for global scope
-
+def reset_scope():  #incapsulate scope in object
+    global scope
+    scope={}
 def get_type(ptype):    #provide type of a var in scope
     if isinstance(ptype,dict):  #use for array multitype #FIXME necessary?
         key_type = next(iter(ptype))
@@ -213,6 +215,10 @@ def corret_value(v):    #correct a rappresentation of a python value in cpp valu
         return str(v)
 
 callableFunctions = {}  #{root:{fuctionName:[functionName,lambda]},nameclass:{MethodName:[MethodName,lambda]}} use root for global scope
+
+def reset_callableFunctions():  #incapsulate callableFunctions in object
+    global callableFunctions
+    callableFunctions={}
 
 def add_to_callableFunction(in_class, functionName, ftype): #add function to callable function #FIXME can be problem with 2 function same name but different signature
     scopeCall = globalScope if in_class is None else in_class   #locate the scope of function, root or in a class

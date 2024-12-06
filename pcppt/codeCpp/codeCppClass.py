@@ -5,4 +5,7 @@ class code():
         self.functions={}   #functions {signature: body
 
 cppCodeObject=code()
+def reset_cppCodeObject(): #FIXME incapsulate cppCOdeObject in a object 
+    global cppCodeObject
+    cppCodeObject=code()
 cppCodeObject.globalCode+="#include <ostream>\n" #use to generate method for user debugging #FIXME use ore remove?
