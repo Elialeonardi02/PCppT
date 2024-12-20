@@ -21,7 +21,7 @@ class astToCppParser(ast.NodeVisitor):
         self.private = {'attributes': [], 'methods': {}}
         self.public = {'attributes': [], 'methods': {}}
 
-        self.tempAttributesDeclaretions={}#contain all attributs declaration of the class {attribute:{code:<code>, type:<type>}
+        self.tempAttributesDeclaretions={}#{attribute:{code:<code>, type:<type>}
 
         #flag class to transpile
         self.transplile_class=False
