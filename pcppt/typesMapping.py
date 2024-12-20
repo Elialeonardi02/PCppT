@@ -200,7 +200,7 @@ def infer_type(node, value, class_name, function_signature):  #infer type from v
             python_type=str(type(node.elts[0].value).__name__)   #take the type of the first element of the array
             for i in range(1, len(node.elts)):   #raise an exception for element of different type
                 if str(type(node.elts[i].value).__name__) != python_type:
-                    raise ex.MultyTypesArrayNotAllowed(value)
+                    raise ex.MultyTypesArrayNotAllowed(value)   #FIXME infer type?
             return pythonTypes_CppTypes[python_type]
     elif isinstance(node, ast.Constant): #type inference of constant
         return pythonTypes_CppTypes[str(type(node.value).__name__)]

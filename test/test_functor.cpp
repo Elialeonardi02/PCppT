@@ -1,55 +1,111 @@
-struct tuple_t {
-    unsigned int key;
-    float value;
-    float aggregate;
-    unsigned int timestamp;
+#include <ostream>
+auto tuple_key_extractor = [](auto t) {return t + 1;};
+struct tuple_t{
+  unsigned int key;
 
-    tuple_t() = default;
+  float value;
 
-    tuple_t(unsigned int key, float value, float aggregate, unsigned int timestamp)
-        : key(key), value(value), aggregate(aggregate), timestamp(timestamp)
-    {}
+  tuple_t()
+  {
+    this->key = 0;
+    this->value = 0.0;
+  }
 
-    #if !defined(SYNTHESIS)
-    friend std::ostream & operator<<(std::ostream & os, const tuple_t & d)
-    {
-        os << "(key: " << d.key << ", value: " << d.value << ", aggregate: " << d.aggregate << ", timestamp: " << d.timestamp << ")";
-        return os;
-    }
-    #endif
+  tuple_t(unsigned int key, float value)
+  {
+    this->key = key;
+    this->value = value;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const tuple_t & d)
+  {
+    os<<"key: "<<d.key<<","<<"value: "<<d.value<<"";
+    return os;
+  }
+
 };
+struct result_t{
+  float sum;
 
-auto tuple_key_extractor = [](const tuple_t & t) { return t.key; };
+  unsigned int count;
 
-struct result_t
+  float result;
+
+  result_t()
+  {
+    this->sum = 0.0;
+    this->count = 0;
+  }
+
+  int   a()
+  {
+    int a = 1;
+    int bac[4] = {1, 2, 3, 4};
+    return a;
+  }
+
+  float   mean(int&  a)
+  {
+    this->result = this->sum / this->count;
+    return this->sum / this->count;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const result_t & d)
+  {
+    os<<"sum: "<<d.sum<<","<<"count: "<<d.count<<","<<"result: "<<d.result<<"";
+    return os;
+  }
+
+};
+struct window_functor{
+  int i1;
+
+  float c1;
+
+  window_functor()
+  :i1(0),c1(0.0) {}
+
+  void  operator()(tuple_t & tuple, result_t & result)
+  {
+    result.sum += tuple.value;
+    result.count = result.count + 1;
+  }
+
+  tuple_t   test(tuple_t tuple)
+  {
+    return tuple;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const window_functor & d)
+  {
+    os<<"i1: "<<d.i1<<","<<"c1: "<<d.c1<<"";
+    return os;
+  }
+
+};
+int a();
+
+int testl();
+
+int fun(int a);
+
+int a()
 {
-    float sum;
-    unsigned int count;
+  int a = 1;
+  return a;
+}
 
-    result_t()
-    : sum(0)
-    , count(0)
-    {}
-
-    float mean() const {
-        return sum / count;
-    }
-
-    #if !defined(__SYNTHESIS__)
-    friend std::ostream & operator<<(std::ostream & os, const result_t & d)
-    {
-        os << "(sum: " << d.sum << ", count: " << d.count << ")";
-        return os;
-    }
-    #endif
-};
-
-struct window_functor
+int testl()
 {
-    void operator()(const tuple_t & tuple, result_t & result)
-    {
-    #pragma HLS INLINE
-        result.sum += tuple.value;
-        result.count = result.count + 1;
-    }
-};
+  auto z = [](auto x) {return x + 1;};
+  auto t = tuple_key_extractor(1);
+  return 1;
+}
+
+int fun(int a)
+{
+  int b = 0;
+  int test = testl();
+  return b;
+}
+
