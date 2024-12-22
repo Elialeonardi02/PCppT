@@ -1,9 +1,6 @@
 @wireflow
-def test(a:[int,10,13]):
-    pass
-@wireflow
-class testa:
-    a:int
-    def fun(self):
-        b:int=1
-
+def rangeStop():
+    stop = 10
+    total = 0
+    for i in range(stop):
+        total += i*2

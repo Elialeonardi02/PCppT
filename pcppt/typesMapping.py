@@ -224,7 +224,7 @@ def add_to_callableFunction(in_class, functionName, ftype): #add function to cal
     #callableFunctions[scopeCall][functionName].append(fname)
 
 
-def check_callableFunction(in_class, functionName, fname):  #false: can't call function, true: can call functions
+def check_callableFunction(in_class, functionName, fname):  #false: can't call function, true: can call functions #FIXME check
     scopeCall = globalScope if in_class is None else in_class
     result= scopeCall in callableFunctions and functionName in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][functionName] or (fname in pythonFunction_toParse)
     if  not result and scopeCall != globalScope:    #if is not in local scope check global scope
