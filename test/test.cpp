@@ -1,12 +1,18 @@
 #include <ostream>
-void rangeStop();
+void passCycle();
 
-void rangeStop()
+void passCycle()
 {
-  int stop = 10;
   int total = 0;
-  for (int i = 0; i < stop; ++i) {
-    total += i * 2;
+  for (int i = 1; i < 21; ++i) {
+    if (i % 3 == 0) {
+
+    }
+    else {
+      total += i * 2;
+    }
   }
+  int a[2] = {1, 2};
+  a[1] = 2;
 }
 

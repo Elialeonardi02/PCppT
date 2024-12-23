@@ -362,12 +362,12 @@ class astToCppParser(ast.NodeVisitor):
         for arg in node.iter.args:
             iter_values.append(self.visit(arg))
             if not isinstance(arg,ast.Name):
-                types.append(type(self.visit(arg)))
+                types.append(str(self.visit(arg)))
             else:
                 types.append(tm.get_var_type_scope(self.current_function_signature,self.current_structure_name,self.visit(arg)))
         if len(types)==2:
             if types[0]==types[1]:
-                type_target =types[0].__name__
+                type_target =types[0]
             elif {types[0], types[1]}.issubset({int, float}):
                 type_target='float'
         else:
@@ -483,7 +483,7 @@ class astToCppParser(ast.NodeVisitor):
         condition = self.visit(node.test)
         body = self.visit(node.body)
         orelse = self.visit(node.orelse)
-        return f"{self.indent()}({condition} ? {body} : {orelse});\n"
+        return f"({condition} ? {body} : {orelse})"
 
     def visit_Compare(self, node):  #visit and translate to C++ Compare node
         left = self.visit(node.left)

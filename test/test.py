@@ -1,6 +1,18 @@
 @wireflow
-def rangeStop():
-    stop = 10
+def passCycle():
     total = 0
-    for i in range(stop):
-        total += i*2
+    for i in range(1, 21):
+        if i % 3 == 0:
+            pass
+        else:
+            total += i * 2
+    a=[1,2]
+    a[1]=2
+
+
+
+
+
+
+
+
