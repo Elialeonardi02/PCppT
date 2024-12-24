@@ -1,3 +1,5 @@
+from asyncio import get_running_loop
+
 from pcppt import exceptions as ex
 import  ast
 globalScope='root'
@@ -224,12 +226,13 @@ def add_to_callableFunction(in_class, functionName, ftype): #add function to cal
     #callableFunctions[scopeCall][functionName].append(fname)
 
 
-def check_callableFunction(in_class, functionName, fname):  #false: can't call function, true: can call functions #FIXME check
+def check_callableFunction(in_class, in_function, fname):  #false: can't call function, true: can call functions #FIXME check
     scopeCall = globalScope if in_class is None else in_class
-    result= scopeCall in callableFunctions and functionName in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][functionName] or (fname in pythonFunction_toParse)
+    result= scopeCall in callableFunctions and fname in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][fname] or (fname in pythonFunction_toParse)
     if  not result and scopeCall != globalScope:    #if is not in local scope check global scope
         return globalScope in callableFunctions and fname in callableFunctions[globalScope] and fname in callableFunctions[globalScope][fname]
     return result
+
 def get_type_function_callable(in_class, functionName):  #get type of the function save in callablefunction
     scopeCall = globalScope if in_class is None else in_class
     if functionName in callableFunctions[scopeCall] and functionName in callableFunctions[scopeCall][functionName]:
@@ -256,7 +259,12 @@ def explore_value(class_name, function_signature, node):
             return right_type
 
     elif isinstance(node, ast.Attribute):
-        return get_var_type_scope(None, class_name, node.attr)
+        attr=node.value.id
+        if attr=='self':   #attribute inside a method of the class
+            return get_var_type_scope(None, class_name, node.attr)
+        else:
+            class_attr=get_var_type_scope(function_signature,None,attr)
+            return get_var_type_scope(None, class_attr, node.attr)
 
     elif isinstance(node, ast.List):
         element_type = explore_value(class_name, function_signature, node.elts[0])
@@ -273,7 +281,11 @@ def explore_value(class_name, function_signature, node):
                 element_type = current_type
         return element_type
     elif isinstance(node, ast.Call):
-        return get_type_function_callable(class_name, node.func.id)
+        if isinstance(node.func, ast.Attribute): #call method of a class
+            class_attr=get_var_type_scope(function_signature,None,node.func.value.id)
+            return get_type_function_callable(class_name,node.func.attr)
+        else:   #call a function
+            return get_type_function_callable(class_name, node.func.id)
     else:
         return "auto"
 

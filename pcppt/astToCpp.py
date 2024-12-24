@@ -43,7 +43,7 @@ class astToCppParser(ast.NodeVisitor):
         # save name for checking recursive functions
         self.current_function_name = node.name
 
-        #chose function to parse
+        #chose to parse function
         if not self.transplile_class and self.current_function_signature is None:
             if not (node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
                 return False,False #to stop parsing method of a class
@@ -148,6 +148,7 @@ class astToCppParser(ast.NodeVisitor):
                 raise ex.AlreadyDefinedError(signature)
             cppc.cppCodeObject.functions[signature]=func_code
         else:   #is a method of a class
+            tm.add_to_scope(self.current_function_signature,self.current_structure_name, f"{self.current_structure_name}.{self.current_function_name}", function_type)
             tm.add_to_callableFunction(self.current_structure_name, f"{self.current_structure_name}.{self.current_function_name}", function_type)
             self.classDef_add_FunctionDef(signature,func_code,self.current_function_name)
 
@@ -192,21 +193,19 @@ class astToCppParser(ast.NodeVisitor):
 
         #is not a constructor defined and there is one or more attribute, #FIXME always add constructor default for use istance of class in other class, is corrected?
         #if not (tm.check_callableFunction(self.current_structure_name, '__init__','__init__')) and self.current_structure_name in tm.scope:  # FIXME correct __init__ with name of the class
-        constructor_code = ""
-        for var, type in tm.scope[self.current_structure_name].items():
-            if not isinstance(type, dict):
-                default_value=tm.cppTypes_DefaultsValues.get(type)
-                if default_value is None:   #attribute contain istance of a class
-                    default_value = ""
-                constructor_code += f"{var}({default_value}),"
-        if constructor_code != "":  # class with parameters
-            constructor_code = {
-                f"{self.indent()}{self.current_structure_name}()": f"{self.indent()}:{constructor_code.rstrip(',')} {{}}\n"}
-            self.public['methods'] = {**constructor_code, **self.public['methods']}
-
-        #check if there is usable attribute in the class
         if len(self.protected['attributes']) != 0 or len(self.private['attributes']) != 0 or len(self.public['attributes']) != 0:
-
+            constructor_code = ""
+            if self.current_structure_name in self.current_structure_name:
+                for var, type in tm.scope[self.current_structure_name].items():
+                    if not isinstance(type, dict):
+                        default_value=tm.cppTypes_DefaultsValues.get(type)
+                        if default_value is None:   #attribute contain istance of a class
+                            default_value = ""
+                        constructor_code += f"{var}({default_value}),"
+                if constructor_code != "":  # class with parameters
+                    constructor_code = {
+                        f"{self.indent()}{self.current_structure_name}()": f"{self.indent()}:{constructor_code.rstrip(',')} {{}}\n"}
+                    self.public['methods'] = {**constructor_code, **self.public['methods']}
             # operator method for debugging code
             code=""
             if self.current_structure_name in tm.scope:
@@ -506,8 +505,12 @@ class astToCppParser(ast.NodeVisitor):
                 raise ex.NotCallableError(function_name)
         else: #call a method of a class
              attribute_name= self.visit(node.func.value)
-             class_name = tm.get_var_type_scope(self.current_function_signature,self.current_structure_name,attribute_name)
-             function_name = f"{attribute_name}.{node.func.attr}"
+             if attribute_name!='self':
+                class_name = tm.get_var_type_scope(self.current_function_signature,self.current_structure_name,attribute_name)
+                function_name = f"{attribute_name}.{node.func.attr}"
+             else:
+                 class_name=self.current_structure_name
+                 function_name = f"this->{node.func.attr}"
              if not tm.check_callableFunction(class_name, f"{class_name}.{node.func.attr}", f"{class_name}.{node.func.attr}"):
                  raise ex.NotCallableError(function_name)
 

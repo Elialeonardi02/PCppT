@@ -1,18 +1,43 @@
 #include <ostream>
-void passCycle();
+struct testC{
+  int c;
 
-void passCycle()
-{
-  int total = 0;
-  for (int i = 1; i < 21; ++i) {
-    if (i % 3 == 0) {
+  int a;
 
-    }
-    else {
-      total += i * 2;
-    }
+  testC() 
+  {
+    this->c = 0;
+    this->a = this->c;
+    this->rint();
   }
-  int a[2] = {1, 2};
-  a[1] = 2;
+
+  int   rint() 
+  {
+    return 1;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const testC & d) 
+  {
+    os<<"c: "<<d.c<<","<<"a: "<<d.a<<"";
+    return os;
+  }
+
+};
+int testa();
+
+void testF(testC t);
+
+int testa()
+{
+  return 1;
+}
+
+void testF(testC t)
+{
+  testC a = t;
+  t.c = 1;
+  t.c = 0;
+  t.rint();
+  testa();
 }
 
