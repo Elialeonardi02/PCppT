@@ -192,7 +192,7 @@ class astToCppParser(ast.NodeVisitor):
             raise ex.AlreadyDefinedError(self.current_structure_name)
 
         #is not a constructor defined and there is one or more attribute, #FIXME always add constructor default for use istance of class in other class, is corrected?
-        #if not (tm.check_callableFunction(self.current_structure_name, '__init__','__init__')) and self.current_structure_name in tm.scope:  # FIXME correct __init__ with name of the class
+        #if not (tm.(self.curcheck_callableFunctionrent_structure_name, '__init__','__init__')) and self.current_structure_name in tm.scope:  # FIXME correct __init__ with name of the class
         if len(self.protected['attributes']) != 0 or len(self.private['attributes']) != 0 or len(self.public['attributes']) != 0:
             constructor_code = ""
             if self.current_structure_name in self.current_structure_name:
@@ -501,7 +501,7 @@ class astToCppParser(ast.NodeVisitor):
         if isinstance(node.func, ast.Name): #only function call, or class call
             function_name= self.visit(node.func)    #get the name of the function being called
             #check if the function is supported or not defined
-            if not tm.check_callableFunction(self.current_structure_name, self.current_function_name, function_name) and function_name not in cppc.cppCodeObject.classes:
+            if not tm.check_callableFunction(self.current_structure_name, function_name) and function_name not in cppc.cppCodeObject.classes:
                 raise ex.NotCallableError(function_name)
         else: #call a method of a class
              attribute_name= self.visit(node.func.value)
@@ -511,7 +511,7 @@ class astToCppParser(ast.NodeVisitor):
              else:
                  class_name=self.current_structure_name
                  function_name = f"this->{node.func.attr}"
-             if not tm.check_callableFunction(class_name, f"{class_name}.{node.func.attr}", f"{class_name}.{node.func.attr}"):
+             if not tm.check_callableFunction(class_name, f"{class_name}.{node.func.attr}"):
                  raise ex.NotCallableError(function_name)
 
         #parameters of the call
