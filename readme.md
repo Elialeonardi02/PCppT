@@ -15,7 +15,6 @@
 | uint16 | unsigned short |
 | uint32  | unsigned int |
 | uint64 | unsigned long long |
-| float16 | half |
 | float32  | float  |
 | float64 | double |
 | str | char |
@@ -32,7 +31,6 @@
 | Mult | *            | *              |
 | Div | /            | /              |
 | Mod | %            | %              |
-| Pow | **           | **             |
 | Lshift | <<           | <<             |
 | Rshift | &#x3E;&#x3E; | &#x3E;&#x3E;   |
 | BitOr | &#124;       | &#124;         |

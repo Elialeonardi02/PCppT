@@ -23,28 +23,21 @@ struct testC{
   }
 
 };
-struct testB{
-  testC b;
-
-  testB() 
-  :b() {}
-
-  testB(testC a) 
-  {
-    this->b = a;
-  }
-
-  friend std::ostream & operator<<(std::ostream & os, const testB & d) 
-  {
-    os<<"b: "<<d.b<<"";
-    return os;
-  }
-
-};
 int testa();
+
+void testF(testC t);
 
 int testa()
 {
   return 1;
+}
+
+void testF(testC t)
+{
+  testC a = t;
+  t.c = 1;
+  int z = t.rint();
+  t.rint();
+  testa();
 }
 

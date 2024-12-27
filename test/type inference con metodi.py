@@ -8,13 +8,17 @@ class testC:
         self.a=self.c
         c=self.rint()
 @wireflow
-class testB:
-    def __init__(self, a:testC):
-        self.b=a
-
-@wireflow
 def testa():
     return 1
+
+@wireflow
+def testF(t:testC):
+    a=t
+    t.c=1
+    z=t.rint()
+    t.rint()
+    testa()
+
 
 
 

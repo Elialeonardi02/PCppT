@@ -1,5 +1,3 @@
-from asyncio import get_running_loop
-
 from pcppt import exceptions as ex
 import  ast
 globalScope='root'
@@ -19,7 +17,7 @@ pythonTypes_CppTypes = {    #take from dace
     'uint16': "unsigned short",
     'uint32': "unsigned int",
     'uint64': "unsigned long long",
-    'float16': "half",
+    #'float16': "half", #FIXME is supported?
     'float32': "float",
     'float64': "double",
     'str' : "char",
@@ -58,7 +56,7 @@ pythonOperator_CppOperator= {
     #"MatMult"not implemented
     "Div": "/",
     "Mod": "%",
-    "Pow": "**",
+    #"Pow": "**", #FIXME use c++ function support?
     "LShift":"<<",
     "Rshift":">>",
     "BitOr":"|",
@@ -282,10 +280,16 @@ def explore_value(class_name, function_signature, node):
         return element_type
     elif isinstance(node, ast.Call):
         if isinstance(node.func, ast.Attribute): #call method of a class
-            class_attr=get_var_type_scope(function_signature,None,node.func.value.id)
-            return get_type_function_callable(class_name,node.func.attr)
+            if node.func.value.id=='self':  #use inside a class
+                    return get_type_function_callable(class_name,f"{class_name}.{node.func.attr}")
+            else:   #call on an istance of a class
+                class_attr=get_var_type_scope(function_signature,None,node.func.value.id)
+                return get_type_function_callable(class_attr,f"{class_attr}.{node.func.attr}")
         else:   #call a function
             return get_type_function_callable(class_name, node.func.id)
+    elif isinstance(node,ast.Subscript):
+        array_type=get_var_type_scope(function_signature, class_name, node.value.id) #[<type>]
+        return array_type[1:-1]#<type>
     else:
         return "auto"
 
