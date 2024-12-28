@@ -214,29 +214,35 @@ def corret_value(v):    #correct a rappresentation of a python value in cpp valu
 
 callableFunctions = {}  #{root:{fuctionName:[functionName,lambda]},nameclass:{MethodName:[MethodName,lambda]}} use root for global scope
 
-def add_to_callableFunction(in_class, functionName, ftype): #add function to callable function #FIXME can be problem with 2 function same name but different signature
+def add_to_callableFunction(in_class, in_function, functionName, ftype): #add function to callable function #FIXME can be problem with 2 function same name but different signature
     scopeCall = globalScope if in_class is None else in_class   #locate the scope of function, root or in a class
     if scopeCall not in callableFunctions:
         callableFunctions[scopeCall] = {}
-    if functionName not in callableFunctions[scopeCall]:
+    if in_function is not None:
+        if in_function not in callableFunctions[scopeCall]:
+            callableFunctions[scopeCall][in_function] = {}
+        callableFunctions[scopeCall][in_function][functionName] = ftype
+    elif functionName not in callableFunctions[scopeCall]:
         callableFunctions[scopeCall][functionName] = {}
-    callableFunctions[scopeCall][functionName][functionName]=ftype
+        callableFunctions[scopeCall][functionName][functionName]=ftype
     #callableFunctions[scopeCall][functionName].append(fname)
 
 
-def check_callableFunction(in_class, fname):  #false: can't call function, true: can call functions #FIXME check
+def check_callableFunction(in_class, in_function, fname):  #false: can't call function, true: can call functions #FIXME check
     scopeCall = globalScope if in_class is None else in_class
-    result= scopeCall in callableFunctions and fname in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][fname] or (fname in pythonFunction_toParse)
-    if  not result and scopeCall != globalScope:    #if is not in local scope check global scope
-        return globalScope in callableFunctions and fname in callableFunctions[globalScope] and fname in callableFunctions[globalScope][fname]
+    if in_function is not None:
+        result= scopeCall in callableFunctions and in_function in callableFunctions[scopeCall] and fname in callableFunctions[scopeCall][in_function]
+    else:
+        result= scopeCall in callableFunctions and fname in callableFunctions[scopeCall]
+    result=result or (fname in pythonFunction_toParse)or  globalScope in callableFunctions and fname in callableFunctions[globalScope]
     return result
 
-def get_type_function_callable(in_class, functionName):  #get type of the function save in callablefunction
+def get_type_function_callable(in_class, functionName):  #get type of the function save in callable function
     scopeCall = globalScope if in_class is None else in_class
     if functionName in callableFunctions[scopeCall] and functionName in callableFunctions[scopeCall][functionName]:
         return callableFunctions[scopeCall][functionName][functionName]
     else:
-        raise ex.NotCallableError(functionName) #FIXME return "auto"?
+        raise ex.NotCallableError(functionName)
 
 def explore_value(class_name, function_signature, node):
     if isinstance(node, ast.Constant):

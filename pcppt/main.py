@@ -57,4 +57,8 @@ if __name__ == "__main__":  #transpiling file
     subprocess.run(["g++", "-c", file_path_destination, "-fconcepts", "-o", file_path_destination[:-4]])
 
 def python_cpp_transpiling(func):   #transpilling string code
-    return generator_cpp_code(f"@wireflow\n{inspect.getsource(func)}")  #FIXME, it is corret to add decorator in this case?
+    func_code=inspect.getsource(func)
+    if func.__name__=='<lambda>': #is a lambda function:
+        return generator_cpp_code(func_code)
+    else:   #is a function or a class
+        return generator_cpp_code(f"@wireflow\n{func_code}")

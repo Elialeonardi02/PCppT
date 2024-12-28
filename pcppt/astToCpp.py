@@ -102,7 +102,6 @@ class astToCppParser(ast.NodeVisitor):
             if param_name!='self': #i==1
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
 
-
         # body of the function
         func_code = f"{self.indent()}{{\n"
         self.indent_level += 1
@@ -141,7 +140,7 @@ class astToCppParser(ast.NodeVisitor):
 
         # save signature and func_code in cppc
         if self.current_structure_name is None: #is a function
-            tm.add_to_callableFunction(None, self.current_function_name, function_type)
+            tm.add_to_callableFunction(None, None,self.current_function_name, function_type)
             if signature not in cppc.cppCodeObject.functions:   #function is not already defined
                 cppc.cppCodeObject.functions[signature] = ''
             else:   #FIXME it is the same control of tm.add_to_scope
@@ -149,7 +148,7 @@ class astToCppParser(ast.NodeVisitor):
             cppc.cppCodeObject.functions[signature]=func_code
         else:   #is a method of a class
             tm.add_to_scope(self.current_function_signature,self.current_structure_name, f"{self.current_structure_name}.{self.current_function_name}", function_type)
-            tm.add_to_callableFunction(self.current_structure_name, f"{self.current_structure_name}.{self.current_function_name}", function_type)
+            tm.add_to_callableFunction(self.current_structure_name,None, f"{self.current_structure_name}.{self.current_function_name}", function_type)
             self.classDef_add_FunctionDef(signature,func_code,self.current_function_name)
 
         # end of functionDef node explorations
@@ -272,10 +271,10 @@ class astToCppParser(ast.NodeVisitor):
                        raise ex.IsNotDefinedError(target['value'])
                    elif not tm.check_scope(None, tm.get_var_type_scope(self.current_function_signature, self.current_structure_name,target['value']),target['attr']): #istance defined but the method is not defined in the class of the instance #FIXME check if works
                        raise ex.IsNotDefinedError(f"{target['attr']} in class or struct {target['value']}")
-            elif isinstance(node.value, ast.Lambda):    #declare lambda function
-                assign_code+=f"auto {target} = {value[0]};\n"
+            elif isinstance(node.value, ast.Lambda):    #declare lambda functionF
+                assign_code += f"auto {target} = {value[0]};\n"
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name, f"{target}{value[1]}", 'auto')
-                tm.add_to_callableFunction(self.current_structure_name, target,'auto')
+                tm.add_to_callableFunction(self.current_structure_name,None if self.current_function_name is None else f"{self.current_structure_name+"." if self.current_structure_name is not None else ""}{self.current_function_name}", target,'auto')
             elif isinstance(node.value,ast.List):
                 if not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]):#generate type for variable if it is not defined #.split("[")[0] for check array(subscript) in scope
                     var_type = tm.infer_type(node.value,value, self.current_structure_name, self.current_function_signature)  # is not already declare
@@ -327,6 +326,7 @@ class astToCppParser(ast.NodeVisitor):
         var_name = self.visit(node.target)  #name variable
         self.array_dimensions = True
         annotation = self.visit(node.annotation) #annotation array
+
         var_type=tm.get_type(f"{annotation[0]}" if isinstance(node.annotation,ast.List) else annotation)  #type
         self.array_dimensions = False
         value = self.visit(node.value)  #value assign
@@ -498,10 +498,10 @@ class astToCppParser(ast.NodeVisitor):
 
     def visit_Call(self, node):  #visit and translate to C++ Call node(function call)
         #recursive function check
-        if isinstance(node.func, ast.Name): #only function call, or class call
+        if isinstance(node.func, ast.Name): #only function call
             function_name= self.visit(node.func)    #get the name of the function being called
             #check if the function is supported or not defined
-            if not tm.check_callableFunction(self.current_structure_name, function_name) and function_name not in cppc.cppCodeObject.classes:
+            if not tm.check_callableFunction(self.current_structure_name, None if self.current_function_name is None else f"{self.current_structure_name+"." if self.current_structure_name is not None else ""}{self.current_function_name}", function_name) and function_name not in cppc.cppCodeObject.classes:
                 raise ex.NotCallableError(function_name)
         else: #call a method of a class
              attribute_name= self.visit(node.func.value)
@@ -511,7 +511,7 @@ class astToCppParser(ast.NodeVisitor):
              else:
                  class_name=self.current_structure_name
                  function_name = f"this->{node.func.attr}"
-             if not tm.check_callableFunction(class_name, f"{class_name}.{node.func.attr}"):
+             if not tm.check_callableFunction(class_name,None, f"{class_name}.{node.func.attr}"):
                  raise ex.NotCallableError(function_name)
 
         #parameters of the call
