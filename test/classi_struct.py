@@ -1,11 +1,11 @@
 @wireflow
 class personclass:
-    __age:int
+    age:int
     __height:float
     __weight:float=10
     def __init__(self, age:int, height:float):
         self.__height = height
-        self.__age = age
+        self.age = age
 
 
 
@@ -26,4 +26,3 @@ class personstruct:
 class window_functor:
     def __call__(self,personS:personclass):
         personS.age+=1
-

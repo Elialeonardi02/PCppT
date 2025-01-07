@@ -1,9 +1,9 @@
-from pcppt import astToCpp
-from pcppt import pythonToAST
+import astToCpp
+import pythonToAST
 import sys
 import subprocess
 import inspect
-from pcppt.codeCpp import codeCppClass as cppc
+from codeCpp import codeCppClass as cppc
 
 
 def generator_cpp_code(source):

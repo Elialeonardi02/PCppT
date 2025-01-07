@@ -1,43 +1,62 @@
 #include <ostream>
-struct testC{
-  int c;
+class personclass{
+private:
+  float __height;
 
-  int a;
+public:
+  int age;
 
-  testC() 
+  personclass() 
+  :__height(0.0),age(0) {}
+
+  personclass(int age, float height) 
   {
-    this->c = 0;
-    this->a = this->c;
-    int c = this->rint();
+    this->__height = height;
+    this->age = age;
   }
 
-  int   rint() 
+  friend std::ostream & operator<<(std::ostream & os, const personclass & d) 
   {
-    return 1;
-  }
-
-  friend std::ostream & operator<<(std::ostream & os, const testC & d) 
-  {
-    os<<"c: "<<d.c<<","<<"a: "<<d.a<<"";
+    os<<"__height: "<<d.__height<<","<<"age: "<<d.age<<"";
     return os;
   }
 
 };
-int testa();
+struct personstruct{
+  int age;
 
-void testF(testC t);
+  float height;
 
-int testa()
+  personclass person;
+
+  personstruct() 
+  :age(0),height(0.0),person() {}
+
+  personstruct(int age, float height, personclass person) 
+  {
+    this->age = age;
+    this->height = height;
+    this->person = person;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const personstruct & d) 
+  {
+    os<<"age: "<<d.age<<","<<"height: "<<d.height<<","<<"person: "<<d.person<<"";
+    return os;
+  }
+
+};
+struct window_functor{
+  void  operator()(personclass & personS) 
+  {
+    personS.age += 1;
+  }
+
+};
+void arrayParameter(int a[10][10], int b[1]);
+
+void arrayParameter(int a[10][10], int b[1])
 {
-  return 1;
-}
-
-void testF(testC t)
-{
-  testC a = t;
-  t.c = 1;
-  float z = t.rint() + 1e-10;
-  t.rint();
-  testa();
+  a[1][2];
 }
 
