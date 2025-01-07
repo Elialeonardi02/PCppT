@@ -1,8 +1,5 @@
 import ast
-
-import typesMapping as tm
-import exceptions as ex
-from codeCpp import codeCppClass as cppc
+from pcppt import exceptions as ex, typesMapping as tm, codeCppClass as cppc
 
 
 class astToCppParser(ast.NodeVisitor):

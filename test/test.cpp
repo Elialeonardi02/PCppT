@@ -1,4 +1,5 @@
 #include <ostream>
+auto z = [](auto x) {return x + 1;};
 class personclass{
 private:
   float __height;
@@ -37,6 +38,7 @@ struct personstruct{
     this->age = age;
     this->height = height;
     this->person = person;
+    z(1);
   }
 
   friend std::ostream & operator<<(std::ostream & os, const personstruct & d) 

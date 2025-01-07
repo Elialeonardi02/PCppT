@@ -1,4 +1,4 @@
-import exceptions as ex
+from pcppt import exceptions as ex
 import  ast
 globalScope='root'
 

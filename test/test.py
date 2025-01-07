@@ -8,7 +8,7 @@ class personclass:
         self.age = age
 
 
-
+z=lambda x:x+1
 class personstruct:
     age:int
     height:float
@@ -18,6 +18,7 @@ class personstruct:
         self.age = age
         self.height = height
         self.person = person
+        z(1)
     def reset(self,person:personclass):
         self.age = 0
         self.height = 0.0
