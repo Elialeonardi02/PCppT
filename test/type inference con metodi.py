@@ -15,9 +15,13 @@ def testa():
 def testF(t:testC):
     a=t
     t.c=1
-    z=t.rint()+0.0000000001
+    z=t.rint()
     t.rint()
     testa()
+
+
+
+
 
 
 
