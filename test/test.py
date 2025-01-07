@@ -1,23 +1,36 @@
 @wireflow
-class testC:
-    c:int
-    def rint(self):
-        return 1
-    def __init__(self):
-        self.c=0
-        self.a=self.c
-        c=self.rint()
-@wireflow
-def testa():
-    return 1
+class personclass:
+    age:int
+    __height:float
+    __weight:float=10
+    def __init__(self, age:int, height:float):
+        self.__height = height
+        self.age = age
 
+
+z=lambda x:x+1
+class personstruct:
+    age:int
+    height:float
+
+    @wireflow
+    def __init__(self, age:int, height:float, person:personclass):
+        self.age = age
+        self.height = height
+        self.person = person
+        z(1)
+    def reset(self,person:personclass):
+        self.age = 0
+        self.height = 0.0
+        self.personC = person
 @wireflow
-def testF(t:testC):
-    a=t
-    t.c=1
-    z=t.rint()+0.0000000001
-    t.rint()
-    testa()
+class window_functor:
+    def __call__(self,personS:personclass):
+        personS.age+=1
+@wireflow
+def arrayParameter(a:[int,10,10],b:[int,1]):
+    a[1] [2]
+
 
 
 
