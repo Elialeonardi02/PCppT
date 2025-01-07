@@ -36,7 +36,7 @@ void testF(testC t)
 {
   testC a = t;
   t.c = 1;
-  float z = t.rint() + 1e-10;
+  int z = t.rint();
   t.rint();
   testa();
 }
