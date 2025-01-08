@@ -105,19 +105,19 @@ class astToCppParser(ast.NodeVisitor):
                 if param_name!='self': #i==1
                     tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
         else: #parse operator and add parameters to tm.scope
+            tm.get_type('tuple_t')
+            tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'tuple', 'tuple_t')
+            if self.operator.name == FOperatorKind.MAP.name and self.operator.name == FOperatorKind.FILTER.name:
+                tm.get_type('result_t')
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'result', 'result_t')
             if self.operator.name == FOperatorKind.MAP.name:
-                tm.get_type('tuple_t')
-                tm.get_type('result_t')
-                signature +="const tuple_t & tuple, result_t & result)"
-                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'tuple', 'tuple_t')
-                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'result', 'result_t')
-            elif self.operator.name == FOperatorKind.FILTER.name:
-                tm.get_type('tuple_t')
-                tm.get_type('result_t')
+                signature += "const tuple_t & tuple, result_t & result)"
+            if self.operator.name == FOperatorKind.FILTER.name:
                 signature += "const tuple_t & tuple, result_t & result, bool & keep)"
-                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'tuple', 'tuple_t')
-                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'result', 'result_t')
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'keep', 'bool')
+            if self.operator.name == FOperatorKind.FLAT_MAP.name:
+                signature+= "const tuple_t & tuple, shipper_t<T> & shipper)"
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'shipper', 'shipper_t')
 
         # body of the function
         func_code = f"{self.indent()}{{\n"
@@ -152,7 +152,7 @@ class astToCppParser(ast.NodeVisitor):
                 function_type = 'template <typename T> T'  # use template in c++
         if node.name == '__call__' and self.operator != FOperatorKind.NONE:
             signature = f"{self.indent()}void {signature}"
-            if self.operator == FOperatorKind.FLAT_MAP:
+            if self.operator.name == FOperatorKind.FLAT_MAP.name:
                 signature = f"{self.indent()}template <typename T>\n{signature}"
         elif node.name!='__init__':  # is a normal function or a method of a class
             signature = f"{self.indent()}{function_type} {signature}"  # normal signature with type

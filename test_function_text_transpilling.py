@@ -2,7 +2,7 @@ from enum import Enum
 from pcppt import python_cpp_transpiling
 class FOperatorKind(Enum):
     NONE = 1
-    FILTER = 3
+    FILTER = 3 #OK
     MAP = 4 #OK
     FLAT_MAP = 5
 uint32=int
@@ -65,13 +65,12 @@ class filter:
 #     }
 # };
 print(python_cpp_transpiling(filter,FOperatorKind.FILTER ))
-"""
-class shipper_t:
 
-    def send(tuple):
+class shipper_t:
+    def send(self,tuple):
         pass
 
-    def send_eos():
+    def send_eos(self):
         pass
 
 # flatmap
@@ -87,8 +86,8 @@ class flatmap:
 #     {
 #     }
 # };
+print(python_cpp_transpiling(shipper_t))
+print(python_cpp_transpiling(flatmap,FOperatorKind.FLAT_MAP ))
 
-
-"""
 
 
