@@ -1,10 +1,11 @@
 import ast
 from pcppt import exceptions as ex, typesMapping as tm, codeCppClass as cppc
+from pcppt.operators import FOperatorKind
 
 
 class astToCppParser(ast.NodeVisitor):
 
-    def __init__(self): #constructor
+    def __init__(self, operator=FOperatorKind.NONE): #constructor
         self.indent_level = 0                       #indent level of cpp code
         self.current_structure_name = None          #contain name of the exploring ClassDef node,
         self.current_function_name = None           #contain name of the exploring FunctionDef node,use for check recursive function
@@ -22,6 +23,9 @@ class astToCppParser(ast.NodeVisitor):
 
         #flag class to transpile
         self.transplile_class=False
+
+        #use to identify correct operator
+        self.operator=operator
 
     def indent(self):   #generate an indentation string of space based on the current level of indentation to formate the code
 
@@ -49,55 +53,71 @@ class astToCppParser(ast.NodeVisitor):
         if (self.current_structure_name is not None and #outside node is not a class
                 (node.name=='__init__' or node.name==self.current_structure_name)): #function is a constructor of a class
             signature = f"{self.current_structure_name}("    #signature construction
-        elif node.name=='__call__':
+        elif node.name=='__call__' and self.operator!=FOperatorKind.NONE:
             signature = f"operator()("
         else:   #is a normal function or a method of a class
             signature = f"{node.name}(" #normal signature with type
 
 
         #parameters and types of the function
-        for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
-            param_name = node.args.args[i].arg
-            if node.args.args[i].annotation is None:    #type of parameter is not defined
-                param_type = 'auto'
-            else:
-                if isinstance(node.args.args[i].annotation,ast.List): #array parameter
-                    self.array_dimensions=True
-                    annotation = self.visit(node.args.args[i].annotation)  # annotation array
-                    self.array_dimensions = False
-                    param_type=tm.get_type(annotation[0])
-                    if len(annotation)==2:#array monodimensional [<type>,<dim>}
-                        param_name+=f"[{annotation[1]}]"
-                    elif len(annotation)==3: #array matrix  [<type>, <rows>,<colums>]
-                        param_name+=f"[{annotation[1]}][{annotation[2]}]"
-                    else:
-                        raise ex.UnsupportedCommandError(f"cannot defined array: {node.args.args[i].arg} with {len(annotation)-1} dimension" )
-                else: #common parameter
-                    param_type=tm.get_type(str(self.visit(node.args.args[i].annotation)))
-            signature += f"{param_type}{' & ' if node.name=='__call__' else ' '}{param_name}"
-            if i < len(node.args.args) - 1: #it is not last parameter
-                signature += ', '
-        signature += ')'
-
-        #add parameters to scope of the function in typesMapping.scope
-        self.current_function_signature = signature
-        signature=self.indent()+signature
-        for i in range(0, len(node.args.args)): #start from 1 for methods to skip 'self'
-            param_name = node.args.args[i].arg
-            if node.args.args[i].annotation is None:
-                param_type = 'auto'
-            else:
-                if isinstance(node.args.args[i].annotation, ast.List):  # array parameter
-                    self.array_dimensions = True
-                    annotation = self.visit(node.args.args[i].annotation)  # annotation array
-                    self.array_dimensions = False
-                    param_type = f"[{tm.get_type(annotation[0])}]"
+        if node.name!='__call__' or self.operator == FOperatorKind.NONE:
+            for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
+                param_name = node.args.args[i].arg
+                if node.args.args[i].annotation is None:    #type of parameter is not defined
+                    param_type = 'auto'
                 else:
-                    param_type = tm.get_type(str(self.visit(node.args.args[i].annotation)))  # use 'auto' if type not specified
+                    if isinstance(node.args.args[i].annotation,ast.List): #array parameter
+                        self.array_dimensions=True
+                        annotation = self.visit(node.args.args[i].annotation)  # annotation array
+                        self.array_dimensions = False
+                        param_type=tm.get_type(annotation[0])
+                        if len(annotation)==2:#array monodimensional [<type>,<dim>}
+                            param_name+=f"[{annotation[1]}]"
+                        elif len(annotation)==3: #array matrix  [<type>, <rows>,<colums>]
+                            param_name+=f"[{annotation[1]}][{annotation[2]}]"
+                        else:
+                            raise ex.UnsupportedCommandError(f"cannot defined array: {node.args.args[i].arg} with {len(annotation)-1} dimension" )
+                    else: #common parameter
+                        param_type=tm.get_type(str(self.visit(node.args.args[i].annotation)))
+                signature += f"{param_type} {param_name}"
+                if i < len(node.args.args) - 1: #it is not last parameter
+                    signature += ', '
+
+            signature += ')'
 
 
-            if param_name!='self': #i==1
-                tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
+            #add parameters to scope of the function in typesMapping.scope
+            self.current_function_signature = signature
+            for i in range(0, len(node.args.args)): #start from 1 for methods to skip 'self'
+                param_name = node.args.args[i].arg
+                if node.args.args[i].annotation is None:
+                    param_type = 'auto'
+                else:
+                    if isinstance(node.args.args[i].annotation, ast.List):  # array parameter
+                        self.array_dimensions = True
+                        annotation = self.visit(node.args.args[i].annotation)  # annotation array
+                        self.array_dimensions = False
+                        param_type = f"[{tm.get_type(annotation[0])}]"
+                    else:
+                        param_type = tm.get_type(str(self.visit(node.args.args[i].annotation)))  # use 'auto' if type not specified
+
+
+                if param_name!='self': #i==1
+                    tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
+        else: #parse operator and add parameters to tm.scope
+            if self.operator.name == FOperatorKind.MAP.name:
+                tm.get_type('tuple_t')
+                tm.get_type('result_t')
+                signature +="const tuple_t & tuple, result_t & result)"
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'tuple', 'tuple_t')
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'result', 'result_t')
+            elif self.operator.name == FOperatorKind.FILTER.name:
+                tm.get_type('tuple_t')
+                tm.get_type('result_t')
+                signature += "const tuple_t & tuple, result_t & result, bool & keep)"
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'tuple', 'tuple_t')
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'result', 'result_t')
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'keep', 'bool')
 
         # body of the function
         func_code = f"{self.indent()}{{\n"
@@ -130,8 +150,10 @@ class astToCppParser(ast.NodeVisitor):
                 function_type = 'void'
             elif function_type=="auto":
                 function_type = 'template <typename T> T'  # use template in c++
-        if node.name == '__call__':
-            signature = f"{self.indent()}void{signature}"
+        if node.name == '__call__' and self.operator != FOperatorKind.NONE:
+            signature = f"{self.indent()}void {signature}"
+            if self.operator == FOperatorKind.FLAT_MAP:
+                signature = f"{self.indent()}template <typename T>\n{signature}"
         elif node.name!='__init__':  # is a normal function or a method of a class
             signature = f"{self.indent()}{function_type} {signature}"  # normal signature with type
 
@@ -153,6 +175,11 @@ class astToCppParser(ast.NodeVisitor):
         self.current_function_signature = None
 
     def visit_ClassDef(self, node):  # visit e translate in C++ ClassDef node
+
+        #check class is already defined
+        if node.name in tm.scope:
+            raise ex.AlreadyDefinedError(f"class {node.name}")
+
         self.protected = {'attributes': [], 'methods': {}}
         self.private = {'attributes': [], 'methods': {}}
         self.public = {'attributes': [], 'methods': {}}
@@ -616,9 +643,9 @@ class astToCppParser(ast.NodeVisitor):
             self.private['methods'][signature] = method_body
         elif function_attribute_name is not None:  # <name> -> public
             self.public['methods'][signature] = method_body
-def generateAstToCppCode(python_ast):
+def generateAstToCppCode(python_ast,operator=FOperatorKind.NONE):
     try:
-        astToCppParser().visit(python_ast)
+        astToCppParser(operator).visit(python_ast)
         print(tm.scope) #TODO remove, use for debugging
         print(tm.callableFunctions) #TODO remove, use for debugging
     except (ex.UnsupportedCommandError, ex.RecursiveFunctionError) as e:

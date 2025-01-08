@@ -1,14 +1,18 @@
+import ast
+
 from pcppt import astToCpp, pythonToAST, codeCppClass as cppc
 import sys
 import subprocess
 import inspect
 
+from pcppt.operators import FOperatorKind
 
-def generator_cpp_code(source):
-    astG, comment = pythonToAST.generateAstComments(source)  # FIXME comments doesn't work
+
+def generator_cpp_code(astG, operator=FOperatorKind.NONE):
+
     import ast  # TODO remove, use for debugging
     print(ast.dump(astG, indent=4))  # TODO remove, use for debugging
-    astToCpp.generateAstToCppCode(astG)
+    astToCpp.generateAstToCppCode(astG, operator)
     codeCpp = cppc.cppCodeObject.globalCode
     if cppc.cppCodeObject.classes != {}:
         for cls in cppc.cppCodeObject.classes:
@@ -45,7 +49,7 @@ if __name__ == "__main__":  #transpiling file
 
     source = sys.argv[1]  # source python
     file_path_destination = sys.argv[2]  # destination c++
-    codeCpp = generator_cpp_code(source)
+    codeCpp = generator_cpp_code(pythonToAST.generateAstFromFile(source))
 
     print(codeCpp)  # TODO remove, use for debugging
     with open(file_path_destination, "w") as file:
@@ -54,9 +58,9 @@ if __name__ == "__main__":  #transpiling file
     # compile to check sintax of the c++ code
     subprocess.run(["g++", "-c", file_path_destination, "-fconcepts", "-o", file_path_destination[:-4]])
 
-def python_cpp_transpiling(func):   #transpilling string code
+def python_cpp_transpiling(func,operator=FOperatorKind.NONE):   #transpilling string code
     func_code=inspect.getsource(func)
-    if func.__name__=='<lambda>': #is a lambda function:
-        return generator_cpp_code(func_code)
-    else:   #is a function or a class
-        return generator_cpp_code(f"@wireflow\n{func_code}")
+    if func.__name__!='<lambda>':  #is a function or a class
+        func_code=f"@wireflow\n{func_code}"
+    astG = ast.parse(func_code)
+    return generator_cpp_code(astG, operator)

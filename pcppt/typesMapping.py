@@ -177,7 +177,7 @@ def add_to_scope(in_function, in_class, var=None, type_var=None, name_function=N
 
 
 
-def check_scope(in_function, in_class, var):    #check if the variable is in the correct scope
+def check_scope(in_function, in_class, var):  #check if the variable is in the correct scope
     #FIXME now only check local scope
     return not(
             (in_function is not None and in_class is None and
@@ -222,8 +222,9 @@ def add_to_callableFunction(in_class, in_function, functionName, ftype): #add fu
         if in_function not in callableFunctions[scopeCall]:
             callableFunctions[scopeCall][in_function] = {}
         callableFunctions[scopeCall][in_function][functionName] = ftype
-    elif functionName not in callableFunctions[scopeCall]:
-        callableFunctions[scopeCall][functionName] = {}
+    else:
+        if functionName not in callableFunctions[scopeCall]:
+            callableFunctions[scopeCall][functionName] = {}
         callableFunctions[scopeCall][functionName][functionName]=ftype
     #callableFunctions[scopeCall][functionName].append(fname)
 
@@ -252,8 +253,8 @@ def explore_value(class_name, function_signature, node):
         return get_var_type_scope(function_signature,class_name,node.id)
 
     elif isinstance(node, ast.BinOp):
-        left_type = explore_value(class_name, function_signature, node.left)
-        right_type = explore_value(class_name, function_signature, node.right)
+        left_type = pythonTypes_CppTypes[explore_value(class_name, function_signature, node.left)]
+        right_type = pythonTypes_CppTypes[explore_value(class_name, function_signature, node.right)]
 
         if left_type == "auto" or right_type == "auto" or left_type not in cpp_types_hierarchy or right_type not in cpp_types_hierarchy :
             return "auto"
