@@ -4,15 +4,16 @@ class FOperatorKind(Enum):
     NONE = 1
     FILTER = 3 #OK
     MAP = 4 #OK
-    FLAT_MAP = 5
+    FLAT_MAP = 5 # OK
+
 uint32=int
 float32=float
 
 class tuple_t:
-    key : uint32  # maybe `uint` is better, but it is less C++ like
-    value : float32     # or simply `float`
+    key : uint32
+    value : float32
 
-    # if not defined, the C++ default constructor is used
+
     def __init__(self):
         self.key = 0
         self.value = 0.0
@@ -22,21 +23,14 @@ class tuple_t:
         self.value = value
 
 class result_t:
-    sum : float32    # or simply `float`
-    count : uint32     # maybe `unsigned int` is better, but it is less C++ like
-    # if not defined, the C++ default constructor is used
+    sum : float32
+    count : uint32
     def __init__(self):
         self.sum = 0.0
         self.count = 0
 
-    # `float32` can be deduced from the context?
     def mean(self, a:[int,10]):
-        def a(self):
-            a = 1
-            bac=[1,2,3,4]
-            return a
-        self.result=self.sum+self.count
-        return self.sum / self.count
+        pass
 
 # map
 class map:
@@ -90,26 +84,28 @@ print(python_cpp_transpiling(shipper_t))
 print(python_cpp_transpiling(flatmap,FOperatorKind.FLAT_MAP ))
 
 
-def wireflow_const(param):
+def wireflow_const(*args, **kwargs):
     def decorator(func):
-        func._wireflow_param = param
+        func._wireflow_args = args
+        func._wireflow_kwargs = kwargs
         return func
     return decorator
 
-def wireflow_ref(param):
+
+def wireflow_ref(*args, **kwargs):
     def decorator(func):
-        func._wireflow_param = param
+        func._wireflow_args = args
+        func._wireflow_kwargs = kwargs
         return func
     return decorator
+
 
 
 
 @wireflow_const(result_t)
-@wireflow_ref(int)
-def test(param1:result_t,param2:int):
+@wireflow_ref(result_t, tuple_t)
+def test(param1:result_t,param2:tuple_t):
     pass
 
-def testa(param1:result_t,param2:int):
-    pass
 print(python_cpp_transpiling(test))
 
