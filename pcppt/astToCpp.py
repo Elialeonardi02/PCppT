@@ -61,19 +61,21 @@ class astToCppParser(ast.NodeVisitor):
 
         #parameters and types of the function
         if node.name!='__call__' or self.operator == FOperatorKind.NONE:
-
             #list of const and reference
             wireflow_refs=[]
             wireflow_const=[]
             for decorator in node.decorator_list:
                 if isinstance(decorator, ast.Call):
                     for type_node in decorator.args:
-                        if self.visit(decorator.func) == 'wireflow_const':
-                            wireflow_const.append(self.visit(type_node))
-                        if self.visit(decorator.func) == 'wireflow_ref':
-                            wireflow_refs.append(self.visit(type_node))
-
-
+                        type=self.visit(type_node)
+                        if isinstance(decorator.func,ast.Attribute):
+                            func = decorator.func.attr
+                        else:
+                            func = self.visit(decorator.func)
+                        if (func == 'param_const' or func == 'param_cref') and type not in wireflow_const:
+                            wireflow_const.append(type)
+                        if (func == 'param_ref' or func == 'param_cref') and type not in wireflow_refs:
+                            wireflow_refs.append(type)
             for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
                 param_name = node.args.args[i].arg
                 if node.args.args[i].annotation is None:    #type of parameter is not defined
@@ -125,24 +127,23 @@ class astToCppParser(ast.NodeVisitor):
                         param_type = f"[{tm.get_type(annotation[0])}]"
                     else:
                         param_type = tm.get_type(str(self.visit(node.args.args[i].annotation)))  # use 'auto' if type not specified
-
-
                 if param_name!='self': #i==1
                     tm.add_to_scope(self.current_function_signature, self.current_structure_name,param_name,param_type)
         else: #parse operator and add parameters to tm.scope
-            tm.get_type('tuple_t')
-            tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'tuple', 'tuple_t')
-            if self.operator.name == FOperatorKind.MAP.name and self.operator.name == FOperatorKind.FILTER.name:
-                tm.get_type('result_t')
-                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'result', 'result_t')
-            if self.operator.name == FOperatorKind.MAP.name:
-                signature += "const tuple_t & tuple, result_t & result)"
+            p1={'name': node.args.args[1].arg  , 'type': self.visit(node.args.args[1].annotation)}
+            p2={'name': node.args.args[2].arg , 'type': self.visit(node.args.args[2].annotation)}
+            tm.add_to_scope(self.current_function_signature, self.current_structure_name, p1['name'], p1['type'])
+            signature += f"const {p1['type']} & {p2['name']}, "
+            if self.operator.name == FOperatorKind.MAP.name or self.operator.name == FOperatorKind.FILTER.name:
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, p2['name'], p2['type'])
+                signature += f"{p2['type']} & {p2['name']})"
             if self.operator.name == FOperatorKind.FILTER.name:
-                signature += "const tuple_t & tuple, result_t & result, bool & keep)"
-                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'keep', 'bool')
+                p3_name = node.args.args[3].arg
+                signature = f"{signature[:-1]}, bool & {p3_name})"
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, p3_name, 'bool')
             if self.operator.name == FOperatorKind.FLAT_MAP.name:
-                signature+= "const tuple_t & tuple, shipper_t<T> & shipper)"
-                tm.add_to_scope(self.current_function_signature, self.current_structure_name, 'shipper', 'shipper_t')
+                signature+= f"shipper_t<T> & {p2['name']})"
+                tm.add_to_scope(self.current_function_signature, self.current_structure_name, p2['name'], 'shipper_t')
 
         # body of the function
         func_code = f"{self.indent()}{{\n"
