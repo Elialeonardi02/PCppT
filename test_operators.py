@@ -90,4 +90,26 @@ print(python_cpp_transpiling(shipper_t))
 print(python_cpp_transpiling(flatmap,FOperatorKind.FLAT_MAP ))
 
 
+def wireflow_const(param):
+    def decorator(func):
+        func._wireflow_param = param
+        return func
+    return decorator
+
+def wireflow_ref(param):
+    def decorator(func):
+        func._wireflow_param = param
+        return func
+    return decorator
+
+
+
+@wireflow_const(result_t)
+@wireflow_ref(int)
+def test(param1:result_t,param2:int):
+    pass
+
+def testa(param1:result_t,param2:int):
+    pass
+print(python_cpp_transpiling(test))
 

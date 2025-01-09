@@ -61,16 +61,37 @@ class astToCppParser(ast.NodeVisitor):
 
         #parameters and types of the function
         if node.name!='__call__' or self.operator == FOperatorKind.NONE:
+
+            #list of const and reference
+            wireflow_refs=[]
+            wireflow_const=[]
+            for decorator in node.decorator_list:
+                if isinstance(decorator, ast.Call):
+                    for type_node in decorator.args:
+                        if self.visit(decorator.func) == 'wireflow_const':
+                            wireflow_const.append(self.visit(type_node))
+                        if self.visit(decorator.func) == 'wireflow_ref':
+                            wireflow_refs.append(self.visit(type_node))
+
+
             for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
                 param_name = node.args.args[i].arg
                 if node.args.args[i].annotation is None:    #type of parameter is not defined
                     param_type = 'auto'
                 else:
-                    if isinstance(node.args.args[i].annotation,ast.List): #array parameter
+                    param_type=''
+
+                    #parameter const
+                    annotation=str(self.visit(node.args.args[i].annotation))
+                    if annotation in wireflow_const:
+                        param_type += f"const "
+
+                    #array parameter
+                    if isinstance(node.args.args[i].annotation,ast.List):
                         self.array_dimensions=True
                         annotation = self.visit(node.args.args[i].annotation)  # annotation array
                         self.array_dimensions = False
-                        param_type=tm.get_type(annotation[0])
+                        param_type+=tm.get_type(annotation[0])
                         if len(annotation)==2:#array monodimensional [<type>,<dim>}
                             param_name+=f"[{annotation[1]}]"
                         elif len(annotation)==3: #array matrix  [<type>, <rows>,<colums>]
@@ -78,7 +99,11 @@ class astToCppParser(ast.NodeVisitor):
                         else:
                             raise ex.UnsupportedCommandError(f"cannot defined array: {node.args.args[i].arg} with {len(annotation)-1} dimension" )
                     else: #common parameter
-                        param_type=tm.get_type(str(self.visit(node.args.args[i].annotation)))
+                        param_type+=tm.get_type(annotation)
+
+                    #parameter reference
+                    if annotation in wireflow_refs:
+                        param_type+=' &'
                 signature += f"{param_type} {param_name}"
                 if i < len(node.args.args) - 1: #it is not last parameter
                     signature += ', '
@@ -298,7 +323,7 @@ class astToCppParser(ast.NodeVisitor):
             elif isinstance(node.value, ast.Lambda):    #declare lambda functionF
                 assign_code += f"auto {target} = {value[0]};\n"
                 tm.add_to_scope(self.current_function_signature, self.current_structure_name, f"{target}{value[1]}", 'auto')
-                tm.add_to_callableFunction(self.current_structure_name,None if self.current_function_name is None else f"{self.current_structure_name+"." if self.current_structure_name is not None else ""}{self.current_function_name}", target,'auto')
+                tm.add_to_callableFunction(self.current_structure_name,None if self.current_function_name is None else (self.current_structure_name+'.' if self.current_structure_name is not None else "")+self.current_function_name, target,'auto')
             elif isinstance(node.value,ast.List):
                 if not tm.check_scope(self.current_function_signature, self.current_structure_name, target.split("[")[0]):#generate type for variable if it is not defined #.split("[")[0] for check array(subscript) in scope
                     var_type = tm.infer_type(node.value,value, self.current_structure_name, self.current_function_signature)  # is not already declare
@@ -525,7 +550,7 @@ class astToCppParser(ast.NodeVisitor):
         if isinstance(node.func, ast.Name): #only function call
             function_name= self.visit(node.func)    #get the name of the function being called
             #check if the function is supported or not defined
-            if not tm.check_callableFunction(self.current_structure_name, None if self.current_function_name is None else f"{self.current_structure_name+"." if self.current_structure_name is not None else ""}{self.current_function_name}", function_name) and function_name not in cppc.cppCodeObject.classes:
+            if not tm.check_callableFunction(self.current_structure_name, None if self.current_function_name is None else (self.current_structure_name+'.' if self.current_structure_name is not None else "")+self.current_function_name, function_name) and function_name not in cppc.cppCodeObject.classes:
                 raise ex.NotCallableError(function_name)
         else: #call a method of a class
              attribute_name= self.visit(node.func.value)
