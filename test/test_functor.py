@@ -24,12 +24,12 @@ class result_t:
         self.count = 0
 
     # `float32` can be deduced from the context?
-    def mean(self, a:[int]):
+    def mean(self, a:[int,10]):
         def a(self):
             a = 1
             bac=[1,2,3,4]
             return a
-        self.result=self.sum/self.count
+        self.result=self.sum+self.count
         return self.sum / self.count
 
     # this is optional and it can be done after more important things are done
@@ -48,6 +48,7 @@ def testl()->int:
         a=1
         return a
     z=lambda x:x+1
+    a=1
     t=tuple_key_extractor(1)
     return 1
 @wireflow

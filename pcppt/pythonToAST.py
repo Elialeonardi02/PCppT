@@ -1,5 +1,5 @@
 import ast
-
+"""
 class comment:  #comment on the python code source
     
     def __init__(self, text, start, end):
@@ -25,14 +25,9 @@ def extractComments(source_code):
             comments.append(comment(comment_text, start_position, end_position))
     return comments #['comment'(line_start,column_start),(line_end,column_end)]
 
-
-def generateAstComments(source):
-    try:
-        with open(source, "r") as file:
-            source_code = file.read()
-    except FileNotFoundError:   #source is python code
-        source_code = source
-    finally:
-        comments = extractComments(source_code)
-        tree = ast.parse(source_code)
-        return tree, comments
+"""
+def generateAstFromFile(source):
+    with open(source, "r") as file:  #FIXME exception when there is no file?
+        source_code = file.read()
+    tree = ast.parse(source_code)
+    return tree
