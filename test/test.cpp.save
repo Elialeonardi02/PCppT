@@ -4,7 +4,7 @@ class personclass{
 private:
   float __height;
 
-public:
+MMMMMMMMMMMMMMpublic:
   int age;
 
   personclass() 
@@ -14,6 +14,12 @@ personclass(int age, float height)
   {
     this->__height = height;
     this->age = age;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const personclass & d) 
+  {
+    os<<"__height: "<<d.__height<<","<<"age: "<<d.age<<"";
+    return os;
   }
 
 };
@@ -35,6 +41,12 @@ personstruct(int age, float height, personclass person)
     z(1);
   }
 
+  friend std::ostream & operator<<(std::ostream & os, const personstruct & d) 
+  {
+    os<<"age: "<<d.age<<","<<"height: "<<d.height<<","<<"person: "<<d.person<<"";
+    return os;
+  }
+
 };
 struct window_functor{
   void __call__(personclass personS) 
@@ -43,8 +55,4 @@ struct window_functor{
   }
 
 };
-void arrayParameter(int b = 1, float c = 2.23)
-{
-
-}
 

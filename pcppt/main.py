@@ -5,7 +5,7 @@ import sys
 import subprocess
 import inspect
 
-from pcppt.operators import FOperatorKind
+from pcppt.wireflowOperators import FOperatorKind
 
 
 def generator_cpp_code(astG, operator=FOperatorKind.NONE):
@@ -35,8 +35,8 @@ def generator_cpp_code(astG, operator=FOperatorKind.NONE):
                     for sig, func in elms['methods'].items():
                         codeCpp += f"{sig} \n{func}\n"
             codeCpp += '};\n'
-    for sign in cppc.cppCodeObject.functions:
-        codeCpp += sign + ';\n\n'
+    #for sign in cppc.cppCodeObject.functions: #FIXME can be remove, cause duplicate error on default value for parameters, forces the user to respect the correct order in function definitions
+        #codeCpp += sign + ';\n\n'
     for sign_fun, func in cppc.cppCodeObject.functions.items():
         codeCpp += f"{sign_fun}\n{func}\n"
     return codeCpp

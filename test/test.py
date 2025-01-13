@@ -28,8 +28,8 @@ class window_functor:
     def __call__(self,personS:personclass):
         personS.age+=1
 @wireflow
-def arrayParameter(a:[int,10,10],b:[int,1]):
-    a[1] [2]
+def arrayParameter(b:int=1, c:float=2.23):
+    pass
 
 
 
