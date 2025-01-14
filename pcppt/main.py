@@ -6,7 +6,9 @@ import subprocess
 import inspect
 
 from pcppt.wireflowOperators import FOperatorKind
-
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 def generator_cpp_code(astG, operator=FOperatorKind.NONE):
     print(ast.dump(astG, indent=4))  # TODO remove, use for debugging

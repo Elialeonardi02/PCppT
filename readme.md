@@ -1,6 +1,7 @@
 # Mappatura dei tipi
 
 
+
 | **Python** | **cpp** |
 | --- | --- |
 | None | void |
