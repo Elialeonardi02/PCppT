@@ -4,6 +4,11 @@ setup(
     name='PCppT',
     version='1.0',
     packages=find_packages(),
+entry_points={
+        'console_scripts': [
+            'pcppt=pcppt.main:main',
+        ],
+    },
     extras_require={},
     author='Elia Leonardi',
     author_email='e.leonardi5@studenti.unipi.it',

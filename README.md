@@ -1,3 +1,29 @@
+# Installazione
+Per utilizzare lo strumento, è consigliata l'installazione del pacchetto `/dist/pcppt-1.0.tar.gz`. È sufficiente eseguire il seguente comando:
+`pip install dist/pcppt-1.0.tar.gz`
+Se si desidera installare il pacchetto in modalità *editable*, è necessario eseguire:
+`pip install -e .`
+In questo modo, ogni modifica ai file che generano il pacchetto verrà automaticamente riflessa nel pacchetto stesso.
+
+In entrambe le modalità, in particolare nella seconda, si consiglia l'uso di un ambiente virtuale. È possibile creare un ambiente virtuale con il comando:
+`python3 -m venv <path>`
+Successivamente, per attivarlo, basta eseguire:
+`source <path>/bin/activate`
+
+# Utilizzo
+Lo strumento può essere utilizzato in due modalità: passando un file Python o direttamente all'interno di un programma Python.
+## Sottoporre un file Python
+Per utilizzare lo strumento con un file Python, è necessario fornire il percorso del file contenente il codice sorgente Python e il percorso del file di destinazione C++ dove si vuole che venga salvato il risultato del transpiling.
+`pcppt <path_py>/<file_name.py> <path_cpp>/<file_name.cpp>`
+Il contenuto del file Python verrà sottoposto a transpiling, applicando il decoratore `@wireflow` e rispettando i vincoli imposti da esso. Il file C++ risultante potrà essere compilato utilizzando il compilatore GCC. Si raccomanda di specificare la versione di GCC utilizzata per la compilazione.
+
+## Utilizzo come libreria
+È possibile importare la libreria all'interno di un programma Python. Dopo averla importata con il comando:
+`import pcppt`
+Si ha accesso al metodo `pcppt.python_cpp_transpiling(<code>)`, che permette di effettuare il transpillingi di metodi, classi e lambda function. Questo metodo restituirà il codice C++ sotto forma di stringa.
+In questo caso, non è necessario utilizzare il decoratore `@wireflow`. Inoltre, i decoratori `@param_const`, `@param_ref` e `@param_cref` sono disponibili e possono essere utilizzati.
+
+
 # Mappatura dei tipi
 
 

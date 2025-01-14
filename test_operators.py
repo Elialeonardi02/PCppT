@@ -1,8 +1,6 @@
 import inspect
-import sys
 from enum import Enum
-from pcppt import python_cpp_transpiling
-from pcppt import codeCppClass as param
+import pcppt
 import ast
 
 class FOperatorKind(Enum):
@@ -39,9 +37,11 @@ class result_t:
 class map:
     def __call__(self, tuple: tuple_t,  result: result_t):
         pass
+    def extra_method(self):
+        pass
 
-print(python_cpp_transpiling(tuple_t))
-print(python_cpp_transpiling(result_t))
+print(pcppt.python_cpp_transpiling(tuple_t))
+print(pcppt.python_cpp_transpiling(result_t))
 
 class filter:
     def __call__(self, p1: tuple_t, p2: result_t, keep: bool):
@@ -64,7 +64,10 @@ class FOperator:
         self.func = func
 
     def transpile(self):
-        cAst = ast.parse(inspect.getsource(self.func)).body[0].body[0]
+        cAst = ast.parse(inspect.getsource(self.func)).body[0]
+        for eAst in cAst.body:
+            if isinstance(eAst, ast.FunctionDef) and eAst.name=='__call__':
+                cAst=cAst.body[0]
         if self.kind == FOperatorKind.FILTER:
             if len(cAst.args.args) != 4: #first is self
                 raise Exception("operator filter needs 3 parameters: tuple, result, keep")
@@ -74,7 +77,7 @@ class FOperator:
         elif self.kind == FOperatorKind.FLAT_MAP:
             if len(cAst.args.args) != 3:  # first is self
                 raise Exception("operator map needs 2 parameters: tuple, result")
-        return python_cpp_transpiling(self.func, self.kind)
+        return pcppt.python_cpp_transpiling(self.func, self.kind)
 
 opMap = FOperator(FOperatorKind.MAP, map)
 print(opMap.transpile())
@@ -83,9 +86,10 @@ print(opFilter.transpile())
 opFlatMap = FOperator(FOperatorKind.FLAT_MAP, flatmap)
 print(opFlatMap.transpile())
 
-@param.param_cref(result_t)
-@param.param_const(tuple_t)
+
+@pcppt.param_cref(result_t)
+@pcppt.param_const(tuple_t)
 def test(param1: result_t, param2: tuple_t):
     pass
 
-print(python_cpp_transpiling(test))
+print(pcppt.python_cpp_transpiling(test))

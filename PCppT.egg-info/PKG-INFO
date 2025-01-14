@@ -17,6 +17,22 @@ Dynamic: home-page
 Dynamic: requires-python
 Dynamic: summary
 
+# Installazione
+Per usiffruire delle funzionalità dello strumento, è consigliata l'installazione 
+del package `/dist/pcppt-1.targ.gz`, è sufficiende eseguire ` pip install dist/pcppt-1.0.tar.gz`.
+
+Nel caso in cui si voglia installare il pacchetto in modalità editable invece si dovra eseguire  `pip install -e .`, in questo modo ogni modifica 
+ai file dal quale viene generato il pacchetto, viene automaticamente aggiunta al pacchetto stesso
+
+In tutte e due le circostanze, soprattutto nella seconda, si consiglia l'utilizzo di un ambiente virtuale, quest'ultimo può essere creato eseguendo `python3 -m venv <path>
+` e successivamente vi si può accedere utilizzando `source <path>/bin/activate`
+
+# Utilizzo
+È possibile utilizzare lo strumento in due modalità, sottoponendogli il file sorgente python, oppure all'interno di un file python stesso:
+## sottoporre file python
+È possibile richiamare lo strumento fornendogli il path del file contenete il codice sorgente python ed il path del file dove si vuole che venga archiviato il sorgente C++.
+
+
 # Mappatura dei tipi
 
 
