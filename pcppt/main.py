@@ -1,6 +1,6 @@
 import ast
 
-from pcppt import astToCpp, pythonToAST, codeCppClass as cppc
+from pcppt import astToCpp, codeCppClass as cppc
 import sys
 import subprocess
 import inspect
@@ -9,8 +9,6 @@ from pcppt.wireflowOperators import FOperatorKind
 
 
 def generator_cpp_code(astG, operator=FOperatorKind.NONE):
-
-    import ast  # TODO remove, use for debugging
     print(ast.dump(astG, indent=4))  # TODO remove, use for debugging
     astToCpp.generateAstToCppCode(astG, operator)
     codeCpp = cppc.cppCodeObject.globalCode
@@ -49,7 +47,11 @@ if __name__ == "__main__":  #transpiling file
 
     source = sys.argv[1]  # source python
     file_path_destination = sys.argv[2]  # destination c++
-    codeCpp = generator_cpp_code(pythonToAST.generateAstFromFile(source))
+    with open(source, "r") as file:  #FIXME exception when there is no file?
+        source_code = file.read()
+    codeAst = ast.parse(source_code)
+    
+    codeCpp = generator_cpp_code(codeAst)
 
     print(codeCpp)  # TODO remove, use for debugging
     with open(file_path_destination, "w") as file:
