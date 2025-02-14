@@ -66,8 +66,14 @@ def main():
 if __name__ == "__main__":  #transpiling file
     main()
 def python_cpp_transpiling(func,operator=FOperatorKind.NONE):   #transpilling string code
-    func_code=inspect.getsource(func)
-    if func.__name__!='<lambda>':  #is a function or a class
-        func_code=f"@wireflow\n{func_code}"
-    astG = ast.parse(func_code)
-    return generator_cpp_code(astG, operator)
+    return generator_cpp_code(get_ast_from_code(func), operator)
+
+def ast_cpp_transpiling(astG): #direct transpiling ast to cpp
+    return generator_cpp_code(astG)
+
+def get_ast_from_code(code):
+    code=inspect.getsource(code)
+    astG=ast.parse(code)
+    if isinstance(astG.body[0], ast.FunctionDef) or isinstance(astG.body[0], ast.ClassDef):
+        astG.body[0].decorator_list.append(ast.Name(id="wireflow", ctx=ast.Load()))
+    return astG

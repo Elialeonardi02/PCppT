@@ -642,6 +642,7 @@ class astToCppParser(ast.NodeVisitor):
             self.public['methods'][signature] = method_body
 def generateAstToCppCode(python_ast,operator=wireflow.FOperatorKind.NONE):
     try:
+        cppc.cppCodeObject=cppc.code()
         astToCppParser(operator).visit(python_ast)
         print(tm.scope) #TODO remove, use for debugging
         print(tm.callableFunctions) #TODO remove, use for debugging

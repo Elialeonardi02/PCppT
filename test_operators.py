@@ -1,7 +1,11 @@
 import inspect
 from enum import Enum
+
 import pcppt
 import ast
+
+from pcppt.main import get_ast_from_code
+
 
 class FOperatorKind(Enum):
     NONE = 1
@@ -40,8 +44,8 @@ class map:
     def extra_method(self):
         pass
 
-print(pcppt.python_cpp_transpiling(tuple_t))
-print(pcppt.python_cpp_transpiling(result_t))
+#print(pcppt.python_cpp_transpiling(tuple_t))
+#print(pcppt.python_cpp_transpiling(result_t))
 
 class filter:
     def __call__(self, p1: tuple_t, p2: result_t, keep: bool):
@@ -80,11 +84,12 @@ class FOperator:
         return pcppt.python_cpp_transpiling(self.func, self.kind)
 
 opMap = FOperator(FOperatorKind.MAP, map)
-print(opMap.transpile())
+#print(opMap.transpile())
 opFilter = FOperator(FOperatorKind.FILTER, filter)
-print(opFilter.transpile())
+#print(opFilter.transpile())
 opFlatMap = FOperator(FOperatorKind.FLAT_MAP, flatmap)
-print(opFlatMap.transpile())
+#print(opFlatMap.transpile())
+
 
 
 @pcppt.param_cref(result_t)
@@ -92,4 +97,11 @@ print(opFlatMap.transpile())
 def test(param1: result_t, param2: tuple_t):
     pass
 
-print(pcppt.python_cpp_transpiling(test))
+def testAst():
+    return 1+2
+
+astLambda = lambda x: x + 1
+astLambda=get_ast_from_code(astLambda)
+testAst=get_ast_from_code(testAst)
+print(pcppt.ast_cpp_transpiling(testAst))
+print(pcppt.ast_cpp_transpiling(astLambda))
