@@ -77,11 +77,13 @@ def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
                 signature += f"{param_type} {param_name}"
 
                 # default value for parameter
-                if i < len(node.args.defaults) and node.args.defaults[i] is not None:
-                    value = self.visit(node.args.defaults[i])
-                    if isinstance(node.args.defaults[i], ast.List):
-                        raise ex.UnsupportedCommandError(f"array default value [{value}] for {param_name}")
-                    signature += f" = {value}"
+                if (self.current_structure_name is not None and i > 0) or self.current_structure_name is None:
+                    pv = len(node.args.args) - i - 1
+                    if pv < len(node.args.defaults) and node.args.defaults[pv] is not None:
+                        value = self.visit(node.args.defaults[pv])
+                        if isinstance(node.args.defaults[pv], ast.List):
+                            raise ex.UnsupportedCommandError(f"array default value [{value}] for {param_name}")
+                        signature += f" = {value}"
 
                 if i < len(node.args.args) - 1: #it is not last parameter
                     signature += ', '

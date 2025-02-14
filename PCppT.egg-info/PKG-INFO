@@ -1,0 +1,1168 @@
+Metadata-Version: 2.2
+Name: PCppT
+Version: 1.0
+Summary: Python c++ transpiler
+Home-page: https://github.com/Elialeonardi02/PCppT
+Author: Elia Leonardi
+Author-email: e.leonardi5@studenti.unipi.it
+Classifier: to do
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-python
+Dynamic: summary
+
+# Installazione
+Per usiffruire delle funzionalità dello strumento, è consigliata l'installazione 
+del package `/dist/pcppt-1.targ.gz`, è sufficiende eseguire ` pip install dist/pcppt-1.0.tar.gz`.
+
+Nel caso in cui si voglia installare il pacchetto in modalità editable invece si dovra eseguire  `pip install -e .`, in questo modo ogni modifica 
+ai file dal quale viene generato il pacchetto, viene automaticamente aggiunta al pacchetto stesso
+
+In tutte e due le circostanze, soprattutto nella seconda, si consiglia l'utilizzo di un ambiente virtuale, quest'ultimo può essere creato eseguendo `python3 -m venv <path>
+` e successivamente vi si può accedere utilizzando `source <path>/bin/activate`
+
+# Utilizzo
+È possibile utilizzare lo strumento in due modalità, sottoponendogli il file sorgente python, oppure all'interno di un file python stesso:
+## sottoporre file python
+È possibile richiamare lo strumento fornendogli il path del file contenete il codice sorgente python ed il path del file dove si vuole che venga archiviato il sorgente C++.
+
+
+# Mappatura dei tipi
+
+
+
+| **Python** | **cpp** |
+| --- | --- |
+| None | void |
+| int | int |
+| float | float |
+| bool | bool |
+| int8 | char |
+| int16 | short |
+| int32 | int |
+| int64 | long long |
+| uint8 | unsigned char |
+| uint16 | unsigned short |
+| uint32  | unsigned int |
+| uint64 | unsigned long long |
+| float32  | float  |
+| float64 | double |
+| str | char |
+| auto | auto |
+
+# Mappatura degli operatori
+
+| **ASTNode** | **Python**   | **cpp**        |
+| --- |--------------|----------------|
+| And | and          | &&             |
+| Or | or           | &#124;&#124;   |
+| Add | +            | +              |
+| Sub | -            | -              |
+| Mult | *            | *              |
+| Div | /            | /              |
+| Mod | %            | %              |
+| Lshift | <<           | <<             |
+| Rshift | &#x3E;&#x3E; | &#x3E;&#x3E;   |
+| BitOr | &#124;       | &#124;         |
+| BitXor | ^            | ^              |
+| BitAnd | &            | &              |
+| FloorDiV | /            | /              |
+| Invert | **~**        | **~**          |
+| Not | not          | !              |
+| UAdd | +            | +              |
+| USub | -            | -              |
+| Eq | ==           | ==             |
+| NotEq | ! =          | ! =            |
+| Lt | <            | <              |
+| LtE | < =          | < =            |
+| Gt | &#x3E;       | &#x3E;         |
+| GtE | &#x3E; =          | &#x3E; =            |
+| Is | is           | non supportato |
+| IsNot | IsNot        | non supportato |
+| In | In           | non supportato |
+| NotIn | NotIn        | non supportato |
+
+I tipi `int8`, `int16`, `int32`, `uint8`, `uint16`, `uint32`, `uint64`, `float16`, `float32`, `float64`, `auto` non sono nativamente supportati dall'interprete Python. Per eseguire anche il codice Python, è necessario assegnare a questi tipi uno equivalente supportato dall'interprete, quest’ultime, verranno ignorate dal parser
+
+```python
+int64=int
+a:int64=1
+```
+
+```cpp
+long long a=1
+```
+
+# Type inference
+
+# Costrutti supportati
+
+## Assegnazioni
+
+Le assegnazioni possono essere fatte in due modalità: con l'annotazione del tipo (type hints) o come normali assegnazioni prive di annotazione del tipo.
+
+### **Assegnazione variabile con type hints**: AnnAssign
+
+
+**`<target>:<annotation> = <value>`**
+
+In questo caso l’assegnazione viene trattata come una dichiarazione di variabile, il transpiler si assicurerà che la variabile non sia già presente nello scope, se non è presente, viene generata l’istruzione c++ corrispondente, altrimenti, viene lanciata un eccezione.
+
+- `<target>`: nome della variabile.
+- `<annotation>`: tipo della variabile.
+- `<value>`: opzionale, valore o espressione  di inizializzazione della variabile.
+
+```python
+@wireflow
+def test():
+    a:int
+    b:float64=0.0
+```
+
+```cpp
+void test()
+{
+  int a;
+  double b = 0.0;
+}
+
+```
+
+### **Assegnazione Array con type hints**:AnnAssign
+
+**`<target>:[<type>] = [<expr1>,..., <exprn>]`**
+Con questa sintassi, è possibile istanziare nuovi array. Il transpiler effettua il controllo sullo scope e deduce la lunghezza dell'array in base al numero di espressioni presenti nella lista contenuta in `<valore>`. Questa informazione viene poi aggiunta nel codice C++ generato.
+
+- `<target>`: nome dell’array;
+- `<annotation>`:`[<type>]`: tipo dell’array;
+- `<value>`:`[<expr1,…,exprN>]`: valori inizializzazione array, è possibile omettere tale campo, ma in questo caso il transpiler produrrebbe una’array vuoto di dimensione 0 che risulterebbe inutilizzabile.
+
+```python
+@wireflow
+def test():
+    #a:[int] #istruzione errata
+    b:[float]=[1,2,3,4]
+    a[1]=10
+```
+
+```cpp
+void test()
+{
+  //int a[] = {};//istruzione errata
+  float b[] = {1, 2, 3, 4};
+  a[1] = 10;
+}
+```
+
+### **Assegnazione Array con type hints e dimensione**:AnnAssign 
+**`<target>:[<type>,<dim>] = [<expr1>,..., <exprn>]`**
+
+In questo caso, la dimensione dell'array non viene dedotta, ma viene fornita dall'utente.
+
+- `<name>`: nome dell’array;
+- `<annotation>`:
+  - `<type>`: tipo dell’array;
+  - `<dim>`: dimensione dell’array;
+- `<value>`:`[<expr1,…,exprN>]`: valori inizializzazione array;
+
+In base all’input dell’utente sono previsti i seguenti comportamenti:
+
+- `<dim>` è uguale alla lunghezza della lista in `value`: viene generato il codice c++ corrispondente.
+- `<dim>` è maggiore della lunghezza della lista contenuta in `value`: viene caricato la parte dell’array fornita ed il resto viene lasciata vuota. L’utente potrà modificare le celle non utilizzate
+- `<dim>` è minore della lunghezza della lista contenuta in `value`: Il transpiler generà il codice corrispondente, la gestione dell’errore viene lasciata al compilatore c++
+- `value` è vuoto: si istanzia un array vuoto nel quale, successivamente, si potrà modificare il contenuto delle celle singolarmente
+
+```python
+@wireflow
+def test():
+    c:[int,2]=[1,2]
+    d:[int,10]=[9,8]
+    d[4]=5
+    #e:[int,3]=[1,2,3,4] #istruzione errata
+    f:[int,4]
+    f[1]=4
+
+```
+
+```cpp
+void test()
+{
+  int c[2] = {1, 2};
+  int d[10] = {9, 8};
+  d[4] = 5;
+  //int e[3] = {1, 2, 3, 4}; //istruzione errata
+  int f[4] = {};
+  f[1] = 4;
+}
+```
+
+### Assegnazione priva di type hints ed accesso
+
+**`<target> = <value>`**: Assign
+- `<target>`: nome della variabile.
+- `<value>`: opzionale, espressione di inizializzazione o modifica della variabile.
+
+
+Con le assegnazioni prive di type hints è possibile andare a modificare variabili, tuttavia, se quest’ultime non risultato presenti nello scope, ne viene generata la dichiarazione deducendo il tipo dall’espressione presente nel  **`<value>`**, se quest’ultima risulta essere una lista python, verrà istanziato un array
+
+**`<id>`**: Name
+
+È possibile accedere al contenuto di una variabile, il transpiler verifica che si trovi nello scope corretto, se così non fosse, lancerà l’eccezione`IsNotDefinedError`.
+
+**`<value>[<slice>]=<value>`**:Assign
+- `<subscript>`:
+  - `<value>`: nome dell’array;
+  - `<slice>`: indice dell'array;
+- `<value>`: espressione;
+
+È possibile effettuare delle modifiche su una cella di un’array, il transpiller controllerà che l’array(**`<name>`**) sia stato istanziato nello scope corretto, se così non fosse, il transpiler lancerà l’eccezione`IsNotDefinedError`. Tuttavia, il controllo completo sulla correttezza dell’istruzione viene delegato al compilatore c++. 
+
+**`<value>[<slice>]`**:Subsrcript
+- `<value>`: nome dell’array;
+- `<slice>`: indice dell'array;
+
+
+Se l’array non risulta presente nello scope, il transpiler lancerà l’eccezione `IsNotDefinedError`. Gli altri controlli sulla correttezza dell’istituzione vengono delegati  al compilatore c++
+
+```python
+@wireflow
+def test():
+    g:float=1
+    h:float64=0.2
+    i=g+h
+    l=[1,g+2+h,g]
+
+```
+
+```python
+void test()
+{
+  int g = 1;
+  float h = 0.2;
+  float i = g + h;
+  float l[3] = {1, g + 2 + h, h};
+}
+```
+
+### Assegnazioni combinate:augAssign
+
+**`<target> <op> = <value>`** 
+- `<target>`: variabile destinazione;
+- `<op>`: operatore;
+- `<value>`: espressione;
+
+**`<value>[<slice>] <op> = <value>`** 
+- `<subscript>`:
+  - `<value>`: nome dell’array;
+  - `<slice>`: indice dell'array;
+- `<op>`: operatore;
+- `<value>`: espressione;
+
+Con le assegnazioni combinate è possibile andare a modificare variabili già istanziate.
+
+<aside>
+❗
+
+Non è possibile utilizzare i type hints sulle assegnazioni combinate
+
+</aside>
+
+```python
+@wireflow
+def test():
+    g=1
+    h=0.2
+    i=g+h
+    l=[1,g+2+h,h]
+    l[1]+=1
+    i+=0.2
+```
+
+```python
+void test()
+{
+	int g = 1;
+  float h = 0.2;
+  float i = g + h;
+  float l[3] = {1, g + 2 + h, h};
+  l[1] += 1;
+  i += 0.2;
+}
+```
+
+### Dichiarazione di una lambda function
+
+`<name_lambda> = lambda <parametro1>,...,<parametroN>:<body>`
+
+- `<parametro1>,...,<parametroN>`: non si può fornire il tipo dei parametri
+- Non è possibile effettuale la cattura di variabili per valore o per riferimento
+
+```python
+x = lambda t: t+1
+
+@wireflow
+def test():
+    x1 = lambda t: t + 1
+```
+
+```cpp
+void test()
+{
+  auto x1 = [](auto t) {return t + 1;};
+}
+```
+
+> **Destrutturazione:**
+> 
+> 
+> `<parametro1>,…,<parametron> = <value>`
+> 
+> In ognuno dei casi precedenti viene applicata la destrutturazione su più variabili, verrà generato un numero di istruzioni pari al numero di variabili presenti nel targets
+> 
+> ```python
+> @wireflow
+> def test():
+>     c1,c2,c3,c4=lambda t: t + 1
+>     d1,d2,d3=[1,2,0.4+1]
+> ```
+> 
+> ```cpp
+> void test()
+> {
+>   auto x1 = [](auto t) {return t + 1;};
+>   auto c1 = [](auto t) {return t + 1;};
+>   auto c2 = [](auto t) {return t + 1;};
+>   auto c3 = [](auto t) {return t + 1;};
+>   auto c4 = [](auto t) {return t + 1;};
+>   float d1[3] = {1, 2, 0.4 + 1};
+>   float d2[3] = {1, 2, 0.4 + 1};
+>   float d3[3] = {1, 2, 0.4 + 1};
+> ```
+> 
+> <aside>
+> ❗
+> 
+> Ma la destrutturazione con più variabili e più valori non è supportata
+> 
+> `<parametro1>,…,<parametron> = <value1>,...,<valuen>`
+> 
+> </aside>
+> 
+
+## Classi
+
+L’inserimento delle classi viene supportato, aggiungendo alcune caratteristiche alla sintassi. Nel caso in cui si effettui il transpiling con di un intero file, l’utente può applicare  il decorator `@wireflow` alla classe, in questo modo applicherà il transpiler a tutta la classe ,oppure , può applicare il decorator `@wireflow` ad i metodi su cui vuole effettuare transpiling, in questo modo verranno sottoposti a transpiling i metodi coinvolti ed esclusivamente gli attributi che utilizzano.
+
+`@wireflow`
+
+`class <class_name>:` 
+
+`<name_attribute>: <type>`
+
+`def <name_method>(self, <parameter_name>:<type>):`
+
+`<body>`
+
+<aside>
+❗
+
+Non è possibile applicare il decorator agli attributi, quindi non è possibile ottenere delle classi prive di metodi
+
+</aside>
+
+### Visibilità
+
+Seguendo la specifica sintassi nei nomi è possibile definire la visibilità di un’attributo o di un metodo:
+
+- `<name>`: visibilità pubblica.
+- `_<name>`: visibilità protected.
+- `__<name>`: visibilità private.
+
+Il transpiling di una classe al cui interno sono presenti solo membri pubblici produrrà una struct.
+
+```python
+@wireflow
+class personclass:
+    __age:int
+    __height:float
+    def __init__(self, age:int, height:float):
+        self.__age = age
+        self.__height = height
+@wireflow
+class personstruct:
+    age:int
+    height:float
+    def __init__(self, age:int, height:float):
+        self.age = age
+        self.height = height
+
+```
+
+```cpp
+#include <ostream>
+class personclass{
+private:
+  int __age;
+
+  float __height;
+
+public:
+  personclass(int age, float height) 
+  {
+    this->__age = age;
+    this->__height = height;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const personclass & d) 
+  {
+    os<<"__age: "<<d.__age<<","<<"__height: "<<d.__height<<"";
+    return os;
+  }
+
+};
+struct personstruct{
+  int age;
+
+  float height;
+
+  personstruct(int age, float height) 
+  {
+    this->age = age;
+    this->height = height;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const personstruct & d) 
+  {
+    os<<"age: "<<d.age<<","<<"height: "<<d.height<<"";
+    return os;
+  }
+
+};
+
+```
+
+### Attributi
+
+`<name>:<type>=<value>`
+
+Come visto in precedenza, la dichiarazione di un attributo tramite type hints si effettuando al di fuori dei metodi della classe. `<value>` è opzionale.
+
+`self.<name> = <value>`
+
+Gli attributi all’interno di un metodo, come da normale sintassi python, si identificando con la keyword `self`. 
+
+Le operazioni possibili sono le stesse viste per quanto riguarda il costrutto dell’assegnazione.
+
+Per ragioni di ottimizzazioni, alcuni attributi possono essere omessi in fase di transpiling, ciò avviene quando l’attributo non viene utilizzato in nessuno dei metodi scelti all’intero della classe per il transpiling, compreso il costruttore fornito dall’utente. 
+
+Gli attributi possono a loro volta contenere l’istanza di una classe, ma non della classe stessa. Per permettere ciò, viene generato un costruttore di default degli attributi sottoposti a transpiling.
+
+### Metodi
+
+I metodi di una classe rispettano le stesse regole della sintassi di una funzione python con alcune eccezioni:
+
+- Ogni metodo avrà come primo attributo `self`, imposto dalla sintassi python, tale attributo verrà poi ignorato dal transpiler e, se presente all’interno del corpo, sostituito con `this`.
+- È possibile definire un costruttore fornendo il metodo con nome`__init__`, il transpiler andrà a sostituire tale nome con il nome della classe.
+- Definendo un metodo con nome `__call__` si potrà definire un `operator()`,  le istanze delle classi fornite come parametri vengono passate per riferimento
+
+### Costruttore
+
+È possibile fornire uno o più costruttori fornendo metodi con nome `__init__`, ogni costruttore dovrà avere firma diversa.
+
+Se l’utente non fornisce alcun costruttore, oppure non sia stato coinvolto nel processo di transpiling(`@wireflow`), il transpiler genererà un costruttore di default contenente, se presenti, gli attributi utilizzati nei metodi coinvolti.
+
+### Debugging
+
+Il transpiler genera un operator per permettere all’utente il debugging del codice, tale metodo fornirà i valori di tutti gli attributi che sono stati sottoposti al transpiling
+
+```python
+@wireflow
+class personclass:
+    __age:int
+    __height:float
+    __weight:float=10
+    def __init__(self, age:int, height:float):
+        self.__height = height
+        self.__age = age
+
+class personstruct:
+    age:int
+    height:float
+
+    @wireflow
+    def __init__(self, age:int, height:float, person:personclass):
+        self.age = age
+        self.height = height
+        self.person = person
+    def reset(self,person:personclass):
+        self.age = 0
+        self.height = 0.0
+        self.personC = person
+@wireflow
+class window_functor:
+    def __call__(self,personS:personclass):
+        personS.age+=1
+
+```
+
+```cpp
+#include <ostream>
+class personclass{
+private:
+  float __height;
+
+  int __age;
+
+public:
+  personclass() 
+  :__height(0.0),__age(0) {}
+
+  personclass(int age, float height) 
+  {
+    this->__height = height;
+    this->__age = age;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const personclass & d) 
+  {
+    os<<"__height: "<<d.__height<<","<<"__age: "<<d.__age<<"";
+    return os;
+  }
+
+};
+struct personstruct{
+  int age;
+
+  float height;
+
+  personclass person;
+
+  personstruct() 
+  :age(0),height(0.0),person() {}
+
+  personstruct(int age, float height, personclass person) 
+  {
+    this->age = age;
+    this->height = height;
+    this->person = person;
+  }
+
+  friend std::ostream & operator<<(std::ostream & os, const personstruct & d) 
+  {
+    os<<"age: "<<d.age<<","<<"height: "<<d.height<<","<<"person: "<<d.person<<"";
+    return os;
+  }
+
+};
+struct window_functor{
+  void  operator()(personclass & personS) 
+  {
+    personS.age += 1;
+  }
+
+};
+
+```
+
+## Funzioni
+
+È possibile definire funzioni, oppure, metodi di una classe, rispettando la sintassi python con l’aggiunta dei type hints, utilizzati in modo corretto.
+
+`@wireflow`
+
+`def <function_name>(<parameters>):<return_type>`
+
+`<body>` 
+
+`return <expr>`
+
+Nel caso in cui venga definite due funzioni  o metodi annidati, il transpiller separerà le due funzioni
+
+```python
+def out_function(a:int)->int:
+    return a
+    def inner_function()->int:
+        return 2
+```
+
+```cpp
+int inner_function()
+{
+  return 2;
+}
+
+int outer_function(int a)
+{
+    return a;
+}
+
+```
+
+### Parametri
+
+L’utente può specificare un parametro nei seguenti modi:
+
+- `<parameter_name>:<type>`:con i type hints, il transpiler tradurrà correttamente il parametro specificandone il tipo fornito
+- `<parameter_name>`: il transpiler assocerà la keyword `auto` al parametro.
+
+In ogni caso i parametri verranno presi in considerazione in caso di controllo sullo scope locale della funzioni effettuati su istruzioni all’interno del `<body>`.
+
+### Return e return type
+
+sia `<return_type>` che `return <expr>` sono opzionali, a seconda del loro utilizzo o meno si osservano i seguenti comportamenti:
+
+- Se l’utente fornisce sia`<return_type>` che `return <expr>` il transpiler tradurrà le due istruzione delegando il controllo di correttezza al compilatore c++
+    
+    
+    ```python
+    @wireflow
+    def function(a:int)->int:
+        b:int=10
+        return a*b
+    ```
+    
+    ```cpp
+    int function(int a)
+    {
+      int b = 10;
+      return a * b;
+    }
+    ```
+    
+- Se l’utente fornisce `return <expr>` ma non `<return_type>`: il transpiler effettua inferenza di tipo su `<expr>` per poi utilizzare il tipo ottenuto come `<return type>`, nel caso in cui non sia possibile dedurre il tipo da `<expr>` il transpiller utilizzerà il costrutto `template`.
+    
+    
+    ```python
+    @wireflow
+    def voidFunction(a:int):
+        b:float=10.2
+        c=a*b
+        
+    @wireflow
+    def returnTypeInferenceFunction(a):
+        b:float=10.2
+        return a*b
+    ```
+    
+    ```cpp
+    void voidFunction(int a)
+    {
+      float b = 10.2;
+      float c = a * b;
+    }
+    
+    template <typename T> T returnTypeInferenceFunction(auto a)
+    {
+      float b = 10.2;
+      return a * b;
+    }
+    ```
+    
+- Se l’utente non fornisce `return <expr>` ma fornisce `<return_type>`: Il transpiler generà il codice corrispondente, la gestione dell’errore viene lasciata al compilatore c++
+- Se l’utente non fornisce sia `return <expr>` che `<return_type>` il transpiler utilizzerà `void` come `<return_type>`.
+    
+    
+    ```python
+    @wireflow
+    def voidFunction(a:int):
+        b:float=10.2
+        c=a*b
+    ```
+    
+    ```cpp
+    void voidFunction(int a)
+    {
+      float b = 10.2;
+      float c = a * b;
+    }
+    ```
+    
+
+## Condizionale
+
+I costrutti condizionali supportati sono: if-else, if-elif-else, if-else breve
+
+### if-else
+
+`if <condition>:`
+
+`<body_true>`
+
+`else:`
+
+`<body_false>`
+
+- il ramo alternativo `else` è opzionale.
+
+```python
+@wireflow
+def ifelse():
+    x = 12
+    y = 20
+    if x + y > 30:
+        x= (x * y)
+    else:
+        x = (x * y)+30
+```
+
+```cpp
+void ifelse()
+{
+  int x = 12;
+  int y = 20;
+  if (x + y > 30) {
+    x = x * y;
+  }
+  else {
+    x = x * y + 30;
+  }
+}
+```
+
+## if-elif-else
+
+`if <condition1>:`
+
+`<body_condition1_true>`
+
+`elif <condition2>:`
+
+`<body_condition2_true>`
+
+`else:`
+
+`<body_condition1_and_condition2_false>`
+
+- il ramo alternativo `else` è opzionale.
+
+```python
+@wireflow
+def ifelseifelse():
+    x = 45
+    if x*3 > 70:
+        x = x * 2
+    elif 40 <= x <= 70:
+        x = x*3
+    else:
+        x = x*4
+```
+
+```cpp
+void ifelseifelse()
+{
+  int x = 45;
+  if (x * 3 > 70) {
+    x = x * 2;
+  }
+  else   if (40 <= x && x <= 70) {
+    x = x * 3;
+  }
+  else {
+    x = x * 4;
+  }
+}
+```
+
+### if-else breve
+
+`<expression_true> if <condition> else <expression_false>`
+
+```python
+@wireflow
+def ifelseshort():
+    x, y = 1
+    x = (x *2 + y * 3) if x > y else (y * 2 + x * 3) * 2
+```
+
+```cpp
+void ifelseshort()
+{
+  int x = 1;
+  int y = 1;
+  x = (x > y ? x * 2 + y * 3 : y * 2 + x * 3 * 2);
+}
+```
+
+## For
+
+L’utente può definire costrutti for utilizzando la sintassi `range` 
+
+`for <index> range(<start>, <stop>, <step>):`
+
+`<for_body>`
+
+`<start>`, `<stop>` e `<step>` sono espressioni e possono essere utilizzato nel seguente modo:
+
+- `<stop>` specificato,`<start>`e `<step>` non specificati: l’iterazione inizia da 0 ed arriva fino a `<stop> -1`.
+    
+    
+    ```python
+    @wireflow
+    def rangeStop():
+        stop = 10
+        total = 0
+        for i in range(stop):
+            total += i*2
+    ```
+    
+    ```cpp
+    void rangeStop()
+    {
+      int stop = 10;
+      int total = 0;
+      for (int i = 0; i < stop; ++i) {
+        total += i * 2;
+      }
+    }
+    ```
+    
+
+- `<start>`e `<stop>` specificati, `<step>`non specificato: l’iterazione inizia da `<start>` e termina da `<stop>-1`.
+    
+    
+    ```python
+    @wireflow
+    def rangeStartStop():
+        start = 5
+        stop = 15
+        product = 1
+        for i in range(start, stop):
+            if i % 2 == 0:
+                product *= i
+    ```
+    
+    ```cpp
+    void rangeStartStop()
+    {
+      int start = 5;
+      int stop = 15;
+      int product = 1;
+      for (int i = start; i < stop; ++i) {
+        if (i % 2 == 0) {
+          product *= i;
+        }
+      }
+    }
+    ```
+    
+- `<start>`, `<stop>` e `<step>` specificati:  l’iterazione inizia da `<start>` incrementa o decrementa di `<step>`fino a superare `<stop>`.
+    
+    
+    ```python
+    @wireflow
+    def rangeStartStopStep():
+        start = 2
+        stop = 20
+        step = 4
+        weighted_sum = 0
+        index = 0
+        for i in range(start, stop, step):
+            weighted_sum += i * index
+            index += 1
+    ```
+    
+    ```cpp
+    void rangeStartStopStep()
+    {
+      int start = 2;
+      int stop = 20;
+      int step = 4;
+      int weighted_sum = 0;
+      int index = 0;
+      for (int i = start; i < stop; i += step) {
+        weighted_sum += i * index;
+        index += 1;
+      }
+    }
+    ```
+    
+
+`<index>` e quindi il ciclo for, supporta unicamente i tipi `int` e `float`
+
+<aside>
+❗
+
+La sintassi `range` è l’unica sintassi supportata per definire cicli for, le altre sintassi non sono supportate.
+
+</aside>
+
+## While
+
+`while(<condition>):`
+
+`<body>` 
+
+- `<condition>`: espressione con risultato booleano che determina l’esecuzione o meno dell’iterazione corrente del ciclo
+
+```python
+@wireflow
+def nWhile():
+    limit = 15
+    total = 0
+    i = 1
+    while i <= limit:
+        total += i * 3
+        i += 2
+```
+
+```cpp
+void nWhile()
+{
+  int limit = 15;
+  int total = 0;
+  int i = 1;
+  while(i <= limit){
+    total += i * 3;
+    i += 2;
+  }
+}
+```
+
+### Do-while
+
+Il costrutto do-while non è direttamente supportato, tuttavia, è possibile replicarne il comportamento utilizzando l’istruzione `break.`
+
+```python
+@wireflow
+def doWhile():
+    product = 1
+    i = 1
+    limit = 10
+    while True:
+        product *= i
+        i += 2
+        if i > limit:
+            break
+
+```
+
+```cpp
+void doWhile()
+{
+  int product = 1;
+  int i = 1;
+  int limit = 10;
+  while(true){
+    product *= i;
+    i += 2;
+    if (i > limit) {
+      break;
+    }
+  }
+}
+```
+
+## Espressioni
+
+Il transpiler supporta la traduzione di espressioni aritmetiche, booleane ed unarie, nelle quali è possibile inserire sia variabili, celle di un’array che chiamate di funzione. Il transpiller controlla esclusivamente che eventuali funzioni richiamate e variabili siano nello scope corretto, la correttezza dell’espressione viene delegata al compilatore c++.
+
+### Confronti concatenati
+
+È supportata anche la traduzione dei *confronti concatenati*.
+
+`<espressione1> <op1> <espressione2> <op2> <espressione3>`
+
+```python
+@wireflow
+def linkedComparison():
+    x = 25
+    if 10 < x < 30:
+        x = (x * 4 - 3 * x * 2 + x) / 2
+    else:
+        x = (x + 5) * 3 - x * 2
+
+```
+
+```cpp
+void linkedComparison()
+{
+  int x = 25;
+  if (10 < x && x < 30) {
+    x = x * 4 - 3 * x * 2 + x / 2;
+  }
+  else {
+    x = x + 5 * 3 - x * 2;
+  }
+}
+```
+
+## Break
+
+`break` 
+
+Può essere utilizzato per immediatamente da un costrutto for o while, passando direttamente all’istruzione successiva al ciclo
+
+```python
+@wireflow
+def breakCycle():
+    limit = 50
+    total = 0
+    sum=0
+    for i in range(1, limit):
+        sum +=i
+        if sum > 100:
+            break
+        total += i * 2
+```
+
+```cpp
+void breakCycle()
+{
+  int limit = 50;
+  int total = 0;
+  int sum = 0;
+  for (int i = 1; i < limit; ++i) {
+    sum += i;
+    if (sum > 100) {
+      break;
+    }
+    total += i * 2;
+  }
+}
+```
+
+## Continue
+
+`continue`
+
+Può essere utilizzato all’interno di un costrutto for o while  i modo da saltare l’iterazione corrente del ciclo e passare alla successiva.
+
+```python
+@wireflow
+def continueCycle():
+    total = 0
+    for i in range(1, 21):
+        if i % 2 == 0:
+            continue
+        total += i
+```
+
+```cpp
+void breakCycle()
+{
+  int limit = 50;
+  int total = 0;
+  int sum = 0;
+  for (int i = 1; i < limit; ++i) {
+    sum += i;
+    if (sum > 100) {
+      break;
+    }
+    total += i * 2;
+  }
+}
+```
+
+## Pass
+
+`pass`
+
+istruzione nulla, in c++ viene rappresentata come `"\n"`;
+
+```python
+@wireflow
+def passCycle():
+    total = 0
+    for i in range(1, 21):
+        if i % 3 == 0:
+            pass
+        else:
+            total += i * 2
+```
+
+```cpp
+void passCycle()
+{
+  int total = 0;
+  for (int i = 1; i < 21; ++i) {
+    if (i % 3 == 0) {
+
+    }
+    else {
+      total += i * 2;
+    }
+  }
+}
+```
+
+## AST
+```
+Module
+├── FunctionDef
+│   ├── identifier name
+│   ├── arguments args
+│   ├── stmt* body
+│   └── expr? returns
+├── ClassDef
+│   ├── identifier name
+│   ├── expr* bases
+│   └── stmt* body
+├── Return
+│   └── expr? value
+├── Assign
+│   ├── expr* targets
+│   └── expr value
+├── AugAssign
+│   ├── expr target
+│   ├── operator op
+│   └── expr value
+├── AnnAssign
+│   ├── expr target
+│   ├── expr annotation
+│   └── expr? value
+├── For
+│   ├── expr target
+│   ├── expr iter
+│   ├── stmt* body
+│   └── stmt* orelse
+├── If
+│   ├── expr test
+│   ├── stmt* body
+│   └── stmt* orelse
+├── Import
+│   └── alias* names
+├── Expr
+│   └── expr value
+├── Pass
+├── Break
+└── Continue
+
+expr
+├── BinOp
+│   ├── expr left
+│   ├── operator op
+│   └── expr right
+├── UnaryOp
+│   ├── unaryop op
+│   └── expr operand
+├── Name
+│   └── identifier id
+├── Constant
+│   └── constant value
+└── Subscript
+    ├── expr value
+    ├── expr index
+    └── expr? slice
+
+operator
+├── Add
+├── Sub
+├── Mult
+├── Div
+├── Mod
+├── Pow
+├── BitOr
+├── BitXor
+└── BitAnd
+
+unaryop
+├── Not
+├── UAdd
+└── USub
+```

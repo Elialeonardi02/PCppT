@@ -1,16 +1,17 @@
 import ast
+import os
 
-from pcppt import astToCpp, pythonToAST, codeCppClass as cppc
+from pcppt import astToCpp, codeCppClass as cppc
 import sys
 import subprocess
 import inspect
 
 from pcppt.wireflowOperators import FOperatorKind
-
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 def generator_cpp_code(astG, operator=FOperatorKind.NONE):
-
-    import ast  # TODO remove, use for debugging
     print(ast.dump(astG, indent=4))  # TODO remove, use for debugging
     astToCpp.generateAstToCppCode(astG, operator)
     codeCpp = cppc.cppCodeObject.globalCode
@@ -41,15 +42,18 @@ def generator_cpp_code(astG, operator=FOperatorKind.NONE):
         codeCpp += f"{sign_fun}\n{func}\n"
     return codeCpp
 
-
-if __name__ == "__main__":  #transpiling file
+def main():
     if len(sys.argv) != 3:
         print("Usage: <path_python_script>.py  <path_cpp_destination_file>.cpp")
         sys.exit(1)
 
     source = sys.argv[1]  # source python
     file_path_destination = sys.argv[2]  # destination c++
-    codeCpp = generator_cpp_code(pythonToAST.generateAstFromFile(source))
+    with open(source, "r") as file:  # FIXME exception when there is no file?
+        source_code = file.read()
+    codeAst = ast.parse(source_code)
+
+    codeCpp = generator_cpp_code(codeAst)
 
     print(codeCpp)  # TODO remove, use for debugging
     with open(file_path_destination, "w") as file:
@@ -58,9 +62,18 @@ if __name__ == "__main__":  #transpiling file
     # compile to check sintax of the c++ code
     subprocess.run(["g++", "-c", file_path_destination, "-fconcepts", "-o", file_path_destination[:-4]])
 
+
+if __name__ == "__main__":  #transpiling file
+    main()
 def python_cpp_transpiling(func,operator=FOperatorKind.NONE):   #transpilling string code
-    func_code=inspect.getsource(func)
-    if func.__name__!='<lambda>':  #is a function or a class
-        func_code=f"@wireflow\n{func_code}"
-    astG = ast.parse(func_code)
-    return generator_cpp_code(astG, operator)
+    return generator_cpp_code(get_ast_from_code(func), operator)
+
+def ast_cpp_transpiling(astG): #direct transpiling ast to cpp
+    return generator_cpp_code(astG)
+
+def get_ast_from_code(code):
+    code=inspect.getsource(code)
+    astG=ast.parse(code)
+    if isinstance(astG.body[0], ast.FunctionDef) or isinstance(astG.body[0], ast.ClassDef):
+        astG.body[0].decorator_list.append(ast.Name(id="wireflow", ctx=ast.Load()))
+    return astG
