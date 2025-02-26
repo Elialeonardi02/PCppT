@@ -98,10 +98,11 @@ def test(param1: result_t, param2: tuple_t):
     pass
 
 def testAst():
-    return 1+2
+    return 1
 
-astLambda = lambda x: x + 1
-astLambda=get_ast_from_code(astLambda)
+Lambda = lambda x: x + 1
+astLambda=get_ast_from_code(Lambda)
 testAst=get_ast_from_code(testAst)
+
 print(pcppt.ast_cpp_transpiling(testAst))
 print(pcppt.ast_cpp_transpiling(astLambda))
