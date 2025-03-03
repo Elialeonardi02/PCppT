@@ -17,8 +17,104 @@ window_type = {
     "timesliding": {"size", "slide", "lateness"},
     "keyedtimesliding": {"max_key", "size", "slide", "lateness"}
 }
+def CountTumbling(size):
+    def decorator(cls):
+        cls._window_params = {'size': size}
+        return cls
+    return decorator
 
-def window(**kwargs):
+@CountTumbling(size=1)
+class WindowTest:
+    def window(self):
+        pass
+
+
+def KeyedCountTumbling(max_key, size):
+    def decorator(cls):
+        cls._window_params = {'max_key': max_key, 'size': size}
+        return cls
+    return decorator
+
+@KeyedCountTumbling(max_key=10, size=2)
+class KeyedWindowTest:
+    def window(self):
+        pass
+
+
+def CountSliding(size, slide):
+    def decorator(cls):
+        cls._window_params = {'size': size, 'slide': slide}
+        return cls
+    return decorator
+
+@CountSliding(size=3, slide=1)
+class SlidingWindowTest:
+    def window(self):
+        pass
+
+
+def KeyedCountSliding(max_key, size, slide):
+    def decorator(cls):
+        cls._window_params = {'max_key': max_key, 'size': size, 'slide': slide}
+        return cls
+    return decorator
+
+@KeyedCountSliding(max_key=5, size=4, slide=2)
+class KeyedSlidingWindowTest:
+    def window(self):
+        pass
+
+
+def TimeTumbling(size, lateness):
+    def decorator(cls):
+        cls._window_params = {'size': size, 'lateness': lateness}
+        return cls
+    return decorator
+
+@TimeTumbling(size=5, lateness=1)
+class TimeWindowTest:
+    def window(self):
+        pass
+
+
+def KeyedTimeTumbling(max_key, size, lateness):
+    def decorator(cls):
+        cls._window_params = {'max_key': max_key, 'size': size, 'lateness': lateness}
+        return cls
+    return decorator
+
+@KeyedTimeTumbling(max_key=8, size=6, lateness=2)
+class KeyedTimeWindowTest:
+    def window(self):
+        pass
+
+
+def TimeSliding(size, slide, lateness):
+    def decorator(cls):
+        cls._window_params = {'size': size, 'slide': slide, 'lateness': lateness}
+        return cls
+    return decorator
+
+@TimeSliding(size=7, slide=3, lateness=2)
+class TimeSlidingWindowTest:
+    def window(self):
+        pass
+
+
+def KeyedTimeSliding(max_key, size, slide, lateness):
+    def decorator(cls):
+        cls._window_params = {'max_key': max_key, 'size': size, 'slide': slide, 'lateness': lateness}
+        return cls
+    return decorator
+
+@KeyedTimeSliding(max_key=12, size=8, slide=4, lateness=3)
+class KeyedTimeSlidingWindowTest:
+    def window(self):
+        pass
+
+
+
+"""def window(**kwargs):
     def decorator(cls):
         cls._window_params = kwargs
         return cls
@@ -61,18 +157,67 @@ for decorator in astWindow.body[0].decorator_list: #explore decorator_list
 class window_test:
     def window(self):
         pass
-        
-def CountTumbling(**kwargs):
+"""
+#-------------------------------------------------------------------------
+#Operatori
+
+uint32=int
+float32=float
+
+class tuple_t:
+    key : uint32
+    value : float32
+
+    def __init__(self):
+        self.key = 0
+        self.value = 0.0
+
+    def __init__(self, key : uint32, value : float32):
+        self.key = key
+        self.value = value
+
+class result_t:
+    sum : float32
+    count : uint32
+    def __init__(self):
+        self.sum = 0.0
+        self.count = 0
+
+    def mean(self, a:[int,10]):
+        pass
+
+class shipper_t:
+    def send(self, tuple):
+        pass
+
+    def send_eos(self):
+        pass
+
+def FOperator(name, kind, gather_policy, dispatch_policy, compute_function=None):
     def decorator(cls):
-        cls._window_params = kwargs  # Salviamo i parametri nella classe
+        cls._operator_params = {
+            'name': name,
+            'kind': kind,
+            'gather_policy': gather_policy,
+            'dispatch_policy': dispatch_policy,
+            'compute_function': compute_function
+        }
         return cls
     return decorator
 
-#Definizione di un decorator differente per ogni tipo di finestra
-@CountTumbling(SIZE=1)
-class WindowTest:
-    def window(self):
+@FOperator(name='map', kind='MAP', gather_policy='LB', dispatch_policy='LB', compute_function='map_fun')
+class MapOperator:
+    def __call__(self, tuple: tuple_t,  result: result_t):
         pass
-'''
-#-------------------------------------------------------------------------
-#Operatori
+
+@FOperator(name='filter', kind='FILTER', gather_policy='LB', dispatch_policy='LB', compute_function='filter_fun')
+class FilterOperator:
+    def __call__(self, p1: tuple_t, p2: result_t, keep: bool):
+        pass
+
+@FOperator(name='flatmap', kind='FLATMAP', gather_policy='LB', dispatch_policy='LB', compute_function='flatmap_fun')
+class FlatMapOperator:
+    def __call__(self, tuple: tuple_t, shipper: shipper_t):
+        pass
+
+
