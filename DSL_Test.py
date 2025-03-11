@@ -1,3 +1,4 @@
+from twisted.logger import FilteringLogObserver
 
 import pcppt
 import ast
@@ -161,6 +162,16 @@ class window_test:
 #-------------------------------------------------------------------------
 #Operatori
 
+
+class shipper_t:
+    def send(self, tuple):
+        pass
+
+    def send_eos(self):
+        pass
+
+from DSL import operators
+
 uint32=int
 float32=float
 
@@ -186,38 +197,37 @@ class result_t:
     def mean(self, a:[int,10]):
         pass
 
-class shipper_t:
-    def send(self, tuple):
+
+@operators.FOperator()
+class filterOperator:
+    def __call__(self, inn:tuple_t, out:result_t,flag:bool):
+        pass
+    def __other_method(self):
         pass
 
-    def send_eos(self):
+pcppt.python_cpp_transpiling(tuple_t)
+pcppt.python_cpp_transpiling(result_t)
+
+operators.operator_declaration(filterOperator)
+
+
+@operators.FOperator()
+class mapOperator:
+    def __call__(self, inn:tuple_t, out:result_t):
+        pass
+    def __other_method(self):
         pass
 
-def FOperator(name, kind, gather_policy, dispatch_policy, compute_function=None):
-    def decorator(cls):
-        cls._operator_params = {
-            'name': name,
-            'kind': kind,
-            'gather_policy': gather_policy,
-            'dispatch_policy': dispatch_policy,
-            'compute_function': compute_function
-        }
-        return cls
-    return decorator
-
-@FOperator(name='map', kind='MAP', gather_policy='LB', dispatch_policy='LB', compute_function='map_fun')
-class MapOperator:
-    def __call__(self, tuple: tuple_t,  result: result_t):
-        pass
-
-@FOperator(name='filter', kind='FILTER', gather_policy='LB', dispatch_policy='LB', compute_function='filter_fun')
+operators.operator_declaration(mapOperator)
+'''
+@operators.FOperator(name='filter', kind='FILTER', gather_policy='LB', dispatch_policy='LB', compute_function='filter_fun')
 class FilterOperator:
     def __call__(self, p1: tuple_t, p2: result_t, keep: bool):
         pass
 
-@FOperator(name='flatmap', kind='FLATMAP', gather_policy='LB', dispatch_policy='LB', compute_function='flatmap_fun')
+@operators.FOperator(name='flatmap', kind='FLATMAP', gather_policy='LB', dispatch_policy='LB', compute_function='flatmap_fun')
 class FlatMapOperator:
     def __call__(self, tuple: tuple_t, shipper: shipper_t):
         pass
 
-
+'''

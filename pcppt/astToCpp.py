@@ -50,9 +50,15 @@ class astToCppParser(ast.NodeVisitor):
         self.current_function_name = node.name
 
         #chose to parse function
+        toparse=True
         if not self.transplile_class and self.current_function_signature is None:
-            if not (node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
-                return False,False #to stop parsing method of a class
+            if not node.decorator_list :
+                for decorator in node.decorator_list:
+                    if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
+                        break
+                    toparse=False
+        if not toparse:
+            return False,False #to stop parsing method of a class
 
         #determine function name
         if (self.current_structure_name is not None and #outside node is not a class
@@ -68,16 +74,16 @@ class astToCppParser(ast.NodeVisitor):
         wireflow_const=[]
         for decorator in node.decorator_list:
             if isinstance(decorator, ast.Call):
-                for type_node in decorator.args:
-                    type=self.visit(type_node)
+                for name_node in decorator.args:
+                    name=self.visit(name_node)
                     if isinstance(decorator.func,ast.Attribute):
                         func = decorator.func.attr
                     else:
                         func = self.visit(decorator.func)
-                    if (func == 'param_const' or func == 'param_cref') and type not in wireflow_const:
-                        wireflow_const.append(type)
-                    if (func == 'param_ref' or func == 'param_cref') and type not in wireflow_refs:
-                        wireflow_refs.append(type)
+                    if (func == 'param_const' or func == 'param_cref') and name not in wireflow_const:
+                        wireflow_const.append(name)
+                    if (func == 'param_ref' or func == 'param_cref') and name not in wireflow_refs:
+                        wireflow_refs.append(name)
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
             param_name = node.args.args[i].arg
             if node.args.args[i].annotation is None:    #type of parameter is not defined
@@ -86,7 +92,7 @@ class astToCppParser(ast.NodeVisitor):
                 param_type=''
                 #parameter const
                 annotation=str(self.visit(node.args.args[i].annotation))
-                if annotation in wireflow_const:
+                if param_name in wireflow_const:
                     param_type += f"const "
 
                 #array parameter
@@ -105,7 +111,7 @@ class astToCppParser(ast.NodeVisitor):
                     param_type+=tm.get_type(annotation)
 
                 #parameter reference
-                if annotation in wireflow_refs:
+                if param_name in wireflow_refs:
                     param_type+=' &'
             signature += f"{param_type} {param_name}"
 
@@ -202,10 +208,10 @@ class astToCppParser(ast.NodeVisitor):
         self.public = {'attributes': [], 'methods': {}}
 
         self.tempAttributesDeclaretions = {}
-
-
-        if node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow":
-            self.transplile_class = True
+        if node.decorator_list:
+            for decorator in node.decorator_list:
+                if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
+                    self.transplile_class = True
 
         self.current_structure_name = node.name #save name of class for cppc.classes dictionary and scope
         self.indent_level += 1
