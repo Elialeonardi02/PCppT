@@ -43,17 +43,20 @@ def operator_declaration(class_code):
                 if fOperatorKind==FOperatorKind.NONE:
                     fOperatorKind=FOperatorKind.FLAT_MAP
                     functionOperatorName='FlatMap'
+                    operator_declaration+=f"          FOperatorKind.FLATMAP,\n"
                 else:
                     pass #uncorret signature
             if operatorParameters[parameter][:15] == 'ParallelShipper':
                 if fOperatorKind==FOperatorKind.NONE:
                     fOperatorKind=FOperatorKind.PARALLELFLATMAP
                     functionOperatorName='ParallelFlatMap'
+                    operator_declaration+=f"          FOperatorKind.PARALLELFLATMAP,\n"
                 else:
                     pass #uncorret signature
         if fOperatorKind==FOperatorKind.NONE:
             fOperatorKind=FOperatorKind.MAP
             functionOperatorName='Map'
+            operator_declaration+=f"          FOperatorKind.MAP,\n"
 
     if (len(operatorParameters)==3):#filter
         functionOperatorName='Filter'
@@ -78,7 +81,7 @@ def operator_declaration(class_code):
     operator_declaration+=f"          compute_function={functionOperatorName})"
 
     parameter= list(operatorParameters.keys())
-    astOperatorMethod.name=f"{functionOperatorName}()"
+    astOperatorMethod.name=functionOperatorName
     if fOperatorKind is FOperatorKind.FILTER:
         astOperatorMethod.decorator_list.append(ast.Call(
             func=ast.Name(id='param_cref', ctx=ast.Load()),

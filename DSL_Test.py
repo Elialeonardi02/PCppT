@@ -198,7 +198,7 @@ class result_t:
         pass
 
 
-@operators.FOperator()
+@operators.FOperator(gather_policy='LB')
 class filterOperator:
     def __call__(self, inn:tuple_t, out:result_t,flag:bool):
         pass
