@@ -1,5 +1,6 @@
 from pcppt import exceptions as ex
 import  ast
+import re
 globalScope='root'
 
 pythonFunction_toParse=['range']
@@ -124,9 +125,15 @@ def get_type(ptype):    #provide type of a var in scope
             return ptype
         if ptype in pythonTypes_CppTypes: #is type 
             return pythonTypes_CppTypes.get(ptype)
-        if ptype in pythonTypes_CppTypesArrays: #is array of type
-            return pythonTypes_CppTypesArrays.get(ptype)
-        raise ex.TypeNotExistError(ptype)   
+        if ptype[1:-1] in pythonTypes_CppTypes: #is array of type
+            return pythonTypes_CppTypes.get(ptype[1:-1])
+
+        pattern = r'^([a-zA-Z_][a-zA-Z0-9_]*)\[(.+)\]$' #generics
+        match = re.match(pattern, ptype)
+        if match:
+            return f"{match.group(1)}<{match.group(2)}>"
+
+        raise ex.TypeNotExistError(ptype)
 
 def get_var_type_scope(in_function, in_class, var=None):    #provide type of var in scope
     if in_function is not None and in_class is None and in_function in scope and var in scope[in_function]: #var is in a function
@@ -247,14 +254,14 @@ def get_type_function_callable(in_class, functionName):  #get type of the functi
 
 def explore_value(class_name, function_signature, node):
     if isinstance(node, ast.Constant):
-        return get_type(type(node.value).__name__)
+        return pythonTypes_CppTypes[get_type(type(node.value).__name__)]
 
     elif isinstance(node, ast.Name):
         return get_var_type_scope(function_signature,class_name,node.id)
 
     elif isinstance(node, ast.BinOp):
-        left_type = pythonTypes_CppTypes[explore_value(class_name, function_signature, node.left)]
-        right_type = pythonTypes_CppTypes[explore_value(class_name, function_signature, node.right)]
+        left_type = explore_value(class_name, function_signature, node.left)
+        right_type = explore_value(class_name, function_signature, node.right)
 
         if left_type == "auto" or right_type == "auto" or left_type not in cpp_types_hierarchy or right_type not in cpp_types_hierarchy :
             return "auto"

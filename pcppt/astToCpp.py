@@ -4,7 +4,6 @@ import types
 from pcppt import exceptions as ex, typesMapping as tm, codeCppClass as cppc
 from pcppt import wireflowOperators as wireflow
 
-
 class astToCppParser(ast.NodeVisitor):
 
     def __init__(self, operator=wireflow.FOperatorKind.NONE): #constructor
@@ -361,7 +360,7 @@ class astToCppParser(ast.NodeVisitor):
         annAssign_code=self.indent()
         if isinstance(node.annotation, ast.List) and(var_type in tm.pythonTypes_CppTypes or var_type in cppc.cppCodeObject.classes): #array of a single type
             annAssign_code+= f"{var_type} {var_name}[{dim_array}] = " +'{'+value +"};\n"
-            var_type=f"[{var_type}]"
+            var_type=f"{var_type}*"
         else:# f"{var_type}" not in tm.pythonTypes_CppTypesArrays:
             if not isinstance(node.annotation,ast.Name) and var_type=='char':    #array string, const
                 annAssign_code += f"{var_type}* {var_name}[{dim_array}]" + (f" = {{{value}}}" if value != '' else "") + ";\n"

@@ -1,3 +1,5 @@
+from typing import TypeVar, Generic
+
 import pcppt
 import ast
 from enum import Enum
@@ -15,16 +17,17 @@ class FOperatorKind(Enum):
     PARALLELFLATMAP=2
     FILTER = 3
     MAP = 4
-    FLAT_MAP = 5
+    FLATMAP = 5
+
 
 def operator_declaration(class_code):
     astCode=pcppt.get_ast_from_code(class_code)
     print(ast.dump(astCode, indent=4))
-    operator_parametes={}
+    operator_parameters={}
     for parameters in astCode.body[0].decorator_list:
-        if isinstance(parameters, ast.Call) and isinstance(parameters.func, ast.Name) and parameters.func.id=='FOperator':
+        if isinstance(parameters, ast.Call) and isinstance(parameters.func, ast.Attribute) and parameters.func.attr=='FOperator':
             for parameter in parameters.keywords:
-                operator_parametes[parameter.arg.lower()]=parameter.value.value
+                operator_parameters[parameter.arg.lower()]=parameter.value.value
     operator_declaration='FOperator('
     #name operator
     operator_declaration+=f"'{astCode.body[0].name}',\n"
@@ -35,13 +38,16 @@ def operator_declaration(class_code):
     operatorParameters={} #parameter:type
     for parameter in astOperatorMethod.args.args:
         if parameter.arg!='self':
-            operatorParameters[parameter.arg]=parameter.annotation.id
+            if isinstance(parameter.annotation,ast.Name):
+                operatorParameters[parameter.arg]=parameter.annotation.id
+            elif isinstance(parameter.annotation, ast.Subscript):
+                operatorParameters[parameter.arg]=f"{parameter.annotation.value.id}[{parameter.annotation.slice.id}]"
     fOperatorKind=FOperatorKind.NONE
     if (len(operatorParameters)==2):#map or Parallel FlatMap or FlatMap
         for parameter in operatorParameters:
             if operatorParameters[parameter][:7] == 'Shipper':
                 if fOperatorKind==FOperatorKind.NONE:
-                    fOperatorKind=FOperatorKind.FLAT_MAP
+                    fOperatorKind=FOperatorKind.FLATMAP
                     functionOperatorName='FlatMap'
                     operator_declaration+=f"          FOperatorKind.FLATMAP,\n"
                 else:
@@ -70,12 +76,12 @@ def operator_declaration(class_code):
         if findBool:
             fOperatorKind=FOperatorKind.FILTER
         operator_declaration+=f"          FOperatorKind.FILTER,\n"
-    if 'gather_policy' in operator_parametes:
-        operator_declaration+=f"          FGatherPolicy.{operator_parametes['gather_policy']},\n"
+    if 'gather_policy' in operator_parameters:
+        operator_declaration+=f"          FGatherPolicy.{operator_parameters['gather_policy']},\n"
     else:
         operator_declaration+=f"          FGatherPolicy.LB,\n"
-    if 'dispatch_policy' in operator_parametes:
-        operator_declaration+=f"          FDispatchPolicy.{operator_parametes['dispatch_policy']},\n"
+    if 'dispatch_policy' in operator_parameters:
+        operator_declaration+=f"          FDispatchPolicy.{operator_parameters['dispatch_policy']},\n"
     else:
         operator_declaration+=f"          FDispatchPolicy.LB,\n"
     operator_declaration+=f"          compute_function={functionOperatorName})"
@@ -96,6 +102,15 @@ def operator_declaration(class_code):
             args=[ast.Name(id=f"{parameter[2]}", ctx=ast.Load())],
             keywords=[]))
     if fOperatorKind is FOperatorKind.MAP:
+        astOperatorMethod.decorator_list.append(ast.Call(
+            func=ast.Name(id='param_cref', ctx=ast.Load()),
+            args=[ast.Name(id=f"{parameter[0]}", ctx=ast.Load())],
+            keywords=[]))
+        astOperatorMethod.decorator_list.append(ast.Call(
+            func=ast.Name(id='param_ref', ctx=ast.Load()),
+            args=[ast.Name(id=f"{parameter[1]}", ctx=ast.Load())],
+            keywords=[]))
+    if fOperatorKind is FOperatorKind.PARALLELFLATMAP or fOperatorKind is FOperatorKind.FLATMAP:
         astOperatorMethod.decorator_list.append(ast.Call(
             func=ast.Name(id='param_cref', ctx=ast.Load()),
             args=[ast.Name(id=f"{parameter[0]}", ctx=ast.Load())],
