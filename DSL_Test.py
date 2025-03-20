@@ -70,7 +70,7 @@ class Shipper(Generic[R]):
         pass
 pcppt.python_cpp_transpiling(Shipper)
 
-@operators.FOperator(gather_policy='lt')
+@operators.FOperator(gather_policy='LB')
 class flatmap:
     def __call__(self, inn:tuple_t, shipper:Shipper[tuple_t]):
         pass

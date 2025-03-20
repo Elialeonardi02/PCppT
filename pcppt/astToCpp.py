@@ -397,7 +397,10 @@ class astToCppParser(ast.NodeVisitor):
                 type_target='float'
         else:
             type_target=types[0]
-        type_target=tm.pythonTypes_CppTypes.get(type_target)
+        if tm.pythonTypes_CppTypes.get(type_target) is None:
+            type_target=tm.get_type(str(type(type_target).__name__))
+        else:
+            type_target=tm.pythonTypes_CppTypes.get(type_target)
         loop_code = self.indent()
         if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name) and node.iter.func.id == 'range':   #range cicle
             if len(iter_values) == 1:                                                                                    #range(stop)
