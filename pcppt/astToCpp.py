@@ -69,8 +69,8 @@ class astToCppParser(ast.NodeVisitor):
 
         #parameters and types of the function
         #list of const and reference
-        wireflow_refs=[]
-        wireflow_const=[]
+        param_refs=[]
+        param_const=[]
         for decorator in node.decorator_list:
             if isinstance(decorator, ast.Call):
                 for name_node in decorator.args:
@@ -79,10 +79,10 @@ class astToCppParser(ast.NodeVisitor):
                         func = decorator.func.attr
                     else:
                         func = self.visit(decorator.func)
-                    if (func == 'param_const' or func == 'param_cref') and name not in wireflow_const:
-                        wireflow_const.append(name)
-                    if (func == 'param_ref' or func == 'param_cref') and name not in wireflow_refs:
-                        wireflow_refs.append(name)
+                    if (func == 'param_const' or func == 'param_cref') and name not in param_const:
+                        param_const.append(name)
+                    if (func == 'param_ref' or func == 'param_cref'):
+                        param_refs.append(name)
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
             param_name = node.args.args[i].arg
             if node.args.args[i].annotation is None:    #type of parameter is not defined
@@ -91,7 +91,7 @@ class astToCppParser(ast.NodeVisitor):
                 param_type=''
                 #parameter const
                 annotation=str(self.visit(node.args.args[i].annotation))
-                if param_name in wireflow_const:
+                if param_name in param_const:
                     param_type += f"const "
 
                 #array parameter
@@ -110,8 +110,9 @@ class astToCppParser(ast.NodeVisitor):
                     param_type+=tm.get_type(annotation)
 
                 #parameter reference
-                if param_name in wireflow_refs:
-                    param_type+=' &'
+                while(param_name in param_refs):
+                    param_type+='&'
+                    param_refs.remove(param_name)
             signature += f"{param_type} {param_name}"
 
             # default value for parameter
@@ -576,8 +577,10 @@ class astToCppParser(ast.NodeVisitor):
             value='this->'
         else:
             value=f"{value}."
-        return f"{value}{node.attr}"  #FIXME not correct if use instance of other class
-
+        if not self.array_dimensions:
+            return f"{value}{node.attr}"  #FIXME not correct if use instance of other class
+        else:
+            return node.attr
     def visit_Subscript(self, node):    #visit and translate to C++ Subscript node (accessing elements)
         obj = self.visit(node.value)          #the object being indexed
         index = self.visit(node.slice)    #the index to access

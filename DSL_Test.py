@@ -3,11 +3,6 @@ from typing import Generic, TypeVar
 
 import pcppt
 
-#windows
-#set of windows with correct parameters
-
-
-
 class shipper_t:
     def send(self, tuple):
         pass
@@ -42,7 +37,14 @@ class result_t:
     def mean(self, a:[int,10]):
         pass
 
-
+pcppt.python_cpp_transpiling(tuple_t)
+pcppt.python_cpp_transpiling(result_t)
+R = TypeVar("R")
+class Shipper(Generic[R]):
+    def send(self, out):
+        pass
+pcppt.python_cpp_transpiling(Shipper)
+'''
 @operators.FOperator(gather_policy='LB')
 class filterOperator:
     def __call__(self, inn:tuple_t, out:result_t,flag:bool):
@@ -50,12 +52,11 @@ class filterOperator:
     def __other_method(self):
         pass
 
-pcppt.python_cpp_transpiling(tuple_t)
-pcppt.python_cpp_transpiling(result_t)
+
 
 #operators.operator_declaration(filterOperator)
 
-
+'''
 @operators.FOperator()
 class mapOperator:
     def __call__(self, input:tuple_t, output:result_t):
@@ -64,22 +65,87 @@ class mapOperator:
         pass
 
 operators.operator_declaration(mapOperator)
-R = TypeVar("R")
-class Shipper(Generic[R]):
-    def send(self, out):
-        pass
-pcppt.python_cpp_transpiling(Shipper)
 
 @operators.FOperator(gather_policy='LB')
 class flatmap:
-    def __call__(self, inn:tuple_t, shipper:Shipper[tuple_t]):
+    def __call__(self, inn, shipper:Shipper[tuple_t]):
         pass
     def __other_method(self):
         pass
-operators.operator_declaration(flatmap)
-
-@windows.FWindowTime(max_key=8, size=6, lateness=2)
-class KeyedTimeWindowTest:
-    def window(self):
+print(operators.operator_declaration(flatmap))
+'''
+#Finestre
+class stream_in_t:
+    def __init__(self):
+        # Inizializzazione degli attributi o altro codice necessario
         pass
-windows.windows_declaration(KeyedTimeWindowTest)
+
+class stream_out_t:
+    def __init__(self):
+        # Inizializzazione degli attributi o altro codice necessario
+        pass
+
+class key_extractor_t:
+    def __init__(self):
+        # Inizializzazione degli attributi o altro codice necessario
+        pass
+pcppt.python_cpp_transpiling(stream_in_t)
+pcppt.python_cpp_transpiling(stream_out_t)
+pcppt.python_cpp_transpiling(key_extractor_t)
+
+@windows.FWindowCount(size=6)
+class CountTumbling:
+    def window(self, inn: stream_in_t, out: result_t):
+        pass
+
+print(windows.windows_declaration(CountTumbling))
+
+@windows.FWindowCount(max_key=8, size=6)
+class KeyedCountTumbling:
+    def window(self, inn: stream_in_t, out: result_t, key: key_extractor_t):
+        pass
+
+print(windows.windows_declaration(KeyedCountTumbling))
+
+@windows.FWindowCount(size=6, slide=2)
+class CountSliding:
+    def window(self, inn: stream_in_t, out: result_t):
+        pass
+
+print(windows.windows_declaration(CountSliding))
+
+@windows.FWindowCount(max_key=8, size=6, slide=2)
+class KeyedCountSliding:
+    def window(self, inn: stream_in_t, out: result_t, key: key_extractor_t):
+        pass
+
+print(windows.windows_declaration(KeyedCountSliding))
+
+@windows.FWindowTime(size=6, lateness=3)
+class TimeTumbling:
+    def window(self, inn: stream_in_t, out: result_t):
+        pass
+
+print(windows.windows_declaration(TimeTumbling))
+
+@windows.FWindowTime(max_key=8, size=6, lateness=3)
+class KeyedTimeTumbling:
+    def window(self, inn: stream_in_t, out: result_t, key: key_extractor_t):
+        pass
+
+print(windows.windows_declaration(KeyedTimeTumbling))
+
+@windows.FWindowTime(size=6, slide=2, lateness=3)
+class TimeSliding:
+    def window(self, inn: stream_in_t, out: result_t):
+        pass
+
+print(windows.windows_declaration(TimeSliding))
+
+@windows.FWindowTime(max_key=8, size=6, slide=2, lateness=3)
+class KeyedTimeSliding:
+    def window(self, inn: stream_in_t, out: result_t, key: key_extractor_t):
+        pass
+
+print(windows.windows_declaration(KeyedTimeSliding))
+'''

@@ -22,6 +22,7 @@ import ast
 
 import pcppt
 
+pipeOperators={}
 
 def FWindowCount(size=None, max_key=None, slide=None ):
     def decorator(cls):
@@ -55,21 +56,62 @@ def windows_declaration(window_code):
                     windowCountparameters[parameter.arg.lower()]=parameter.value.value
                if parameters.func.attr=='FWindowTime':
                    windowTimeParameters[parameter.arg.lower()]=parameter.value.value
+    for method in astCode.body[0].body: #method call AST
+        if isinstance(method, ast.FunctionDef) and method.name=='window':
+            astOperatorMethod=method
+    windowParameters={} #parameter:type
+    for parameter in astOperatorMethod.args.args:
+        if parameter.arg!='self':
+            if isinstance(parameter.annotation,ast.Name):
+                windowParameters[parameter.arg]=parameter.annotation.id
+            elif isinstance(parameter.annotation, ast.Subscript):
+                windowParameters[parameter.arg]=f"{parameter.annotation.value.id}[{parameter.annotation.slice.id}]"
+    print(ast.dump(astOperatorMethod, indent=4))
+    parameter= list(windowParameters.keys())
     if windowCountparameters!={}:#FWindowCount
-        if 'max_key' in windowCountparameters and 'size' in windowCountparameters and 'slide' in windowCountparameters and 'latenesss' in windowCountparameters: #keyCountSliding
-            pass
-        elif 'size' in windowCountparameters and 'slide' in windowCountparameters: #countSliding
-            pass
-        elif 'max_key' in windowCountparameters and 'size' in windowCountparameters: #KeyedCountTumbling
-            pass
-        elif 'size' in windowCountparameters:   #CountTumbling
-            pass
+        if (('size' in windowCountparameters and 'slide' in windowCountparameters) or #countSliding
+                ('size' in windowCountparameters)):   #CountTumbling
+            astOperatorMethod.decorator_list.append(ast.Call(
+                func=ast.Name(id='param_cref', ctx=ast.Load()),
+                args=[ast.Name(id=f"{parameter[0]}", ctx=ast.Load())],
+                keywords=[]))
+            astOperatorMethod.decorator_list.append(ast.Call(
+                func=ast.Name(id='param_ref', ctx=ast.Load()),
+                args=[ast.Name(id=f"{parameter[1]}", ctx=ast.Load())],
+                keywords=[]))
+        if (('max_key' in windowCountparameters and 'size' in windowCountparameters and 'slide' in windowCountparameters) or #keyCountSliding
+                ('max_key' in windowCountparameters and 'size' in windowCountparameters)): #KeyedCountTumbling
+            astOperatorMethod.decorator_list.append(ast.Call(
+                func=ast.Name(id='param_ref', ctx=ast.Load()),
+                args=[ast.Name(id=f"{parameter[2]}", ctx=ast.Load())],
+                keywords=[]))
+            astOperatorMethod.decorator_list.append(ast.Call(
+                func=ast.Name(id='param_ref', ctx=ast.Load()),
+                args=[ast.Name(id=f"{parameter[2]}", ctx=ast.Load())],
+                keywords=[]))
+
     if windowTimeParameters!={}:#FWindowTime
-        if 'max_key' in windowTimeParameters and 'size' in windowTimeParameters and 'slide' in windowTimeParameters and 'latenesss' in windowTimeParameters: #KeyedTimeSliding
-            pass
-        elif 'size' in windowTimeParameters and 'slide' in windowTimeParameters and 'lateness' in windowTimeParameters: #TimeSliding
-            pass
-        elif 'max_key' in windowTimeParameters and 'size' in windowTimeParameters and 'lateness' in windowTimeParameters: #keyTimeTumbling
-            pass
-        elif 'size' in windowTimeParameters and 'lateness' in windowTimeParameters: #TimeTumbling
-            pass
+        if (('size' in windowTimeParameters and 'lateness' in windowTimeParameters) or #TimeTumbling
+                ('size' in windowTimeParameters and 'slide' in windowTimeParameters and 'lateness' in windowTimeParameters)): #TimeSliding
+            astOperatorMethod.decorator_list.append(ast.Call(
+                func=ast.Name(id='param_cref', ctx=ast.Load()),
+                args=[ast.Name(id=f"{parameter[0]}", ctx=ast.Load())],
+                keywords=[]))
+            astOperatorMethod.decorator_list.append(ast.Call(
+                func=ast.Name(id='param_ref', ctx=ast.Load()),
+                args=[ast.Name(id=f"{parameter[1]}", ctx=ast.Load())],
+                keywords=[]))
+        if (('max_key' in windowTimeParameters and 'size' in windowTimeParameters and 'slide' in windowTimeParameters and 'latenesss' in windowTimeParameters) or #KeyedTimeSliding
+                ('max_key' in windowTimeParameters and 'size' in windowTimeParameters and 'lateness' in windowTimeParameters)) :#keyTimeTumbling
+            astOperatorMethod.decorator_list.append(ast.Call(
+                func=ast.Name(id='param_ref', ctx=ast.Load()),
+                args=[ast.Name(id=f"{parameter[2]}", ctx=ast.Load())],
+                keywords=[]))
+            astOperatorMethod.decorator_list.append(ast.Call(
+                func=ast.Name(id='param_ref', ctx=ast.Load()),
+                args=[ast.Name(id=f"{parameter[2]}", ctx=ast.Load())],
+                keywords=[]))
+
+
+
+    return pcppt.ast_cpp_transpiling(astCode)

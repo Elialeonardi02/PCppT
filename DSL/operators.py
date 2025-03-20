@@ -3,6 +3,9 @@ from typing import TypeVar, Generic
 import pcppt
 import ast
 from enum import Enum
+
+pipeOperators={}
+
 def FOperator(gather_policy='LB', dispatch_policy='LB'):
     def decorator(cls):
         cls._operator_params = {
@@ -19,6 +22,13 @@ class FOperatorKind(Enum):
     MAP = 4
     FLATMAP = 5
 
+def handlerParameters(parameter,operatorParameters):
+    if isinstance(parameter.annotation, ast.Name):
+        if parameter.annotation.id is not None:
+            operatorParameters[parameter.arg] = parameter.annotation.id
+    elif isinstance(parameter.annotation, ast.Subscript):
+        if parameter.annotation.slice.id is not None:
+            operatorParameters[parameter.arg] = f"{parameter.annotation.value.id}[{parameter.annotation.slice.id}]"
 
 def operator_declaration(class_code):
     astCode=pcppt.get_ast_from_code(class_code)
@@ -36,12 +46,22 @@ def operator_declaration(class_code):
         if isinstance(method, ast.FunctionDef) and method.name=='__call__':
             astOperatorMethod=method
     operatorParameters={} #parameter:type
-    for parameter in astOperatorMethod.args.args:
-        if parameter.arg!='self':
-            if isinstance(parameter.annotation,ast.Name):
-                operatorParameters[parameter.arg]=parameter.annotation.id
-            elif isinstance(parameter.annotation, ast.Subscript):
-                operatorParameters[parameter.arg]=f"{parameter.annotation.value.id}[{parameter.annotation.slice.id}]"
+    prevOperator={}
+    prevParameters={}
+    tempPipeOperator=[]
+    if pipeOperators!={}:
+        prevOperator, prevParameters = next(reversed(pipeOperators.items()))
+    for i, parameter in enumerate(astOperatorMethod.args.args):
+        i=i-1 #first is self
+        if parameter.arg != 'self':
+            if isinstance(parameter.annotation, ast.Name) or isinstance(parameter.annotation, ast.Subscript):
+                handlerParameters(parameter,operatorParameters)
+            else:
+                parameter.annotation=prevParameters[i]
+                handlerParameters(parameter,operatorParameters)
+            tempPipeOperator.append(parameter.annotation)
+    pipeOperators[astCode.body[0].name]=tempPipeOperator
+    functionOperatorName='none'
     fOperatorKind=FOperatorKind.NONE
     if (len(operatorParameters)==2):#map or Parallel FlatMap or FlatMap
         for parameter in operatorParameters:
@@ -63,7 +83,6 @@ def operator_declaration(class_code):
             fOperatorKind=FOperatorKind.MAP
             functionOperatorName='Map'
             operator_declaration+=f"          FOperatorKind.MAP,\n"
-
     if (len(operatorParameters)==3):#filter
         functionOperatorName='Filter'
         findBool=False
@@ -120,7 +139,8 @@ def operator_declaration(class_code):
             args=[ast.Name(id=f"{parameter[1]}", ctx=ast.Load())],
             keywords=[]))
 
-    print(pcppt.ast_cpp_transpiling(astCode))
-
-    print(operator_declaration)
+    for parameter in operatorParameters:
+        tempPipeOperator.append(operatorParameters[parameter])
+    pipeOperators[astCode.body[0].name]=tempPipeOperator
+    return  f"{operator_declaration}\n{pcppt.ast_cpp_transpiling(astCode)}"
 
