@@ -56,7 +56,7 @@ class filterOperator:
 
 #operators.operator_declaration(filterOperator)
 
-'''
+
 @operators.FOperator()
 class mapOperator:
     def __call__(self, input:tuple_t, output:result_t):
@@ -65,15 +65,24 @@ class mapOperator:
         pass
 
 operators.operator_declaration(mapOperator)
-
-@operators.FOperator(gather_policy='LB')
+'''
+@operators.FOperator(gather_policy=operators.FGatherPolicy.RR)
 class flatmap:
-    def __call__(self, inn, shipper:Shipper[tuple_t]):
+    def __call__(self, inn:tuple_t, shipper:Shipper[tuple_t]):
         pass
     def __other_method(self):
         pass
 print(operators.operator_declaration(flatmap))
+
 '''
+@operators.FOperator(gather_policy='LB')
+class flatmapp:
+    def __call__(self, inn, shipper:Shipper[tuple_t]):
+        pass
+    def __other_method(self):
+        pass
+print(operators.operator_declaration(flatmapp))
+
 #Finestre
 class stream_in_t:
     def __init__(self):

@@ -577,9 +577,9 @@ class astToCppParser(ast.NodeVisitor):
             value='this->'
         else:
             value=f"{value}."
-        if not self.array_dimensions:
+        if value!='pcppt':
             return f"{value}{node.attr}"  #FIXME not correct if use instance of other class
-        else:
+        else:#type hints custome type pcppt
             return node.attr
     def visit_Subscript(self, node):    #visit and translate to C++ Subscript node (accessing elements)
         obj = self.visit(node.value)          #the object being indexed
