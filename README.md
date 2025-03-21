@@ -21,7 +21,7 @@ Il contenuto del file Python verrà sottoposto a transpiling, applicando il deco
 È possibile importare la libreria all'interno di un programma Python. Dopo averla importata con il comando:
 `import pcppt`
 Si ha accesso al metodo `pcppt.python_cpp_transpiling(<code>)`, che permette di effettuare il transpillingi di metodi, classi e lambda function. Questo metodo restituirà il codice C++ sotto forma di stringa.
-In questo caso, non è necessario utilizzare il decoratore `@wireflow`. Inoltre, i decoratori `@param_const`, `@param_ref` e `@param_cref` sono disponibili e possono essere utilizzati.
+In questo caso, non è necessario utilizzare il decoratore `@wireflow`. Inoltre, i decoratori `@param_const`, `@param_ref` e `@param_cref` sono disponibili e possono essere utilizzati per specificare il passaggi per riferimento o come costante dei parametri di una funzione
 
 
 # Mappatura dei tipi

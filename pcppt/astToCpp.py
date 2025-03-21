@@ -4,7 +4,6 @@ import types
 from pcppt import exceptions as ex, typesMapping as tm, codeCppClass as cppc
 from pcppt import wireflowOperators as wireflow
 
-
 class astToCppParser(ast.NodeVisitor):
 
     def __init__(self, operator=wireflow.FOperatorKind.NONE): #constructor
@@ -50,9 +49,15 @@ class astToCppParser(ast.NodeVisitor):
         self.current_function_name = node.name
 
         #chose to parse function
+        toparse=True
         if not self.transplile_class and self.current_function_signature is None:
-            if not (node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
-                return False,False #to stop parsing method of a class
+            if not node.decorator_list :
+                for decorator in node.decorator_list:
+                    if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
+                        break
+                    toparse=False
+        if not toparse:
+            return False,False #to stop parsing method of a class
 
         #determine function name
         if (self.current_structure_name is not None and #outside node is not a class
@@ -64,20 +69,20 @@ class astToCppParser(ast.NodeVisitor):
 
         #parameters and types of the function
         #list of const and reference
-        wireflow_refs=[]
-        wireflow_const=[]
+        param_refs=[]
+        param_const=[]
         for decorator in node.decorator_list:
             if isinstance(decorator, ast.Call):
-                for type_node in decorator.args:
-                    type=self.visit(type_node)
+                for name_node in decorator.args:
+                    name=self.visit(name_node)
                     if isinstance(decorator.func,ast.Attribute):
                         func = decorator.func.attr
                     else:
                         func = self.visit(decorator.func)
-                    if (func == 'param_const' or func == 'param_cref') and type not in wireflow_const:
-                        wireflow_const.append(type)
-                    if (func == 'param_ref' or func == 'param_cref') and type not in wireflow_refs:
-                        wireflow_refs.append(type)
+                    if (func == 'param_const' or func == 'param_cref') and name not in param_const:
+                        param_const.append(name)
+                    if (func == 'param_ref' or func == 'param_cref'):
+                        param_refs.append(name)
         for i in range(1 if self.current_structure_name is not None else 0, len(node.args.args)):   #start from 1 for methods to skip 'self'
             param_name = node.args.args[i].arg
             if node.args.args[i].annotation is None:    #type of parameter is not defined
@@ -86,7 +91,7 @@ class astToCppParser(ast.NodeVisitor):
                 param_type=''
                 #parameter const
                 annotation=str(self.visit(node.args.args[i].annotation))
-                if annotation in wireflow_const:
+                if param_name in param_const:
                     param_type += f"const "
 
                 #array parameter
@@ -105,8 +110,9 @@ class astToCppParser(ast.NodeVisitor):
                     param_type+=tm.get_type(annotation)
 
                 #parameter reference
-                if annotation in wireflow_refs:
-                    param_type+=' &'
+                while(param_name in param_refs):
+                    param_type+='&'
+                    param_refs.remove(param_name)
             signature += f"{param_type} {param_name}"
 
             # default value for parameter
@@ -202,10 +208,10 @@ class astToCppParser(ast.NodeVisitor):
         self.public = {'attributes': [], 'methods': {}}
 
         self.tempAttributesDeclaretions = {}
-
-
-        if node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow":
-            self.transplile_class = True
+        if node.decorator_list:
+            for decorator in node.decorator_list:
+                if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
+                    self.transplile_class = True
 
         self.current_structure_name = node.name #save name of class for cppc.classes dictionary and scope
         self.indent_level += 1
@@ -355,7 +361,7 @@ class astToCppParser(ast.NodeVisitor):
         annAssign_code=self.indent()
         if isinstance(node.annotation, ast.List) and(var_type in tm.pythonTypes_CppTypes or var_type in cppc.cppCodeObject.classes): #array of a single type
             annAssign_code+= f"{var_type} {var_name}[{dim_array}] = " +'{'+value +"};\n"
-            var_type=f"[{var_type}]"
+            var_type=f"{var_type}*"
         else:# f"{var_type}" not in tm.pythonTypes_CppTypesArrays:
             if not isinstance(node.annotation,ast.Name) and var_type=='char':    #array string, const
                 annAssign_code += f"{var_type}* {var_name}[{dim_array}]" + (f" = {{{value}}}" if value != '' else "") + ";\n"
@@ -392,7 +398,10 @@ class astToCppParser(ast.NodeVisitor):
                 type_target='float'
         else:
             type_target=types[0]
-        type_target=tm.pythonTypes_CppTypes.get(type_target)
+        if tm.pythonTypes_CppTypes.get(type_target) is None:
+            type_target=tm.get_type(str(type(type_target).__name__))
+        else:
+            type_target=tm.pythonTypes_CppTypes.get(type_target)
         loop_code = self.indent()
         if isinstance(node.iter, ast.Call) and isinstance(node.iter.func, ast.Name) and node.iter.func.id == 'range':   #range cicle
             if len(iter_values) == 1:                                                                                    #range(stop)
@@ -568,8 +577,10 @@ class astToCppParser(ast.NodeVisitor):
             value='this->'
         else:
             value=f"{value}."
-        return f"{value}{node.attr}"  #FIXME not correct if use instance of other class
-
+        if value!='pcppt':
+            return f"{value}{node.attr}"  #FIXME not correct if use instance of other class
+        else:#type hints custome type pcppt
+            return node.attr
     def visit_Subscript(self, node):    #visit and translate to C++ Subscript node (accessing elements)
         obj = self.visit(node.value)          #the object being indexed
         index = self.visit(node.slice)    #the index to access
