@@ -197,4 +197,4 @@ def operator_declaration(class_code): #Parses the AST of the given class and gen
     pipeOperators[astCode.body[0].name] = tempPipeOperator
 
     # Return the final operator declaration and transpiled AST code
-    return f"{operator_declaration}\n{pcppt.ast_cpp_transpiling(astCode)}"
+    return f"{operator_declaration}\n{pcppt.ast_cpp_transpiling(astCode,FOperatorKind)}"

@@ -147,7 +147,7 @@ def get_var_type_scope(in_function, in_class, var=None):    #provide type of var
         return [globalScope][var]
     return None #var is not delcare in this scope
 
-def add_to_scope(in_function, in_class, var=None, type_var=None, name_function=None): #add variable(var) to scope
+def add_to_scope(in_function, in_class, var=None, type_var=None): #add variable(var) to scope
     if in_function is not None and in_class is None:    #var is in a function
         if in_function not in scope:    #add function to scope if not already in
             scope[in_function]={}

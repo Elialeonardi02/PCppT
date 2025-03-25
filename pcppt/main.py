@@ -6,14 +6,14 @@ import sys
 import subprocess
 import inspect
 
-from pcppt.wireflowOperators import FOperatorKind
+from DSL.wireflowOperators import FOperatorKind
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-def generator_cpp_code(astG, operator=FOperatorKind.NONE):
+def generator_cpp_code(astG, custom_visit={}):
     print(ast.dump(astG, indent=4))  # TODO remove, use for debugging
-    astToCpp.generateAstToCppCode(astG, operator)
+    astToCpp.generateAstToCppCode(astG, custom_visit)
     codeCpp = cppc.cppCodeObject.globalCode
     if cppc.cppCodeObject.classes != {}:
         for cls in cppc.cppCodeObject.classes:
@@ -65,11 +65,11 @@ def main():
 
 if __name__ == "__main__":  #transpiling file
     main()
-def python_cpp_transpiling(func,operator=FOperatorKind.NONE):   #transpilling string code
-    return generator_cpp_code(get_ast_from_code(func), operator)
+def python_cpp_transpiling(func,custom_visit={}):   #transpilling string code
+    return generator_cpp_code(get_ast_from_code(func),custom_visit)
 
-def ast_cpp_transpiling(astG): #direct transpiling ast to cpp
-    return generator_cpp_code(astG)
+def ast_cpp_transpiling(astG,custom_visit={}): #direct transpiling ast to cpp
+    return generator_cpp_code(astG,custom_visit)
 
 def get_ast_from_code(code):
     code=inspect.getsource(code)

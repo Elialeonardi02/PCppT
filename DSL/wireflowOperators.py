@@ -13,9 +13,15 @@ def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
         self.current_function_name = node.name
 
         #chose to parse function
+        toparse=True
         if not self.transplile_class and self.current_function_signature is None:
-            if not (node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
-                return False,False #to stop parsing method of a class
+            if not node.decorator_list :
+                for decorator in node.decorator_list:
+                    if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
+                        break
+                    toparse=False
+        if not toparse:
+            return False,False #to stop parsing method of a class
 
         #determine function name
         if (self.current_structure_name is not None and #outside node is not a class
@@ -190,9 +196,10 @@ def visit_ClassDef(self, node):  # visit e translate in C++ ClassDef node
 
     self.tempAttributesDeclaretions = {}
 
-
-    if node.decorator_list and str(self.visit(node.decorator_list[0])).lower().replace(" ", "") == "wireflow":
-        self.transplile_class = True
+    if node.decorator_list:
+        for decorator in node.decorator_list:
+            if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
+                self.transplile_class = True
 
     self.current_structure_name = node.name #save name of class for cppc.classes dictionary and scope
     self.indent_level += 1
