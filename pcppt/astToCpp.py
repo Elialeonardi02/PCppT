@@ -2,11 +2,12 @@ import ast
 import types
 
 from pcppt import exceptions as ex, typesMapping as tm, codeCppClass as cppc
-from pcppt import wireflowOperators as wireflow
+from DSL import wireflowOperators as wireflow
+
 
 class astToCppParser(ast.NodeVisitor):
 
-    def __init__(self, operator=wireflow.FOperatorKind.NONE): #constructor
+    def __init__(self, custom_visit={}): #constructor
         self.indent_level = 0                       #indent level of cpp code
         self.current_structure_name = None          #contain name of the exploring ClassDef node,
         self.current_function_name = None           #contain name of the exploring FunctionDef node,use for check recursive function
@@ -26,8 +27,8 @@ class astToCppParser(ast.NodeVisitor):
         self.transplile_class=False
 
         #use to identify correct operator
-        self.operator=operator
-        if self.operator!=wireflow.FOperatorKind.NONE:
+        if custom_visit!= {}:
+            self.operator=custom_visit
             self.visit_ClassDef = types.MethodType(wireflow.visit_ClassDef, self)
             self.visit_FunctionDef = types.MethodType(wireflow.visit_FunctionDef, self)
 
@@ -657,5 +658,5 @@ def generateAstToCppCode(python_ast,operator=wireflow.FOperatorKind.NONE):
         astToCppParser(operator).visit(python_ast)
         print(tm.scope) #TODO remove, use for debugging
         print(tm.callableFunctions) #TODO remove, use for debugging
-    except (ex.UnsupportedCommandError, ex.RecursiveFunctionError) as e:
+    except (Exception) as e:
         raise

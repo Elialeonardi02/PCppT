@@ -55,27 +55,28 @@ class filterOperator:
 
 
 #operators.operator_declaration(filterOperator)
-
+'''
 
 @operators.FOperator()
 class mapOperator:
+    a:int
     def __call__(self, input:tuple_t, output:result_t):
-        pass
+        self.a =1
     def __other_method(self):
         pass
 
-operators.operator_declaration(mapOperator)
-'''
+print(operators.operator_declaration(mapOperator))
+
 @operators.FOperator(gather_policy=operators.FGatherPolicy.RR)
 class flatmap:
-    def __call__(self, inn:tuple_t, shipper:Shipper[tuple_t]):
+    def __call__(self, inn, shipper:Shipper[tuple_t]):
         pass
     def __other_method(self):
         pass
 print(operators.operator_declaration(flatmap))
 
-'''
-@operators.FOperator(gather_policy='LB')
+
+@operators.FOperator()
 class flatmapp:
     def __call__(self, inn, shipper:Shipper[tuple_t]):
         pass
@@ -101,7 +102,7 @@ class key_extractor_t:
 pcppt.python_cpp_transpiling(stream_in_t)
 pcppt.python_cpp_transpiling(stream_out_t)
 pcppt.python_cpp_transpiling(key_extractor_t)
-
+'''
 @windows.FWindowCount(size=6)
 class CountTumbling:
     def window(self, inn: stream_in_t, out: result_t):
@@ -150,11 +151,10 @@ class TimeSliding:
         pass
 
 print(windows.windows_declaration(TimeSliding))
-
+'''
 @windows.FWindowTime(max_key=8, size=6, slide=2, lateness=3)
 class KeyedTimeSliding:
     def window(self, inn: stream_in_t, out: result_t, key: key_extractor_t):
         pass
 
 print(windows.windows_declaration(KeyedTimeSliding))
-'''
