@@ -1,4 +1,4 @@
-@wireflow
+@transpile
 def breakCycle():
     limit = 50
     total = 0

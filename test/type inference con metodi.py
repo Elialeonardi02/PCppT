@@ -1,4 +1,4 @@
-@wireflow
+@transpile
 class testC:
     c:int
     def rint(self):
@@ -7,11 +7,11 @@ class testC:
         self.c=0
         self.a=self.c
         c=self.rint()
-@wireflow
+@transpile
 def testa():
     return 1
 
-@wireflow
+@transpile
 def testF(t:testC):
     a=t
     t.c=1

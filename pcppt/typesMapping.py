@@ -129,11 +129,34 @@ def get_type(ptype):    #provide type of a var in scope
         if ptype[1:-1] in pythonTypes_CppTypes: #is array of type
             return pythonTypes_CppTypes.get(ptype[1:-1])
 
-        pattern = r'^([a-zA-Z_][a-zA-Z0-9_]*)\[(.+)\]$' #generics
+        pattern = r'^([a-zA-Z_][a-zA-Z0-9_]*)\[(.*)\]$'
         match = re.match(pattern, ptype)
-        if match:
-            return f"{match.group(1)}<{match.group(2)}>"
 
+        if match:
+            base_type = match.group(1)
+            types_str = match.group(2)
+
+            types = []
+            current_type = ''
+            level = 0
+
+            for char in types_str:
+                if char == ',' and level == 0:
+                    types.append(current_type.strip())
+                    current_type = ''
+                elif char == '[':
+                    level += 1
+                    current_type += char
+                elif char == ']':
+                    level -= 1
+                    current_type += char
+                else:
+                    current_type += char
+
+            if current_type:
+                types.append(current_type.strip())
+
+            return f"{base_type}<{', '.join(types)}>"
         raise ex.TypeNotExistError(ptype)
 
 def get_var_type_scope(in_function, in_class, var=None):    #provide type of var in scope

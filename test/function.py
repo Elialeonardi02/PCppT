@@ -1,19 +1,19 @@
-@wireflow
+@transpile
 def function(a:int)->int:
     b:int=10
     return a*b
 def voidFunction(a:int):
     b:float=10.2
     c=a*b
-@wireflow
+@transpile
 def returnTypeInferenceFunction(a:int):
     b:float=10.2
     return a*b
-@wireflow
+@transpile
 def returnTypeInferenceFunction(a)->int:
     b:float=10.2
 
-@wireflow
+@transpile
 def voidFunction(a:int):
     b:float=10.2
     c=a*b

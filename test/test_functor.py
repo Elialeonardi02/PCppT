@@ -1,4 +1,4 @@
-@wireflow
+@transpile
 class tuple_t:
     key : uint32  # maybe `uint` is better, but it is less C++ like
     value : float32     # or simply `float`
@@ -14,7 +14,7 @@ class tuple_t:
 
 tuple_key_extractor = lambda t: t+1
 
-@wireflow
+@transpile
 class result_t:
     sum : float32    # or simply `float`
     count : uint32     # maybe `unsigned int` is better, but it is less C++ like
@@ -33,7 +33,7 @@ class result_t:
         return self.sum / self.count
 
     # this is optional and it can be done after more important things are done
-@wireflow
+@transpile
 class window_functor:
     i1:int
     c1:float32

@@ -1,6 +1,4 @@
 from typing import Generic, TypeVar
-
-
 import pcppt
 
 class shipper_t:
@@ -44,37 +42,42 @@ class Shipper(Generic[R]):
     def send(self, out):
         pass
 pcppt.python_cpp_transpiling(Shipper)
-'''
-@operators.FOperator(gather_policy='LB')
+
+@operators.FOperator(gather_policy=operators.FDispatchPolicy.KB)
 class filterOperator:
     def __call__(self, inn:tuple_t, out:result_t,flag:bool):
         pass
     def __other_method(self):
         pass
-
-
-
 #operators.operator_declaration(filterOperator)
-'''
 
 @operators.FOperator()
 class mapOperator:
     a:int
+    b:int
     def __call__(self, input:tuple_t, output:result_t):
         self.a =1
+        self.b = 2
     def __other_method(self):
         pass
 
 print(operators.operator_declaration(mapOperator))
 
-@operators.FOperator(gather_policy=operators.FGatherPolicy.RR)
-class flatmap:
-    def __call__(self, inn, shipper:Shipper[tuple_t]):
+
+
+R = TypeVar("R")
+class ParallelShipper(Generic[R]):
+    def send(self, out):
+        pass
+    def send_eos(self,out):
+        pass
+pcppt.python_cpp_transpiling(ParallelShipper)
+class ParallelFlatMap:
+    def __call__(self, input:tuple_t,  shipper:ParallelShipper[tuple_t]):
         pass
     def __other_method(self):
         pass
-print(operators.operator_declaration(flatmap))
-
+operators.operator_declaration(ParallelFlatMap)
 
 @operators.FOperator()
 class flatmapp:
@@ -154,7 +157,7 @@ print(windows.windows_declaration(TimeSliding))
 '''
 @windows.FWindowTime(max_key=8, size=6, slide=2, lateness=3)
 class KeyedTimeSliding:
-    def window(self, inn: stream_in_t, out: result_t, key: key_extractor_t):
+    def __call__(self, inn: stream_in_t, out: result_t, key: key_extractor_t):
         pass
 
 print(windows.windows_declaration(KeyedTimeSliding))

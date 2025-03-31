@@ -15,13 +15,13 @@ Lo strumento può essere utilizzato in due modalità: passando un file Python o 
 ## Sottoporre un file Python
 Per utilizzare lo strumento con un file Python, è necessario fornire il percorso del file contenente il codice sorgente Python e il percorso del file di destinazione C++ dove si vuole che venga salvato il risultato del transpiling.
 `pcppt <path_py>/<file_name.py> <path_cpp>/<file_name.cpp>`
-Il contenuto del file Python verrà sottoposto a transpiling, applicando il decoratore `@wireflow` e rispettando i vincoli imposti da esso. Il file C++ risultante potrà essere compilato utilizzando il compilatore GCC. Si raccomanda di specificare la versione di GCC utilizzata per la compilazione.
+Il contenuto del file Python verrà sottoposto a transpiling, applicando il decoratore `@transpile` e rispettando i vincoli imposti da esso. Il file C++ risultante potrà essere compilato utilizzando il compilatore GCC. Si raccomanda di specificare la versione di GCC utilizzata per la compilazione.
 
 ## Utilizzo come libreria
 È possibile importare la libreria all'interno di un programma Python. Dopo averla importata con il comando:
 `import pcppt`
 Si ha accesso al metodo `pcppt.python_cpp_transpiling(<code>)`, che permette di effettuare il transpillingi di metodi, classi e lambda function. Questo metodo restituirà il codice C++ sotto forma di stringa.
-In questo caso, non è necessario utilizzare il decoratore `@wireflow`. Inoltre, i decoratori `@param_const`, `@param_ref` e `@param_cref` sono disponibili e possono essere utilizzati per specificare il passaggi per riferimento o come costante dei parametri di una funzione
+In questo caso, non è necessario utilizzare il decoratore `@transpile`. Inoltre, i decoratori `@param_const`, `@param_ref` e `@param_cref` sono disponibili e possono essere utilizzati per specificare il passaggi per riferimento o come costante dei parametri di una funzione
 
 
 # Mappatura dei tipi
@@ -110,7 +110,7 @@ In questo caso l’assegnazione viene trattata come una dichiarazione di variabi
 - `<value>`: opzionale, valore o espressione  di inizializzazione della variabile.
 
 ```python
-@wireflow
+@transpile
 def test():
     a:int
     b:float64=0.0
@@ -135,7 +135,7 @@ Con questa sintassi, è possibile istanziare nuovi array. Il transpiler effettua
 - `<value>`:`[<expr1,…,exprN>]`: valori inizializzazione array, è possibile omettere tale campo, ma in questo caso il transpiler produrrebbe una’array vuoto di dimensione 0 che risulterebbe inutilizzabile.
 
 ```python
-@wireflow
+@transpile
 def test():
     #a:[int] #istruzione errata
     b:[float]=[1,2,3,4]
@@ -170,7 +170,7 @@ In base all’input dell’utente sono previsti i seguenti comportamenti:
 - `value` è vuoto: si istanzia un array vuoto nel quale, successivamente, si potrà modificare il contenuto delle celle singolarmente
 
 ```python
-@wireflow
+@transpile
 def test():
     c:[int,2]=[1,2]
     d:[int,10]=[9,8]
@@ -222,7 +222,7 @@ Con le assegnazioni prive di type hints è possibile andare a modificare variabi
 Se l’array non risulta presente nello scope, il transpiler lancerà l’eccezione `IsNotDefinedError`. Gli altri controlli sulla correttezza dell’istituzione vengono delegati  al compilatore c++
 
 ```python
-@wireflow
+@transpile
 def test():
     g:float=1
     h:float64=0.2
@@ -265,7 +265,7 @@ Non è possibile utilizzare i type hints sulle assegnazioni combinate
 </aside>
 
 ```python
-@wireflow
+@transpile
 def test():
     g=1
     h=0.2
@@ -297,7 +297,7 @@ void test()
 ```python
 x = lambda t: t+1
 
-@wireflow
+@transpile
 def test():
     x1 = lambda t: t + 1
 ```
@@ -317,7 +317,7 @@ void test()
 > In ognuno dei casi precedenti viene applicata la destrutturazione su più variabili, verrà generato un numero di istruzioni pari al numero di variabili presenti nel targets
 > 
 > ```python
-> @wireflow
+> @transpile
 > def test():
 >     c1,c2,c3,c4=lambda t: t + 1
 >     d1,d2,d3=[1,2,0.4+1]
@@ -348,9 +348,9 @@ void test()
 
 ## Classi
 
-L’inserimento delle classi viene supportato, aggiungendo alcune caratteristiche alla sintassi. Nel caso in cui si effettui il transpiling con di un intero file, l’utente può applicare  il decorator `@wireflow` alla classe, in questo modo applicherà il transpiler a tutta la classe ,oppure , può applicare il decorator `@wireflow` ad i metodi su cui vuole effettuare transpiling, in questo modo verranno sottoposti a transpiling i metodi coinvolti ed esclusivamente gli attributi che utilizzano.
+L’inserimento delle classi viene supportato, aggiungendo alcune caratteristiche alla sintassi. Nel caso in cui si effettui il transpiling con di un intero file, l’utente può applicare  il decorator `@transpile` alla classe, in questo modo applicherà il transpiler a tutta la classe ,oppure , può applicare il decorator `@transpile` ad i metodi su cui vuole effettuare transpiling, in questo modo verranno sottoposti a transpiling i metodi coinvolti ed esclusivamente gli attributi che utilizzano.
 
-`@wireflow`
+`@transpile`
 
 `class <class_name>:` 
 
@@ -378,14 +378,14 @@ Seguendo la specifica sintassi nei nomi è possibile definire la visibilità di 
 Il transpiling di una classe al cui interno sono presenti solo membri pubblici produrrà una struct.
 
 ```python
-@wireflow
+@transpile
 class personclass:
     __age:int
     __height:float
     def __init__(self, age:int, height:float):
         self.__age = age
         self.__height = height
-@wireflow
+@transpile
 class personstruct:
     age:int
     height:float
@@ -466,14 +466,14 @@ I metodi di una classe rispettano le stesse regole della sintassi di una funzion
 
 È possibile fornire uno o più costruttori fornendo metodi con nome `__init__`, ogni costruttore dovrà avere firma diversa.
 
-Se l’utente non fornisce alcun costruttore, oppure non sia stato coinvolto nel processo di transpiling(`@wireflow`), il transpiler genererà un costruttore di default contenente, se presenti, gli attributi utilizzati nei metodi coinvolti.
+Se l’utente non fornisce alcun costruttore, oppure non sia stato coinvolto nel processo di transpiling(`@transpile`), il transpiler genererà un costruttore di default contenente, se presenti, gli attributi utilizzati nei metodi coinvolti.
 
 ### Debugging
 
 Il transpiler genera un operator per permettere all’utente il debugging del codice, tale metodo fornirà i valori di tutti gli attributi che sono stati sottoposti al transpiling
 
 ```python
-@wireflow
+@transpile
 class personclass:
     __age:int
     __height:float
@@ -486,7 +486,7 @@ class personstruct:
     age:int
     height:float
 
-    @wireflow
+    @transpile
     def __init__(self, age:int, height:float, person:personclass):
         self.age = age
         self.height = height
@@ -495,7 +495,7 @@ class personstruct:
         self.age = 0
         self.height = 0.0
         self.personC = person
-@wireflow
+@transpile
 class window_functor:
     def __call__(self,personS:personclass):
         personS.age+=1
@@ -565,7 +565,7 @@ struct window_functor{
 
 È possibile definire funzioni, oppure, metodi di una classe, rispettando la sintassi python con l’aggiunta dei type hints, utilizzati in modo corretto.
 
-`@wireflow`
+`@transpile`
 
 `def <function_name>(<parameters>):<return_type>`
 
@@ -612,7 +612,7 @@ sia `<return_type>` che `return <expr>` sono opzionali, a seconda del loro utili
     
     
     ```python
-    @wireflow
+    @transpile
     def function(a:int)->int:
         b:int=10
         return a*b
@@ -630,12 +630,12 @@ sia `<return_type>` che `return <expr>` sono opzionali, a seconda del loro utili
     
     
     ```python
-    @wireflow
+    @transpile
     def voidFunction(a:int):
         b:float=10.2
         c=a*b
         
-    @wireflow
+    @transpile
     def returnTypeInferenceFunction(a):
         b:float=10.2
         return a*b
@@ -660,7 +660,7 @@ sia `<return_type>` che `return <expr>` sono opzionali, a seconda del loro utili
     
     
     ```python
-    @wireflow
+    @transpile
     def voidFunction(a:int):
         b:float=10.2
         c=a*b
@@ -692,7 +692,7 @@ I costrutti condizionali supportati sono: if-else, if-elif-else, if-else breve
 - il ramo alternativo `else` è opzionale.
 
 ```python
-@wireflow
+@transpile
 def ifelse():
     x = 12
     y = 20
@@ -733,7 +733,7 @@ void ifelse()
 - il ramo alternativo `else` è opzionale.
 
 ```python
-@wireflow
+@transpile
 def ifelseifelse():
     x = 45
     if x*3 > 70:
@@ -765,7 +765,7 @@ void ifelseifelse()
 `<expression_true> if <condition> else <expression_false>`
 
 ```python
-@wireflow
+@transpile
 def ifelseshort():
     x, y = 1
     x = (x *2 + y * 3) if x > y else (y * 2 + x * 3) * 2
@@ -794,7 +794,7 @@ L’utente può definire costrutti for utilizzando la sintassi `range`
     
     
     ```python
-    @wireflow
+    @transpile
     def rangeStop():
         stop = 10
         total = 0
@@ -818,7 +818,7 @@ L’utente può definire costrutti for utilizzando la sintassi `range`
     
     
     ```python
-    @wireflow
+    @transpile
     def rangeStartStop():
         start = 5
         stop = 15
@@ -846,7 +846,7 @@ L’utente può definire costrutti for utilizzando la sintassi `range`
     
     
     ```python
-    @wireflow
+    @transpile
     def rangeStartStopStep():
         start = 2
         stop = 20
@@ -892,7 +892,7 @@ La sintassi `range` è l’unica sintassi supportata per definire cicli for, le 
 - `<condition>`: espressione con risultato booleano che determina l’esecuzione o meno dell’iterazione corrente del ciclo
 
 ```python
-@wireflow
+@transpile
 def nWhile():
     limit = 15
     total = 0
@@ -920,7 +920,7 @@ void nWhile()
 Il costrutto do-while non è direttamente supportato, tuttavia, è possibile replicarne il comportamento utilizzando l’istruzione `break.`
 
 ```python
-@wireflow
+@transpile
 def doWhile():
     product = 1
     i = 1
@@ -960,7 +960,7 @@ Il transpiler supporta la traduzione di espressioni aritmetiche, booleane ed una
 `<espressione1> <op1> <espressione2> <op2> <espressione3>`
 
 ```python
-@wireflow
+@transpile
 def linkedComparison():
     x = 25
     if 10 < x < 30:
@@ -990,7 +990,7 @@ void linkedComparison()
 Può essere utilizzato per immediatamente da un costrutto for o while, passando direttamente all’istruzione successiva al ciclo
 
 ```python
-@wireflow
+@transpile
 def breakCycle():
     limit = 50
     total = 0
@@ -1025,7 +1025,7 @@ void breakCycle()
 Può essere utilizzato all’interno di un costrutto for o while  i modo da saltare l’iterazione corrente del ciclo e passare alla successiva.
 
 ```python
-@wireflow
+@transpile
 def continueCycle():
     total = 0
     for i in range(1, 21):
@@ -1057,7 +1057,7 @@ void breakCycle()
 istruzione nulla, in c++ viene rappresentata come `"\n"`;
 
 ```python
-@wireflow
+@transpile
 def passCycle():
     total = 0
     for i in range(1, 21):

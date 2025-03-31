@@ -1,4 +1,4 @@
-@wireflow
+@transpile
 def linkedComparison():
     x = 25
     if 10 < x < 30:

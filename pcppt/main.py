@@ -6,7 +6,7 @@ import sys
 import subprocess
 import inspect
 
-from DSL.wireflowOperators import FOperatorKind
+from DSL.FSPXOperator import FOperatorKind
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
@@ -75,5 +75,5 @@ def get_ast_from_code(code):
     code=inspect.getsource(code)
     astG=ast.parse(code)
     if isinstance(astG.body[0], ast.FunctionDef) or isinstance(astG.body[0], ast.ClassDef):
-        astG.body[0].decorator_list.append(ast.Name(id="wireflow", ctx=ast.Load()))
+        astG.body[0].decorator_list.append(ast.Name(id="transpile", ctx=ast.Load()))
     return astG

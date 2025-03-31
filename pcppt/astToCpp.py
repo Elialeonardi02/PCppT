@@ -2,7 +2,7 @@ import ast
 import types
 
 from pcppt import exceptions as ex, typesMapping as tm, codeCppClass as cppc
-from DSL import wireflowOperators as wireflow
+from DSL import FSPXOperator as fspx
 
 
 class astToCppParser(ast.NodeVisitor):
@@ -29,8 +29,7 @@ class astToCppParser(ast.NodeVisitor):
         #use to identify correct operator
         if custom_visit!= {}:
             self.operator=custom_visit
-            self.visit_ClassDef = types.MethodType(wireflow.visit_ClassDef, self)
-            self.visit_FunctionDef = types.MethodType(wireflow.visit_FunctionDef, self)
+            self.visit_ClassDef = types.MethodType(fspx.visit_ClassDef, self)
 
     def indent(self):   #generate an indentation string of space based on the current level of indentation to formate the code
 
@@ -46,19 +45,19 @@ class astToCppParser(ast.NodeVisitor):
         return ""
 
     def visit_FunctionDef(self, node):  #visit and translate to C++ FunctionDef node
-        # save name for checking recursive functions
-        self.current_function_name = node.name
-
         #chose to parse function
         toparse=True
         if not self.transplile_class and self.current_function_signature is None:
             if not node.decorator_list :
                 for decorator in node.decorator_list:
-                    if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
+                    if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "transpile") :   #pars only function and method with decorator "transpile"
                         break
-                    toparse=False
+                toparse=False
         if not toparse:
             return False,False #to stop parsing method of a class
+
+        # save name for checking recursive functions
+        self.current_function_name = node.name
 
         #determine function name
         if (self.current_structure_name is not None and #outside node is not a class
@@ -211,7 +210,7 @@ class astToCppParser(ast.NodeVisitor):
         self.tempAttributesDeclaretions = {}
         if node.decorator_list:
             for decorator in node.decorator_list:
-                if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "wireflow") :   #pars only function and method with decorator "wireflow"
+                if isinstance(decorator, ast.Name) and str(self.visit(decorator).lower().replace(" ", "") == "transpile") :   #pars only function and method with decorator "transpile"
                     self.transplile_class = True
 
         self.current_structure_name = node.name #save name of class for cppc.classes dictionary and scope
@@ -603,6 +602,9 @@ class astToCppParser(ast.NodeVisitor):
             elements = [f"{tm.corret_value(self.visit(el))}" for el in node.elts]
             return f"{', '.join(elements)}"
 
+    def visit_Tuple(self, node):   #visit and translate to C++ Tuple node
+        return ", ".join(self.visit(elt) for elt in node.elts)
+
     def visit_Dict(self, node):
         dictionary = {}
         for k, v in zip(node.keys, node.values):
@@ -652,10 +654,10 @@ class astToCppParser(ast.NodeVisitor):
             self.private['methods'][signature] = method_body
         elif function_attribute_name is not None:  # <name> -> public
             self.public['methods'][signature] = method_body
-def generateAstToCppCode(python_ast,operator=wireflow.FOperatorKind.NONE):
+def generateAstToCppCode(python_ast,custom_visit={}):
     try:
         cppc.cppCodeObject=cppc.code()
-        astToCppParser(operator).visit(python_ast)
+        astToCppParser(custom_visit).visit(python_ast)
         print(tm.scope) #TODO remove, use for debugging
         print(tm.callableFunctions) #TODO remove, use for debugging
     except (Exception) as e:

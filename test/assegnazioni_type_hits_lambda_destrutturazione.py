@@ -3,7 +3,7 @@
 
 x = lambda t: t+1
 
-@wireflow
+@transpile
 def test():
     #Assegnazione variabile con type hits
     a1: int

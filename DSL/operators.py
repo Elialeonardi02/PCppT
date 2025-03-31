@@ -103,7 +103,6 @@ def operator_declaration(class_code): #Parses the AST of the given class and gen
     # Store the current operator's parameters
     pipeOperators[astCode.body[0].name] = tempPipeOperator
 
-    functionOperatorName = 'none'  # Default operator type
     fOperatorKind = FOperatorKind.NONE  # Default kind
 
     # Determine the type of operator based on the number of parameters
@@ -112,16 +111,13 @@ def operator_declaration(class_code): #Parses the AST of the given class and gen
             if operatorParameters[parameter][:7] == 'Shipper':
                 if fOperatorKind == FOperatorKind.NONE:
                     fOperatorKind = FOperatorKind.FLATMAP
-                    functionOperatorName = 'FlatMap'
                     operator_declaration += f"          FOperatorKind.FLATMAP,\n"
             if operatorParameters[parameter][:15] == 'ParallelShipper':
                 if fOperatorKind == FOperatorKind.NONE:
                     fOperatorKind = FOperatorKind.PARALLELFLATMAP
-                    functionOperatorName = 'ParallelFlatMap'
                     operator_declaration += f"          FOperatorKind.PARALLELFLATMAP,\n"
         if fOperatorKind == FOperatorKind.NONE:
             fOperatorKind = FOperatorKind.MAP
-            functionOperatorName = 'Map'
             operator_declaration += f"          FOperatorKind.MAP,\n"
 
     if len(operatorParameters) == 3:  # Filter operator
@@ -135,9 +131,6 @@ def operator_declaration(class_code): #Parses the AST of the given class and gen
             fOperatorKind = FOperatorKind.FILTER
         operator_declaration += f"          FOperatorKind.FILTER,\n"
 
-    # If no valid operator type was determined, raise an exception
-    if functionOperatorName == 'none':
-        raise ex.SignatureCallNotValid(astCode.body[0].name)
 
     # Append gather and dispatch policies to the declaration
     if 'gather_policy' in operator_parameters:
@@ -149,11 +142,11 @@ def operator_declaration(class_code): #Parses the AST of the given class and gen
     else:
         operator_declaration += f"          FDispatchPolicy.LB,\n"
 
-    operator_declaration += f"          compute_function={functionOperatorName})"
+    operator_declaration += f"          compute_function=operator)"
 
-    # Rename __call__ method to match the determined operator function name
+    # Rename __call__ method with operator
     parameter = list(operatorParameters.keys())
-    astOperatorMethod.name = functionOperatorName
+    astOperatorMethod.name = 'operator'
 
 
     # Add decorators for function parameters based on the operator type
@@ -170,27 +163,6 @@ def operator_declaration(class_code): #Parses the AST of the given class and gen
             func=ast.Name(id='param_ref', ctx=ast.Load()),
             args=[ast.Name(id=f"{parameter[2]}", ctx=ast.Load())],
             keywords=[]))
-    '''
-    if fOperatorKind is FOperatorKind.MAP:
-        astOperatorMethod.decorator_list.append(ast.Call(
-            func=ast.Name(id='param_cref', ctx=ast.Load()),
-            args=[ast.Name(id=f"{parameter[0]}", ctx=ast.Load())],
-            keywords=[]))
-        astOperatorMethod.decorator_list.append(ast.Call(
-            func=ast.Name(id='param_ref', ctx=ast.Load()),
-            args=[ast.Name(id=f"{parameter[1]}", ctx=ast.Load())],
-            keywords=[]))
-
-    if fOperatorKind is FOperatorKind.PARALLELFLATMAP or fOperatorKind is FOperatorKind.FLATMAP:
-        astOperatorMethod.decorator_list.append(ast.Call(
-            func=ast.Name(id='param_cref', ctx=ast.Load()),
-            args=[ast.Name(id=f"{parameter[0]}", ctx=ast.Load())],
-            keywords=[]))
-        astOperatorMethod.decorator_list.append(ast.Call(
-            func=ast.Name(id='param_ref', ctx=ast.Load()),
-            args=[ast.Name(id=f"{parameter[1]}", ctx=ast.Load())],
-            keywords=[]))
-    '''
     # Append operator parameters to the pipeline
     for parameter in operatorParameters:
         tempPipeOperator.append(operatorParameters[parameter])

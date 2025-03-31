@@ -1,4 +1,4 @@
-@wireflow
+@transpile
 class personclass:
     age:int
     __height:float
@@ -13,7 +13,7 @@ class personstruct:
     age:int
     height:float
 
-    @wireflow
+    @transpile
     def __init__(self, age:int, height:float, person:personclass):
         self.age = age
         self.height = height
@@ -22,7 +22,7 @@ class personstruct:
         self.age = 0
         self.height = 0.0
         self.personC = person
-@wireflow
+@transpile
 class window_functor:
     def __call__(self,personS:personclass):
         personS.age+=1

@@ -1,4 +1,4 @@
-@wireflow
+@transpile
 def nWhile():
     limit = 15
     total = 0
@@ -6,7 +6,7 @@ def nWhile():
     while i <= limit:
         total += i * 3
         i += 2
-@wireflow
+@transpile
 def doWhile():
     product = 1
     i = 1

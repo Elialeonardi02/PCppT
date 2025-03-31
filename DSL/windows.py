@@ -1,10 +1,4 @@
 '''
-Ciao Elia, mi sembra un buon lavoro! Per evitare di usare keywords che Python poteebbe interpretare male e dare warning possiamo pre-pendere la lettera F a tutti gli operatori (Map diventa FMap, Filter diventa FFilter, etc.)
-Per le finestre potremmo semplificare la DSL avendone solo due tipi: FWindowCount e FWindowTime. Il Per capire se sono di tipo Tumbling o Slide, va verificato se nei parametri del decorator è presente lo slide.
-Per differenziare tra Keyed e non, va verificato se esiste il parametro max_key.
-In generale le funzioni degli operatori dovrebbero essere tutte __call__(self, ...) e ovviamente dentro le classi possono esserci altre funzioni ausiliarie.
-Cosa ne pensi?
-
 Count
 - CountTumbling(SIZE)
 - KeyedCountTumbling(MAX_KEY, SIZE)
@@ -21,8 +15,8 @@ Time
 import ast
 
 import pcppt
+from DSL import exceptions as ex
 
-pipeOperators={}
 
 def FWindowCount(size=None, max_key=None, slide=None ):
     def decorator(cls):
@@ -34,7 +28,7 @@ def FWindowCount(size=None, max_key=None, slide=None ):
         return cls
     return decorator
 
-def FWindowTime(size=None, max_key=None, slide=None, lateness=None):
+def FWindowTime(size=None, max_key=None, slide=None, lateness=0):
     def decorator(cls):
         cls._operator_params = {
             'size': size,
@@ -56,9 +50,14 @@ def windows_declaration(window_code):
                     windowCountparameters[parameter.arg.lower()]=parameter.value.value
                if parameters.func.attr=='FWindowTime':
                    windowTimeParameters[parameter.arg.lower()]=parameter.value.value
+    astOperatorMethod = None
     for method in astCode.body[0].body: #method call AST
-        if isinstance(method, ast.FunctionDef) and method.name=='window':
-            astOperatorMethod=method
+        if isinstance(method, ast.FunctionDef) and method.name == '__call__':
+            if astOperatorMethod is None:
+                astOperatorMethod = method
+            else:
+                raise ex.CallMethodException(astCode.body[0].name)  # Only one __call__ method allowed
+
     windowParameters={} #parameter:type
     for parameter in astOperatorMethod.args.args:
         if parameter.arg!='self':
@@ -66,7 +65,8 @@ def windows_declaration(window_code):
                 windowParameters[parameter.arg]=parameter.annotation.id
             elif isinstance(parameter.annotation, ast.Subscript):
                 windowParameters[parameter.arg]=f"{parameter.annotation.value.id}[{parameter.annotation.slice.id}]"
-    print(ast.dump(astOperatorMethod, indent=4))
+
+    astOperatorMethod.name = 'operator'
     parameter= list(windowParameters.keys())
     if windowCountparameters!={}:#FWindowCount
         if (('size' in windowCountparameters and 'slide' in windowCountparameters) or #countSliding
