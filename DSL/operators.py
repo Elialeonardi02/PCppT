@@ -142,7 +142,7 @@ def operator_declaration(class_code): #Parses the AST of the given class and gen
     else:
         operator_declaration += f"          FDispatchPolicy.LB,\n"
 
-    operator_declaration += f"          compute_function=operator)"
+    operator_declaration += f"          functor={astCode.body[0].name})"
 
     # Rename __call__ method with operator
     parameter = list(operatorParameters.keys())
