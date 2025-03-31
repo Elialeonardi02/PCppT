@@ -26,9 +26,6 @@ class astToCppParser(ast.NodeVisitor):
         self.transplile_class=False
 
         #use to identify correct operator
-        if custom_visit!= {}:
-            self.operator=custom_visit
-            self.visit_ClassDef = types.MethodType(fspx.visit_ClassDef, self)
 
     def indent(self):   #generate an indentation string of space based on the current level of indentation to formate the code
 
