@@ -2,7 +2,6 @@ import ast
 import types
 
 from pcppt import exceptions as ex, typesMapping as tm, codeCppClass as cppc
-from DSL import FSPXOperator as fspx
 
 
 class astToCppParser(ast.NodeVisitor):

@@ -10,9 +10,3 @@ ty(auto a)
   }
 
 };
-void foo(ty a)
-{
-  ty<int, int> b;
-
-}
-
